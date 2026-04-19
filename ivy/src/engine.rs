@@ -35,26 +35,62 @@ pub fn optimize(
 
 #[derive(Default, Debug)]
 pub struct Engine {
-  net_lookup: HashMap<NameId, NetId>,
+  /// All nets under reduction. All nodes are stored together, so each net only
+  /// stores the set of nodes it contains.
   nets: IdxVec<NetId, Net>,
+  net_lookup: HashMap<NameId, NetId>,
+
+  /// All nodes from all nets under reduction. Each node identifies the `NetId`
+  /// it is a part of.
   nodes: IdxSlab<NodeId, Node>,
 
+  /// The number of `Node.ports` entries which are `None`. When this is zero,
+  /// the net is fully connected. When this is non-zero, a rewrite is ongoing.
   holes: usize,
+  /// Nodes which are scheduled to be removed by `finish_net`, once all of their
+  /// ports have been relinked. When this is non-empty, a rewrite is ongoing.
   dead_nodes: Vec<NodeId>,
 
+  /// A list of nodes that may be dirty. Some entries may be invalidated, so
+  /// whenever an element is read from here, it must be checked that it still
+  /// corresponds to a dirty node.
   maybe_dirty: Vec<NodeId>,
+  /// The number of invalidated entries in `maybe_dirty`. If this ever goes
+  /// above half the capacity of `maybe_dirty`, `tighten_dirty` will be called
+  /// to filter out all invalidated entries. This means that at most half of the
+  /// space of `maybe_dirty` is wasted on invalidated entries, whilst making
+  /// invalidating a node O(1) amortized.
   not_dirty: usize,
 }
 
 #[derive(Debug)]
 pub struct Net {
+  /// The name of this net.
   name: NameId,
+
+  /// Every net has some set of free ports. If these free ports were
+  /// disconnected, it would greatly complicate all of the graph rewriting
+  /// logic. Thus, instead, each net has a 'free node', whose ports are
+  /// connected to the free ports of the net.
   free: NodeId,
 
+  /// A list of nodes which may be in this net. Some entries may be invalidated,
+  /// so whenever an element is read from here, it must be checked that it still
+  /// corresponds to a node in this net.
   maybe_nodes: Vec<NodeId>,
+  /// The number of invalidated entries in `maybe_nodes`. If this ever goes
+  /// above half the capacity of `maybe_nodes`, `tighten_net` will be called to
+  /// filter out all invalidated entries. This means that at most half of the
+  /// space of `maybe_net` is wasted on invalidated entries, whilst making
+  /// invalidating a node O(1) amortized.
   not_nodes: usize,
 
+  /// The number of nodes in this net that are dirty or waiting on another net
+  /// to finish reducing. When this is zero, the net has been fully reduced.
   pending: usize,
+  /// A list of nodes from other nets that are waiting on this net to finish
+  /// reduction. When this net's `pending` becomes zero, all awaiting nodes will
+  /// be marked dirty.
   awaiting: Vec<(NodeId, NetId)>,
 }
 
@@ -66,7 +102,25 @@ pub struct Node {
   ports: IdxVec<PortIndex, Option<Port>>,
 }
 
+/// A reference to a port in the net. This does not convey ownership, so it
+/// cannot be e.g. linked to other ports, but it can be used to traverse and
+/// query the net.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct PortRef {
+  pub node: NodeId,
+  pub index: PortIndex,
+}
+
+impl PortRef {
+  pub fn is_principal(self) -> bool {
+    self.index.is_principal()
+  }
+}
+
+/// An owned port in the net. This port must get linked to another port;
+/// dropping it is a logic error.
 #[derive(Debug)]
+#[must_use]
 pub struct Port(PortRef);
 
 impl Port {
@@ -80,18 +134,6 @@ impl Deref for Port {
 
   fn deref(&self) -> &Self::Target {
     &self.0
-  }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct PortRef {
-  pub node: NodeId,
-  pub index: PortIndex,
-}
-
-impl PortRef {
-  pub fn is_principal(self) -> bool {
-    self.index.is_principal()
   }
 }
 
@@ -141,7 +183,7 @@ impl Engine {
     let a = take(a);
 
     if *a == *b {
-      self._other_port(*b).take().unwrap();
+      _ = self._other_port(*b).take().unwrap();
       self.holes += 1;
       return;
     }
@@ -193,7 +235,7 @@ impl Engine {
     net: NetId,
     name: Name,
     len: usize,
-  ) -> impl Iterator<Item = Port> + use<> {
+  ) -> impl use<> + ExactSizeIterator<Item = Port> {
     self._insert_node(net, name, len).1
   }
 
@@ -545,7 +587,10 @@ impl Engine {
 pub struct Rules<'a> {
   interaction: HashMap<
     (PathId, PathId),
-    Vec<(bool, Rc<dyn 'a + Fn(&mut Engine, &mut Table, NetId, NodeId, NodeId) -> bool>)>,
+    Vec<(
+      /* flipped */ bool,
+      Rc<dyn 'a + Fn(&mut Engine, &mut Table, NetId, NodeId, NodeId) -> bool>,
+    )>,
   >,
   rewrite: HashMap<PathId, Vec<Rc<dyn 'a + Fn(&mut Engine, &mut Table, NetId, NodeId) -> bool>>>,
 }
