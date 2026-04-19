@@ -357,8 +357,8 @@ impl Engine {
     self.nets[net_id].awaiting = awaiting;
   }
 
-  pub fn get_net(&self, name: NameId) -> NetId {
-    self.net_lookup[&name]
+  pub fn get_net(&self, name: NameId) -> Option<NetId> {
+    self.net_lookup.get(&name).copied()
   }
 
   pub fn await_net(&mut self, net: NetId, node: NodeId) -> bool {
@@ -485,20 +485,11 @@ impl Engine {
     &mut self,
     table: &mut Table,
     nets: &HashMap<NameId, FlatNet>,
-    reduce: impl Fn(NameId) -> bool,
+    filter: impl Fn(NameId) -> bool,
   ) {
-    let (mut reduce, mut no_reduce) =
-      nets.keys().copied().partition::<Vec<_>, _>(|&name| reduce(name));
-    reduce.sort();
-    no_reduce.sort();
-    for name in no_reduce {
-      self.add_flat_net(table, name, &nets[&name]);
-    }
-    self.maybe_dirty.clear();
-    self.not_dirty = 0;
-    self.nets.values_mut().for_each(|n| n.pending = 0);
-    self.nodes.iter_mut().for_each(|(_, n)| n.dirty = false);
-    for name in reduce {
+    let mut names = nets.keys().copied().filter(|&n| filter(n)).collect::<Vec<_>>();
+    names.sort();
+    for name in names {
       self.add_flat_net(table, name, &nets[&name]);
     }
   }

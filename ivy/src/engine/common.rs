@@ -13,7 +13,7 @@ pub fn graft<'r>(path: PathId, lazy: bool) -> impl Register<Rules<'r>> {
       return false;
     }
     let graft_name = engine.name(node).children[0];
-    let graft_net = engine.get_net(graft_name);
+    let Some(graft_net) = engine.get_net(graft_name) else { return false };
     if !engine.await_net(graft_net, node) {
       return false;
     }
