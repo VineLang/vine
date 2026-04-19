@@ -3,11 +3,11 @@
   "patterns": [
     { "include": "#line-comment" },
     { "include": "#block-comment" },
-    { "include": "#global" },
-    { "include": "#comb" },
-    { "include": "#var" },
-    { "include": "#num" },
-    { "include": "#ext-fn" }
+    { "include": "#path" },
+    { "include": "#wire" },
+    { "include": "#free" },
+    { "include": "#payload" },
+    { "include": "#punctuation" }
   ],
   "scopeName": "source.ivy",
   "repository": {
@@ -21,43 +21,36 @@
       "name": "comment.block.ivy",
       "patterns": [{ "include": "#multi-comment" }]
     },
-    "num": {
-      "match": "\\d[\\d\\w]*|[+-][\\d\\w.+\\-]+",
-      "name": "constant.numeric.ivy"
-    },
-    "tag": {
-      "match": "(?:[0-9]+|0[bB][01]+|0[xX][0-9a-fA-F]*)",
-      "name": "entity.name.tag.ivy"
-    },
-    "operator": {
-      "match": "<([+*/%~&|^-]|<[<=]?|>[>=]?|[=!]=)",
-      "captures": {
-        "1": {
-          "name": "keyword.operator.ivy"
-        }
-      }
-    },
-    "global": {
-      "match": "(?:::\\p{ID_Continue}+)+",
-      "name": "entity.name.function.ivy"
-    },
-    "comb": {
-      "match": "\\p{ID_Start}\\p{ID_Continue}*(?=\\s*\\()",
-      "name": "keyword.language.ivy"
-    },
-    "var": {
-      "match": "\\p{ID_Start}\\p{ID_Continue}*",
+    "wire": {
+      "match": "\\p{ID_Continue}+",
       "name": "variable.ivy"
     },
-    "ext-fn": {
-      "match": "@\\p{ID_Start}\\p{ID_Continue}*\\$?|\\?",
-      "name": "variable.language.ext-fn.ivy"
+    "path": {
+      "patterns": [
+        {
+          "match": "\\p{Id_Continue}+:[:\\p{ID_Continue}]*",
+          "name": "entity.name.function.ivy"
+        },
+        {
+          "match": ":[:\\p{ID_Continue}]+",
+          "name": "string.ivy"
+        }
+      ]
+    },
+    "free": {
+      "match": "\\^\\w*",
+      "name": "variable.language.ivy"
+    },
+    "payload": {
+      "match": "(#)(\\w+)",
+      "captures": {
+        "1": { "name": "punctuation.ivy" },
+        "2": { "name": "constant.numeric.ivy" }
+      }
     },
     "punctuation": {
-      "patterns": [
-        { "match": "[=&~]", "name": "keyword.operator.assignment.ivy" },
-        { "match": "\\*", "name": "variable.language.ivy" }
-      ]
+      "match": "[(){}\\[\\],;$=]",
+      "name": "punctuation.ivy"
     }
   }
 }
