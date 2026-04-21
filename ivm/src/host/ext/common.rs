@@ -393,6 +393,8 @@ impl<'ivm> ExtOutput<'ivm, ()> for char {
 }
 
 #[allow(clippy::borrowed_box)]
+// We need to used a borrowed box here since a &[T] would be a fat pointer
+// (ptr + size) which wouldn't fit into a 64-bit Word.
 pub struct Branches<'ivm>(pub &'ivm Box<[*const Graft<'ivm>]>);
 
 impl<'ivm> ExtTyRegister<'ivm> for Branches<'ivm> {
@@ -484,6 +486,9 @@ impl<'ivm> ExtOutput<'ivm, ()> for String {
     table: &mut Table,
   ) -> impl use<'ivm> + Live<'ivm> + Fn(&mut Runtime<'ivm, '_>, Self) -> ExtVal<'ivm> {
     let handle = <List<_> as ExtOutput<_>>::register(host, table);
+    // SAFETY: `handle` drains the `Chars` iterator synchronously before returning,
+    // and `str` is owned by this call, so the borrow never actually escapes past
+    // the local stack frame despite its forged `'ivm` lifetime.
     move |rt, str| unsafe { handle(rt, List(extend_lifetime(&str).chars())) }
   }
 }

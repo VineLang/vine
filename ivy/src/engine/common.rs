@@ -14,6 +14,8 @@ pub fn graft<'r>(path: PathId, lazy: bool) -> impl Register<Rules<'r>> {
     }
     let graft_name = engine.name(node).children[0];
     let Some(graft_net) = engine.get_net(graft_name) else { return false };
+    // We don't want to graft a net before it is fully reduced, otherwise we might
+    // end up doing duplicate work.
     if !engine.await_net(graft_net, node) {
       return false;
     }
@@ -129,6 +131,10 @@ pub fn eta_reduce<'r>(
       if a_aux.len() != b_aux.len() || engine.name(a) != engine.name(b) {
         return false;
       }
+      // We extend the classic eta reduction rule for combinators by allowing nil
+      // values in the aux ports of the combinators. Nil values can only ever interact
+      // with other nil-like values and so two nil values can be replaced by a wire.
+      // This allows eta reduction to apply in more cases.
       if !a_aux.zip(b_aux).all(|(p, q)| {
         let p_ = engine.follow(p);
         if p_ == q {

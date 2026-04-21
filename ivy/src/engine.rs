@@ -384,6 +384,8 @@ impl Engine {
     assert!(from_id != into_id);
 
     self.finish_edit();
+    // This is needed for correctness so that all nodes in `from.maybe_nodes`
+    // actually belong to the from net.
     self.tighten_net(from_id);
 
     let (from, into) = self.nets.get2_mut(from_id, into_id).unwrap();
@@ -401,6 +403,9 @@ impl Engine {
       if dirty {
         self.maybe_dirty.push(new_id);
       }
+      // We exploit the net field to store the mapping from old nodes to their new
+      // clone. We can later restore the field since we know that all old nodes belong
+      // to the from net.
       self.nodes[old_id].net.0 = new_id.0; // crimes
     }
     into.pending += from.pending;
@@ -520,6 +525,10 @@ impl Engine {
         }
       };
 
+    // We add two extra ports as we don't want to connect the principal port of the
+    // free port node to any of the free ports as we never want it to participate in
+    // an interaction rewrite. Since we can't leave the principal port disconnected,
+    // we link it to the first aux port.
     let (free_id, mut free_ports) = self._insert_node(net_id, free.into(), 2 + net.free.len());
     self.link(free_ports.next().unwrap(), free_ports.next().unwrap());
     self.nets[net_id].free = free_id;
@@ -580,10 +589,13 @@ pub struct Rules<'a> {
     (PathId, PathId),
     Vec<(
       /* flipped */ bool,
-      Rc<dyn 'a + Fn(&mut Engine, &mut Table, NetId, NodeId, NodeId) -> bool>,
+      Rc<dyn 'a + Fn(&mut Engine, &mut Table, NetId, NodeId, NodeId) -> bool /* applied */>,
     )>,
   >,
-  rewrite: HashMap<PathId, Vec<Rc<dyn 'a + Fn(&mut Engine, &mut Table, NetId, NodeId) -> bool>>>,
+  rewrite: HashMap<
+    PathId,
+    Vec<Rc<dyn 'a + Fn(&mut Engine, &mut Table, NetId, NodeId) -> bool /* applied */>>,
+  >,
 }
 
 impl<'a> Rules<'a> {
