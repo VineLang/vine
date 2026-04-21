@@ -155,7 +155,7 @@ let x: String = "hi";
 let io: IO = <IO>;
 let s: String = "hello world!";
 let x: String = "hi";
-> "\n\n\n\n\t\thello    \n\t    world\n\n\n \t\n".trim()
+> "\n\n\n\n\t\thello    \n\t    world\n\n\n \t\r\n".trim()
 "hello    \n\t    world"
 
 let io: IO = <IO>;

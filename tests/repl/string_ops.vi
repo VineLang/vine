@@ -28,7 +28,7 @@ x
 "   hi   ".trim_front()
 "   hi   ".trim_back()
 "   hi   ".trim()
-"\n\n\n\n\t\thello    \n\t    world\n\n\n \t\n".trim()
+"\n\n\n\n\t\thello    \n\t    world\n\n\n \t\r\n".trim()
 "".trim()
 "hi".trim()
 "abcdefg".split_at(3)

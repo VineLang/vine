@@ -41,8 +41,9 @@ pub mod Char {
     }
   }
 
+  // todo: handle full unicode `White_Space` property for non ASCII characters.
   pub fn .is_whitespace(char: Char) -> Bool {
-    (char == ' ') | (char == '\t') | (char == '\n')
+    (char == ' ') | ('\x09' <= char <= '\x0d')
   }
 
   pub fn .is_alphanumeric(char: Char) -> Bool {
