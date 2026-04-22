@@ -32,7 +32,7 @@ pub fn fundamental<'ivm, 'r>() -> impl Register<HostTable<'ivm, 'r>> {
     ExtFn("ivm:pair", |(a, b): (ExtVal<'ivm>, ExtVal<'ivm>)| Pair(a, b)),
     ExtFn("ivm:unpair", |Pair(a, b)| (a, b)),
     ExtFn("ivm:ref", |host: &mut Host<'ivm>, _: &mut Table| {
-      let ref_ = host.register_ext_ty();
+      let ref_ = host.register_ext_ty::<Ref>();
       move |rt: &mut Runtime<'ivm, '_>, [a]: [ExtVal<'ivm>; 1], [b, wire]: [Wire<'ivm>; 2]| {
         let value = ref_.wrap(rt, Ref(a, b));
         rt.link_wire(wire, Port::new_ext_val(value));
@@ -428,7 +428,7 @@ impl<'ivm, T: ExtOutput<'ivm, W>, W, I: IntoIterator<Item = T>> ExtOutput<'ivm, 
     table: &mut Table,
   ) -> impl use<'ivm, T, I, W> + Live<'ivm> + Fn(&mut Runtime<'ivm, '_>, Self) -> ExtVal<'ivm> {
     let convert_entry = T::register(host, table);
-    let list = host.register_ext_ty();
+    let list = host.register_ext_ty::<Boxed<ExtList>>();
     move |rt, List(iter)| {
       let vec = Vec::from_iter(iter.into_iter().map(|value| convert_entry(rt, value)));
       list.wrap(rt, Boxed::new(ExtList(vec)))
@@ -503,8 +503,8 @@ impl<'ivm, T: ExtOutput<'ivm, TW>, TW, E: ExtOutput<'ivm, EW>, EW> ExtOutput<'iv
   {
     let handle_t = T::register(host, table);
     let handle_e = E::register(host, table);
-    let n32 = host.register_ext_ty();
-    let pair = host.register_ext_ty();
+    let n32 = host.register_ext_ty::<u32>();
+    let pair = host.register_ext_ty::<Pair>();
     move |rt, result| {
       let (tag, value) = match result {
         Err(err) => (n32.wrap_static(0), handle_e(rt, err)),

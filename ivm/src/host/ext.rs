@@ -57,8 +57,8 @@ impl<'ivm> Host<'ivm> {
   ) {
     let name = table.add_path_name(path);
     let f = f.register(self, table);
-    let pair = self.register_ext_ty();
-    let ref_ = self.register_ext_ty();
+    let pair = self.register_ext_ty::<Pair>();
+    let ref_ = self.register_ext_ty::<Ref>();
     match (I, O) {
       (0, _) => unreachable!(),
       (2, 1) => {
@@ -197,7 +197,7 @@ impl<'ivm, T: ExtTyRegister<'ivm>> ExtInput<'ivm, FromRegister> for T {
     _: &mut Table,
   ) -> impl use<'ivm, T> + Live<'ivm> + Fn(&mut Rt<'ivm, '_>, ExtVal<'ivm>) -> Result<Self, Invalid>
   {
-    let ty = host.register_ext_ty();
+    let ty = host.register_ext_ty::<T>();
     move |rt, value| ty.unwrap(rt, value).ok_or(Invalid)
   }
 }
@@ -207,7 +207,7 @@ impl<'ivm, T: ExtTyRegister<'ivm>> ExtOutput<'ivm, FromRegister> for T {
     host: &mut Host<'ivm>,
     _: &mut Table,
   ) -> impl use<'ivm, T> + Live<'ivm> + Fn(&mut Rt<'ivm, '_>, Self) -> ExtVal<'ivm> {
-    let ty = host.register_ext_ty();
+    let ty = host.register_ext_ty::<T>();
     move |rt, value| ty.wrap(rt, value)
   }
 }
@@ -230,7 +230,7 @@ impl<'ivm, T: ExtTyBoxed<'ivm>> ExtOutput<'ivm, FromBoxed> for T {
     host: &mut Host<'ivm>,
     _: &mut Table,
   ) -> impl use<'ivm, T> + Live<'ivm> + Fn(&mut Rt<'ivm, '_>, Self) -> ExtVal<'ivm> {
-    let ty = host.register_ext_ty();
+    let ty = host.register_ext_ty::<Boxed<T>>();
     move |rt, value| ty.wrap(rt, Boxed::new(value))
   }
 }
