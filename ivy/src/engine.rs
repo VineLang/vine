@@ -260,18 +260,8 @@ impl Engine {
   }
 
   pub fn remove_node(&mut self, node_id: NodeId) -> impl use<> + ExactSizeIterator<Item = Port> {
-    let node = &mut self.nodes[node_id];
-    let net_id = node.net;
-    let net = &mut self.nets[net_id];
     self.dead_nodes.push(node_id);
-    let ports = node.ports.keys().map(move |index| Port(PortRef { node: node_id, index }));
-    if net.not_nodes * 2 >= net.maybe_nodes.capacity() {
-      self.tighten_net(net_id);
-    }
-    if self.not_dirty * 2 >= self.maybe_dirty.capacity() {
-      self.tighten_dirty();
-    }
-    ports
+    self.nodes[node_id].ports.keys().map(move |index| Port(PortRef { node: node_id, index }))
   }
 
   pub fn remove_node_n<const N: usize>(&mut self, node_id: NodeId) -> [Port; N] {
@@ -330,12 +320,19 @@ impl Engine {
       }
       let net = &mut self.nets[node.net];
       net.not_nodes += 1;
+      let tighten_net = net.not_nodes * 2 >= net.maybe_nodes.capacity();
       if node.dirty {
         self.not_dirty += 1;
         net.pending -= 1;
         if net.pending == 0 {
           self.finish_edit_net(node.net);
         }
+        if self.not_dirty * 2 >= self.maybe_dirty.capacity() {
+          self.tighten_dirty();
+        }
+      }
+      if tighten_net {
+        self.tighten_net(node.net);
       }
     }
     self.dead_nodes = dead_nodes;
