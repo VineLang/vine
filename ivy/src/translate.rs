@@ -60,15 +60,15 @@ impl<'a> Translator<'a> {
     table: &mut Table,
     net: &mut FlatNet,
     final_nodes: &mut Vec<FlatNode>,
-    base: RuleId,
+    base_rule: RuleId,
   ) {
     let node = net.nodes.pop().unwrap();
     if let Some(rules) = self.rules.get(&node.name.path)
-      && let Some((id, rule)) = rules.iter().find(|&&(id, _)| id >= base)
+      && let Some((id, rule)) = rules.iter().find(|&&(id, _)| id >= base_rule)
     {
-      let base = net.nodes.len();
+      let base_node = net.nodes.len();
       rule(node, table, net);
-      for _ in 0..(net.nodes.len() - base) {
+      for _ in 0..(net.nodes.len() - base_node) {
         self.apply(table, net, final_nodes, RuleId(id.0 + 1));
       }
     } else {
