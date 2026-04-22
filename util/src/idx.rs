@@ -19,10 +19,11 @@ impl Idx for usize {}
 
 #[macro_export]
 macro_rules! new_idx {
-  ($vis:vis $Ty:ident) => {
-    $crate::new_idx!($vis $Ty; n => ["{n}"]);
+  ($(#[$attr:meta])* $vis:vis $Ty:ident) => {
+    $crate::new_idx!($(#[$attr])* $vis $Ty; n => ["{n}"]);
   };
-  ($vis:vis $Ty:ident; $n:ident => [$($fmt:tt)*]) => {
+  ($(#[$attr:meta])* $vis:vis $Ty:ident; $n:ident => [$($fmt:tt)*]) => {
+    $(#[$attr])*
     #[derive(Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
     $vis struct $Ty(pub usize);
 

@@ -77,7 +77,6 @@ impl<N> FlatNet<N> {
     self.push(FlatNode::new(name, pri, aux));
   }
 
-  #[must_use]
   pub fn make(&mut self, name: impl Into<Name>, aux: impl IntoIterator<Item = Wire>) -> Wire
   where
     FlatNode: Into<N>,
@@ -329,7 +328,7 @@ impl TreeNet {
 
     for (a, b) in &self.links {
       let a = embed(&mut net, None, a);
-      embed(&mut net, Some(a), b);
+      _ = embed(&mut net, Some(a), b);
     }
 
     net
@@ -344,7 +343,7 @@ impl TreeNet {
   }
 }
 
-new_idx!(pub Wire);
+new_idx!(#[must_use] pub Wire);
 
 #[derive(Default, Debug, Clone)]
 pub struct WireLinks {

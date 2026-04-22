@@ -108,7 +108,6 @@ impl<'a> Emitter<'a> {
         let enum_name = enum_name(self.table, self.guide, self.chart, *enum_id);
         let enum_ = self.emit_port(transfer.data.as_ref().unwrap());
         self.net.push(TemplateNode::Match(enum_name, stages.clone(), enum_, target));
-        self.emit_port(transfer.data.as_ref().unwrap());
       }
       InterfaceKind::Closure { .. } | InterfaceKind::Inspect(..) => {
         let consumer = self.emit_port(transfer.data.as_ref().unwrap());

@@ -564,7 +564,7 @@ impl Engine {
           let pri = wires.next().unwrap();
           let mut aux = wires.collect::<Vec<_>>();
           if node_id == info.free {
-            aux.remove(0);
+            _ = aux.remove(0);
             net.free = aux;
           } else {
             net.nodes.push(FlatNode { name: node.name, pri, aux })
