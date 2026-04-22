@@ -91,7 +91,7 @@ impl<'ivm> Extrinsics<'ivm> {
 /// - the next 45 bits are the payload.
 /// - the last 3 bits are `Tag::ExtVal as u16` for compatibility with [`Port`].
 ///
-/// [`Port`]: crate::vm::Port
+/// [`Port`]: crate::runtime::Port
 pub struct ExtVal<'ivm>(Word, PhantomData<fn(&'ivm ()) -> &'ivm ()>);
 
 impl<'ivm> ExtVal<'ivm> {
