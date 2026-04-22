@@ -67,23 +67,23 @@ impl FlatEncode<EncodeCtx<'_>> for TemplateNode {
       TemplateNode::Raw(node) => node,
       TemplateNode::Fn(fn_rel_id, wire) => {
         let (spec_id, stage_id) = ctx.spec.rels.fns[fn_rel_id].unwrap();
-        FlatNode(ctx.graft(ctx.specs.spec(spec_id), stage_id), wire, [])
+        FlatNode::new(ctx.graft(ctx.specs.spec(spec_id), stage_id), wire, [])
       }
       TemplateNode::Const(const_rel_id, wire) => {
         let spec_id = ctx.spec.rels.consts[const_rel_id].unwrap();
-        FlatNode(ctx.graft(ctx.specs.spec(spec_id), StageId(0)), wire, [])
+        FlatNode::new(ctx.graft(ctx.specs.spec(spec_id), StageId(0)), wire, [])
       }
-      TemplateNode::Stage(stage_id, wire) => FlatNode(ctx.graft(ctx.spec, stage_id), wire, []),
+      TemplateNode::Stage(stage_id, wire) => FlatNode::new(ctx.graft(ctx.spec, stage_id), wire, []),
       TemplateNode::If(then, else_, bool, out) => {
         let then = ctx._graft(ctx.spec, then);
         let else_ = ctx._graft(ctx.spec, else_);
-        FlatNode(ctx.guide.bool_if.with_children([then, else_]), bool, [out])
+        FlatNode::new(ctx.guide.bool_if.with_children([then, else_]), bool, [out])
       }
       TemplateNode::Match(enum_name, stages, enum_, out) => {
         let name = ctx.guide.enum_match.with_children(
           iter::once(enum_name).chain(stages.into_iter().map(|s| ctx._graft(ctx.spec, s))),
         );
-        FlatNode(name, enum_, [out])
+        FlatNode::new(name, enum_, [out])
       }
     }
   }

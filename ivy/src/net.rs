@@ -26,9 +26,10 @@ pub struct FlatNode {
   pub aux: Vec<Wire>,
 }
 
-#[allow(non_snake_case)]
-pub fn FlatNode(name: impl Into<Name>, pri: Wire, aux: impl IntoIterator<Item = Wire>) -> FlatNode {
-  FlatNode { name: name.into(), pri, aux: aux.into_iter().collect() }
+impl FlatNode {
+  pub fn new(name: impl Into<Name>, pri: Wire, aux: impl IntoIterator<Item = Wire>) -> FlatNode {
+    FlatNode { name: name.into(), pri, aux: aux.into_iter().collect() }
+  }
 }
 
 pub trait FlatDecode<Ctx>: Sized {
@@ -73,7 +74,7 @@ impl<N> FlatNet<N> {
   where
     FlatNode: Into<N>,
   {
-    self.push(FlatNode(name, pri, aux));
+    self.push(FlatNode::new(name, pri, aux));
   }
 
   #[must_use]
