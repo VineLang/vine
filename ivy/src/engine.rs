@@ -662,10 +662,6 @@ impl<'a, I: IntoIterator<Item = PathId>, F: 'a + Fn(&mut Engine, &mut Table, Net
   }
 }
 
-pub trait Reducer {
-  fn visit(&mut self, engine: &mut Engine, net: NetId, node: NodeId);
-}
-
 fn flip<T>((a, b): (T, T)) -> (T, T) {
   (b, a)
 }
