@@ -290,7 +290,7 @@ impl<'ivm> ExtTyCastStatic<'ivm> for u32 {
 }
 
 impl<'ivm> ExtTyCast<'ivm> for u64 {
-  const COPY: bool = true;
+  const COPY: bool = false;
 
   #[inline(always)]
   fn into_payload(rt: &mut Runtime<'ivm, '_>, value: u64) -> Word {
@@ -327,7 +327,7 @@ impl<'ivm> ExtTyRegister<'ivm> for f64 {
 }
 
 impl<'ivm> ExtTyCast<'ivm> for f64 {
-  const COPY: bool = true;
+  const COPY: bool = false;
 
   #[inline(always)]
   fn into_payload(rt: &mut Runtime<'ivm, '_>, value: f64) -> Word {
