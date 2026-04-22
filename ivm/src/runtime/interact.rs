@@ -87,7 +87,7 @@ impl<'ivm> Runtime<'ivm, '_> {
   pub(crate) fn interact(&mut self, a: Port<'ivm>, b: Port<'ivm>) {
     use Tag::*;
     match ((a.tag(), a), (b.tag(), b)) {
-      sym!((Wire, _), _) | sym!((Erase | ExtVal, _)) => unreachable!(),
+      sym!((Wire, _), _) | sym!((ExtVal | Erase, _)) | sym!((Graft | Erase, _)) => unreachable!(),
       sym!((Graft, c), (Comb, d)) if d.label() != 0 => self.copy(c, d),
       sym!((Graft, c), (_, p)) => self._graft(c, p),
       ((Comb, a), (Comb, b)) if a.label() == b.label() => self.annihilate(a, b),
