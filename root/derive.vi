@@ -134,14 +134,14 @@ pub trait[Enum] Enum[Variants] {
 
 pub mod Enum {
   pub impl cast_deconstruct[E, V; Enum[E, V]]: Cast[E, V] {
-    fn cast(struct_: E) -> V {
-      Enum::deconstruct(struct_)
+    fn cast(enum_: E) -> V {
+      Enum::deconstruct(enum_)
     }
   }
 
   pub impl cast_reconstruct[E, V; Enum[E, V]]: Cast[V, E] {
-    fn cast(content: V) -> E {
-      Enum::reconstruct[E, V](content)
+    fn cast(variant: V) -> E {
+      Enum::reconstruct[E, V](variant)
     }
   }
 }
