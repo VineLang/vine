@@ -386,6 +386,7 @@ impl Engine {
     self.tighten_net(from_id);
 
     let (from, into) = self.nets.get2_mut(from_id, into_id).unwrap();
+    assert_eq!(from.pending, 0);
     for &old_id in &from.maybe_nodes {
       let old = &self.nodes[old_id];
       let dirty = old.dirty;
@@ -405,8 +406,6 @@ impl Engine {
       // to the from net.
       self.nodes[old_id].net.0 = new_id.0; // crimes
     }
-    into.pending += from.pending;
-    into.pending += from.pending;
 
     let map_id = |nodes: &IdxSlab<NodeId, Node>, old_id| NodeId(nodes[old_id].net.0); // crimes
 
