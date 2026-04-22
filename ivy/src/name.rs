@@ -158,7 +158,6 @@ macro_rules! guide {
     }
   };
 
-  (type ) => { $crate::name::PathId };
   (impl $table:ident PathId $val:literal) => { $table.add_path($val) };
   (impl $table:ident NameId $val:literal) => { $table.add_path_name($val) };
 }
