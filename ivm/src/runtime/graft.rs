@@ -133,7 +133,7 @@ impl<'ivm> Runtime<'ivm, '_> {
 
   /// Execute a [`Graft`], linking the net's root to `port`.
   pub fn graft(&mut self, graft: &Graft<'ivm>, port: Port<'ivm>) {
-    let needed_registers = graft.next_register.index().max(1);
+    let needed_registers = graft.next_register.index();
     if needed_registers > self.registers.len() {
       self.registers.resize_with(needed_registers, || None)
     }
