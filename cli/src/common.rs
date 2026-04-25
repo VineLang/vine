@@ -140,26 +140,35 @@ pub struct RunResult {
 
 impl RunResult {
   pub fn report(&self, debug_hint: bool) {
-    if self.no_io {
+    let RunResult {
+      stats,
+      no_io,
+      vicious,
+      flags: Flags { ext_copy, ext_erase, ext_generic, invalid_interaction },
+    } = *self;
+    if no_io {
       eprintln!("\nError: the net did not return its `IO` handle");
       if debug_hint {
         eprintln!("  hint: try running the program in `--debug` mode to see error messages");
       }
     }
-    if self.vicious {
+    if vicious {
       eprintln!("\nError: the net created a vicious circle");
     }
-    if self.flags.ext_copy {
+    if ext_copy {
       eprintln!("\nError: a linear extrinsic was copied");
     }
-    if self.flags.ext_erase {
+    if ext_erase {
       eprintln!("\nError: a linear extrinsic was erased");
     }
-    if self.flags.ext_generic {
+    if ext_generic {
       eprintln!("\nError: an extrinsic function encountered an unspecified error");
     }
+    if invalid_interaction {
+      eprintln!("\nError: an invalid interaction was performed");
+    }
 
-    if let Some(stats) = &self.stats {
+    if let Some(stats) = &stats {
       eprintln!("{}", stats);
     }
 
