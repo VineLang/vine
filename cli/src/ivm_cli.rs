@@ -25,7 +25,6 @@ impl IvmCommand {
 
 #[derive(Debug, Args)]
 pub struct IvmRunCommand {
-  #[arg()]
   src: PathBuf,
   #[command(flatten)]
   run_args: RunArgs,
