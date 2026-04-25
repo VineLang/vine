@@ -392,9 +392,9 @@ impl<'ivm> ExtOutput<'ivm, ()> for char {
   }
 }
 
+// We need to use a borrowed box here since a `&[T]` would be a fat pointer
+// (ptr + size) which wouldn't fit into a 64-bit `Word`.
 #[allow(clippy::borrowed_box)]
-// We need to used a borrowed box here since a &[T] would be a fat pointer
-// (ptr + size) which wouldn't fit into a 64-bit Word.
 pub struct Branches<'ivm>(pub &'ivm Box<[*const Graft<'ivm>]>);
 
 impl<'ivm> ExtTyRegister<'ivm> for Branches<'ivm> {
