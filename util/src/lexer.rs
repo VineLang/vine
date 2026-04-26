@@ -91,9 +91,9 @@ pub trait Lex<'src> {
     self.state().char
   }
 
-  fn bump_while(&mut self, f: impl Fn(char) -> bool) -> usize {
+  fn bump_while(&mut self, mut f: impl FnMut(char) -> bool) -> usize {
     let mut count = 0;
-    while self.char().is_some_and(&f) {
+    while self.char().is_some_and(&mut f) {
       count += 1;
       self.bump();
     }

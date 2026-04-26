@@ -1,4 +1,3 @@
-use ivy::ast::Tree;
 use vine_util::{idx::IdxVec, parser::Parse};
 
 use crate::{
@@ -236,11 +235,10 @@ impl Matcher<'_, '_> {
 }
 
 impl Emitter<'_> {
-  pub(crate) fn emit_ref(&mut self, reference: &Port, value: &Port, space: &Port) {
-    let pair = (
-      self.emit_port(reference),
-      Tree::Comb("ref".into(), Box::new(self.emit_port(value)), Box::new(self.emit_port(space))),
-    );
-    self.pairs.push(pair)
+  pub(crate) fn emit_ref(&mut self, ref_: &Port, value: &Port, space: &Port) {
+    let ref_ = self.emit_port(ref_);
+    let value = self.emit_port(value);
+    let space = self.emit_port(space);
+    self.net.add(self.guide.ref_, ref_, [value, space])
   }
 }

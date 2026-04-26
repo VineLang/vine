@@ -1,0 +1,17 @@
+
+iv:main {
+  ^ = ivm:x(io0 io2)
+  io0 = ivm:ext:split[root:io:read_char](ivm:y(char0 char1) io1)
+  char0 = ivm:ext:merge[vi:n32:eq](ivm:n32#0xffffffff is_eof)
+  is_eof = ivm:ext:merge[ivm:branch](ivm:branch[:char, :eof] ivm:x(char1 ivm:x(io1 io2)))
+}
+
+:eof {
+  ^ = ivm:x(ivm:eraser ivm:x(ivm:ext:split[root:io:flush](io ivm:eraser) io))
+}
+
+:char {
+  ^ = ivm:x(char ivm:x(io0 io2))
+  io0 = ivm:ext:merge[root:io:print_char](char io1)
+  ivm:graft[iv:main] = ivm:x(io1 io2)
+}

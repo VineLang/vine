@@ -1,7 +1,5 @@
 
-use Ext::Unknown;
 use ops::Cast;
-use util::transmute;
 
 pub type File;
 
@@ -9,65 +7,26 @@ pub mod File {
   pub impl : Show[File];
   pub impl : Ext[File] = safe Ext::identity;
 
-  /// Encodes a `Result` as an extrinsic tuple `(is_error: Bool, data: T | E)`.
-  pub impl result_ext[T, E; Ext[T], Ext[E]]: Ext[Result[T, E]] {
-    fn encode(res: Result[T, E]) -> Ext[Result[T, E]] {
-      match res {
-        Ok(value) { safe transmute[Ext[(Bool, T)], Ext[Result[T, E]]]((false, value) as Ext) }
-        Err(err) { safe transmute[Ext[(Bool, E)], Ext[Result[T, E]]]((true, err) as Ext) }
-      }
-    }
-
-    fn decode(res: Ext[Result[T, E]]) -> Result[T, E] {
-      let (is_error, res) = safe transmute[Ext[Result[T, E]], Ext[(Bool, Ext[Unknown])]](res) as (
-        _,
-        _,
-      );
-      if is_error {
-        Err(safe transmute[Ext[Unknown], Ext[E]](res) as E)
-      } else {
-        Ok(safe transmute[Ext[Unknown], Ext[T]](res) as T)
-      }
-    }
-  }
-
   /// Opens a file for reading and writing, returning an error if it does not
   /// exist.
   ///
   /// The opened file supports reads and writes, but writes to an existing file
   /// will append to its existing contents.
   pub fn open(&io: &IO, path: String) -> Result[File, Error] {
-    let path = path as Ext;
-    let ext = safe inline_ivy! (io <- io, path <- path) -> Ext[(IO, Result[File, ExtError])] {
-      res
-      io = @file_open(path res)
-    };
-    let res: Result[File, ExtError];
-    (io, res) = ext as (_, _);
-
-    res.map_err(fn? (e: ExtError) { e as Error })
+    let result: Ext = safe $ivy { ${io} = vi:ext#2[root:io:file:open](${path as Ext} ^ ${~io}) };
+    result as Result[File, Error]
   }
 
   /// Creates a file for writing. If a file exists at `path`, the
   /// file is truncated, and an error is not returned.
   pub fn create(&io: &IO, path: String) -> Result[File, Error] {
-    let path = path as Ext;
-    let ext = safe inline_ivy! (io <- io, path <- path) -> Ext[(IO, Result[File, ExtError])] {
-      res
-      io = @file_create(path res)
-    };
-    let res: Result[File, ExtError];
-    (io, res) = ext as (_, _);
-
-    res.map_err(fn? (e: ExtError) { e as Error })
+    let result: Ext = safe $ivy { ${io} = vi:ext#2[root:io:file:create](${path as Ext} ^ ${~io}) };
+    result as Result[File, Error]
   }
 
   /// Closes the file, returning an error.
-  pub fn .close(self: File, &io: &IO) {
-    safe inline_ivy! (self <- self, io0 <- io, io1 -> io) -> () {
-      _
-      io0 = @file_close(self io1)
-    };
+  pub fn .close(file: File, &io: &IO) {
+    safe $ivy { ${io} = vi:ext#2[root:io:file:close](${file} ${~io}) }
   }
 
   /// Reads all remaining bytes in the file into a list of bytes.
@@ -83,25 +42,18 @@ pub mod File {
 
   /// Reads the next byte in the file, returning `None()` on EOF.
   pub fn .read_byte(&self: &File, &io: &IO) -> Result[Option[N32], Error] {
-    let ext = safe inline_ivy! (io <- io, self <- self) -> Ext[
-      (IO, File, Result[(N32, Bool), ExtError]);
-    ] {
-      res
-      io = @file_read_byte(self res)
-    };
-    let res: Result[(N32, Bool), ExtError];
-    (io, self, res) = ext as (_, _, _);
-
-    match res {
-      Ok((byte, is_eof)) {
-        if is_eof {
-          Ok(None())
-        } else {
-          Ok(Some(byte))
-        }
-      }
-      Err(err) { Err(err as Error) }
-    }
+    let result: Ext = safe $ivy { ${io} = vi:ext#2[root:io:file:read_byte](
+      ${self}
+      ^
+      ${~io}
+      ${~self}
+    ) };
+    let byte = (result as Result[N32, Error]).try;
+    Ok(if byte == N32::maximum {
+      None()
+    } else {
+      Some(byte)
+    })
   }
 
   /// Reads all remaining data in the file into a `String`.
@@ -119,25 +71,18 @@ pub mod File {
   /// sequence of bytes are not a valid UTF-8 character, the UTF-8 replacement
   /// character is returned.
   pub fn .read_char(&self: &File, &io: &IO) -> Result[Option[Char], Error] {
-    let ext = safe inline_ivy! (io <- io, self <- self) -> Ext[
-      (IO, File, Result[(Char, Bool), ExtError]);
-    ] {
-      res
-      io = @file_read_char(self res)
-    };
-    let res: Result[(Char, Bool), ExtError];
-    (io, self, res) = ext as (_, _, _);
-
-    match res {
-      Ok((char, is_eof)) {
-        if is_eof {
-          Ok(None())
-        } else {
-          Ok(Some(char))
-        }
-      }
-      Err(err) { Err(err as Error) }
-    }
+    let result: Ext = safe $ivy { ${io} = vi:ext#2[root:io:file:read_char](
+      ${self}
+      ^
+      ${~io}
+      ${~self}
+    ) };
+    let char = (result as Result[Char, Error]).try;
+    Ok(if char == N32::maximum as Char {
+      None()
+    } else {
+      Some(char)
+    })
   }
 
   /// Writes the list of bytes into the file.
@@ -151,20 +96,14 @@ pub mod File {
 
   /// Writes a byte to the file.
   pub fn .write_byte(&self: &File, &io: &IO, byte: N32) -> Result[(), Error] {
-    let params = (self, byte) as Ext;
-    let ext = safe inline_ivy! (io <- io, params <- params) -> Ext[
-      (IO, File, Result[N32, ExtError]);
-    ] {
-      res
-      io = @file_write_byte(params res)
-    };
-    let res: Result[N32, ExtError];
-    (io, self, res) = ext as (_, _, _);
-
-    match res {
-      Ok(_) { Ok() }
-      Err(err) { Err(err as Error) }
-    }
+    let result: Ext = safe $ivy { ${io} = vi:ext#3[root:io:file:write_byte](
+      ${self}
+      ${byte}
+      ^
+      ${~io}
+      ${~self}
+    ) };
+    result as Result[(), Error]
   }
 
   /// Writes a string to the file.
@@ -178,20 +117,14 @@ pub mod File {
 
   /// Writes a char to the file.
   pub fn .write_char(&self: &File, &io: &IO, char: Char) -> Result[(), Error] {
-    let params = (self, char) as Ext;
-    let ext = safe inline_ivy! (io <- io, params <- params) -> Ext[
-      (IO, File, Result[N32, ExtError]);
-    ] {
-      res
-      io = @file_write_char(params res)
-    };
-    let res: Result[N32, ExtError];
-    (io, self, res) = ext as (_, _, _);
-
-    match res {
-      Ok(_) { Ok() }
-      Err(err) { Err(err as Error) }
-    }
+    let result: Ext = safe $ivy { ${io} = vi:ext#3[root:io:file:write_char](
+      ${self}
+      ${char}
+      ^
+      ${~io}
+      ${~self}
+    ) };
+    result as Result[(), Error]
   }
 
   pub enum? Error {
@@ -206,6 +139,16 @@ pub mod File {
 
   pub mod Error {
     pub impl : Show[Error];
+
+    pub impl : Ext[Error] {
+      fn encode(_: Error) -> Ext[Error] {
+        debug::error("unimplemented")
+      }
+
+      fn decode(error: Ext[Error]) -> Error {
+        ExtError(error) as Error
+      }
+    }
 
     pub impl : Cast[ExtError, Error] {
       fn cast(error: ExtError) -> Error {
@@ -223,31 +166,23 @@ pub mod File {
     }
   }
 
-  pub type ExtError;
+  pub struct ExtError(Ext[Error]);
 
   pub mod ExtError {
     pub impl : Ext[ExtError] = safe Ext::identity;
 
     pub fn .code(&self: &ExtError) -> N32 {
-      safe inline_ivy! (self0 <- self, self1 -> self) -> N32 {
-        code
-        self0 = @io_error_code(code self1)
-      }
+      safe $ivy { ${self} = vi:ext#1[root:io:error:code](^ ${~self}) }
     }
 
     pub fn .message(&self: &ExtError) -> String {
-      safe inline_ivy! (self0 <- self, self1 -> self) -> Ext[String] {
-        message
-        self0 = @io_error_string(message self1)
-      } as String
+      let message: Ext[String] = safe $ivy { ${self} = vi:ext#1[root:io:error:message](^ ${~self}) };
+      message as String
     }
 
     pub impl : Drop[ExtError] {
       fn drop(self: ExtError) {
-        safe inline_ivy! (self <- self) -> () {
-          _
-          self = @io_error_drop(_ _)
-        }
+        safe $ivy { ${self} = vi:ext#1[root:io:error:drop] }
       }
     }
 

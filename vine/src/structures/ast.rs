@@ -4,7 +4,7 @@ use std::{
   fmt::{self, Debug, Display, Write},
 };
 
-use ivy::ast::Net;
+use ivy::{self, name::Table, text::ast::Net};
 use vine_util::{idx, nat::Nat};
 
 use crate::{
@@ -353,7 +353,7 @@ pub enum ExprKind {
   Nat(Span, Nat, Ty),
   Char(char),
   String(StringSegment, Vec<(Expr, StringSegment)>),
-  InlineIvy(Vec<(Ident, bool, Expr)>, Ty, Span, Net),
+  InlineIvy(Table, Net<Expr>),
   Error(ErrorGuaranteed),
 }
 

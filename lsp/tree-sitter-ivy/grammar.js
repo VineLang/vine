@@ -4,16 +4,14 @@
 module.exports = grammar({
   name: "ivy",
 
-  word: $ => $.ident,
-
   extras: $ => [new RustRegex("[ \\t\\r\\n\\f]+"), $.line_comment, $.block_comment],
 
   supertypes: $ => [
-    $._tree,
+    $._expr,
   ],
 
   rules: {
-    source_file: $ => repeat($.global_net),
+    source_file: $ => repeat($.net),
 
     line_comment: $ => seq("//", optional(new RustRegex("[^\\S\\n]+")), $.line_comment_content),
     line_comment_content: $ => new RustRegex(".*"),
@@ -44,34 +42,38 @@ module.exports = grammar({
         ),
       ),
 
-    global_net: $ => seq(optional($.global), "{", $.net, "}"),
-    net: $ => seq($._tree, repeat($.pair)),
+    net: $ => seq(optional($.name), $.stmts),
 
-    pair: $ => seq($._tree, "=", $._tree),
+    stmts: $ => seq("{", repeat($.stmt), "}"),
 
-    _tree: $ =>
+    stmt: $ => seq($._expr, "=", $._expr, optional(";")),
+
+    _expr: $ =>
       choice(
-        $.erase,
-        $.comb,
-        $.ext_fn,
-        $.branch,
-        $.n32,
-        $.f32,
-        $.var,
-        $.global,
-        $.black_box,
+        $.node,
+        $.free,
+        $.wire,
+        $.interpolation,
+        $.subnet,
       ),
 
-    erase: $ => "_",
-    comb: $ => seq($.ident, "(", $._tree, $._tree, ")"),
-    ext_fn: $ => seq("@", $.ident, optional("$"), "(", $._tree, $._tree, ")"),
-    branch: $ => seq("?", "(", $._tree, $._tree, $._tree, ")"),
-    n32: $ => new RustRegex("\\d[\\d\\w]*"),
-    f32: $ => new RustRegex("[+-][\\d\\w\\.\\+\\-]+"),
-    var: $ => $.ident,
-    global: $ => new RustRegex(":[:\\p{ID_Continue}]+"),
-    black_box: $ => seq("#", "[", $._tree, "]"),
+    wire: $ => new RustRegex("\\p{ID_Continue}+"),
+    path: $ => new RustRegex("[:\\p{ID_Continue}]+"),
+    payload: $ => seq("#", token.immediate(new RustRegex("\\w+"))),
+    free: $ => new RustRegex("\\^\\w*"),
 
-    ident: $ => new RustRegex("\\p{ID_Start}\\p{ID_Continue}*"),
+    name: $ => seq($.path, optional($.payload), optional($.names)),
+    names: $ => seq("[", optional(seq($.name, repeat(seq(",", $.name)), optional(","))), "]"),
+    node: $ => seq($.name, optional(seq("(", repeat($._expr), ")"))),
+    subnet: $ => seq($._expr, $.stmts),
+
+    interpolation: $ => seq("$", "{", $.vine, "}"),
+    vine: $ => repeat1(choice($._braced, new RustRegex("[^{}]+"))),
+    _braced: $ =>
+      seq(
+        new RustRegex("\\{"),
+        repeat(choice($._braced, new RustRegex("[^{}]+"))),
+        new RustRegex("\\}"),
+      ),
   },
 });

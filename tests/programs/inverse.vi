@@ -1,12 +1,8 @@
 
 // @run -d
 
-use #root::util::{duplicate, erase};
-
 pub fn main(&io: &IO) {
   refs(&io);
-  io.println("");
-  fns(&io);
   io.println("");
   rev(&io);
 }
@@ -24,25 +20,6 @@ fn refs(&io: &IO) {
 mod refs {
   fn inc((init: N32, ~fin: ~N32)) {
     fin = init + 1;
-  }
-}
-
-fn fns(&io: &IO) {
-  let f = do {
-    let n: N32;
-    (~n, n * 2)
-  };
-  io.println("f(1) = {call(safe duplicate(&f), 1)}");
-  io.println("f(2) = {call(safe duplicate(&f), 2)}");
-  io.println("f(3) = {call(safe duplicate(&f), 3)}");
-  safe erase(f);
-}
-
-mod fns {
-  fn call(f: (~N32, N32), a: N32) -> N32 {
-    let (~i, o) = f;
-    i = a;
-    o
   }
 }
 

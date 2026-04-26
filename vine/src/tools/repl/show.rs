@@ -1,20 +1,29 @@
-use std::mem::replace;
+use std::{
+  collections::HashMap,
+  mem::replace,
+  sync::{Arc, Mutex},
+};
 
 use ivm::{
-  IVM,
-  port::{Port, Tag},
-  wire::Wire,
+  host::ext::{ExtFn, ExtTyBoxed, HostTable},
+  runtime::{
+    Runtime,
+    ext::Boxed,
+    port::{Port, Tag},
+    wire::Wire,
+  },
 };
-use ivy::{ast::Tree, host::Host};
+use vine_util::register::Register;
 
 use crate::{
+  backend::backend,
   components::{finder::Finder, specializer::Specializer},
   structures::{
     ast::Span,
     chart::GenericsId,
-    template::global_name,
     types::{ImplType, Type},
   },
+  tools::repl::CONFIG,
 };
 
 use super::Repl;
@@ -27,8 +36,8 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
   }
 
   fn _show(&mut self, ty: Type, port: Port<'ivm>) -> (Port<'ivm>, Option<String>) {
-    let (Some(show), Some(show_to_string)) =
-      (self.compiler.chart.builtins.show, self.compiler.chart.builtins.show_to_string)
+    let (Some(show), Some(repl_show)) =
+      (self.compiler.chart.builtins.show, self.compiler.chart.builtins.repl_show)
     else {
       return (port, None);
     };
@@ -55,69 +64,64 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
       specs: &mut self.compiler.specs,
       fragments: &self.compiler.fragments,
       vir: &self.compiler.vir,
+      guide: &self.guide,
+      table: self.table,
     };
-    let impl_ = specializer.instantiate(None, &Vec::new(), &impl_);
-    let Ok((spec_id, stage_id)) = specializer.instantiate_fn_id(show_to_string, vec![impl_]) else {
+    let Ok((spec_id, stage_id)) =
+      specializer.instantiate_fn_rel(None, &Vec::new(), &(repl_show, vec![impl_]))
+    else {
       return (port, None);
     };
 
-    let nets = self.compiler.nets_from(&checkpoint);
-    self.host.insert_nets(&nets);
-    let global = global_name(self.compiler.specs.specs[spec_id].as_ref().unwrap(), stage_id);
+    {
+      let mut nets = HashMap::new();
+      self.compiler.nets_from(self.table, &mut nets, &checkpoint);
+      backend(self.table, &CONFIG, &mut nets);
+      self.program.build(self.host, self.table, &nets);
+    }
+    let name =
+      self.compiler.specs.specs[spec_id].as_ref().unwrap().name.clone().with_payload(stage_id.0);
+    let graft = self.program.graft(self.table.add_name(name)).unwrap();
 
-    let label_fn = Host::label_to_u16("fn", &mut self.host.comb_labels);
-    let label_ref = Host::label_to_u16("ref", &mut self.host.comb_labels);
-
-    let w = self.ivm.new_wire();
+    let w = self.rt.new_wire();
     let root = w.0;
 
-    fn make_node<'ivm>(
-      ivm: &mut IVM<'ivm, '_>,
-      label: u16,
-      wire: Wire<'ivm>,
-    ) -> (Wire<'ivm>, Wire<'ivm>) {
-      let node = unsafe { ivm.new_node(Tag::Comb, label) };
+    fn make_node<'ivm>(ivm: &mut Runtime<'ivm, '_>, wire: Wire<'ivm>) -> (Wire<'ivm>, Wire<'ivm>) {
+      let node = unsafe { ivm.new_node(Tag::Comb, 0) };
       ivm.link_wire(wire, node.0);
       (node.1, node.2)
     }
 
-    let (recv, cur) = make_node(self.ivm, label_fn, w.1);
-    self.ivm.link_wire(recv, Port::ERASE);
-    let (ref_, string) = make_node(self.ivm, label_fn, cur);
-    let (val_in, val_out) = make_node(self.ivm, label_ref, ref_);
-    self.ivm.link_wire(val_in, port);
-    self.ivm.link_wire(root, Port::new_global(self.host.get(&global).unwrap()));
-    self.ivm.normalize();
-    let string = Port::new_wire(string);
-    let string_tree = self.host.reader(self.ivm).read_port(&string);
-    self.ivm.link(string, Port::ERASE);
-    self.ivm.normalize();
+    let (recv, cur) = make_node(self.rt, w.1);
+    self.rt.link_wire(recv, Port::ERASE);
+    let (slot_, cur) = make_node(self.rt, cur);
+    let (ref_, nil) = make_node(self.rt, cur);
+    let (val_in, val_out) = make_node(self.rt, ref_);
+    self.rt.link_wire(val_in, port);
+    self.rt.link_wire(root, Port::new_graft(graft));
+    self.rt.link_wire(nil, Port::ERASE);
 
-    (Port::new_wire(val_out), self.read_string(&string_tree))
-  }
+    let slot = Slot(Arc::new(Mutex::new(None)));
+    let slot_ext_ty = self.host.get_ext_ty().unwrap();
+    self.rt.link_wire(slot_, Port::new_ext_val(slot_ext_ty.wrap_static(Boxed::new(slot.clone()))));
 
-  fn read_string(&mut self, tree: &Tree) -> Option<String> {
-    let mut str = String::new();
-    let Tree::Comb(l, len, tree) = tree else { None? };
-    if l != "tup" {
-      None?
-    }
-    let Tree::N32(len) = **len else { None? };
-    let Tree::Comb(l, buf, _) = &**tree else { None? };
-    if l != "tup" {
-      None?
-    };
-    let mut cur = &**buf;
-    for _ in 0..len {
-      let Tree::Comb(l, char, next) = cur else { None? };
-      if l != "tup" {
-        None?
-      }
-      let Tree::N32(char) = **char else { None? };
-      let Ok(char) = char::try_from(char) else { None? };
-      str.push(char);
-      cur = &**next;
-    }
-    Some(str)
+    self.rt.normalize();
+
+    let string = slot.0.lock().unwrap().take();
+
+    (Port::new_wire(val_out), string)
   }
+}
+
+#[derive(Clone)]
+struct Slot(Arc<Mutex<Option<String>>>);
+
+impl<'ivm> ExtTyBoxed<'ivm> for Slot {
+  type With<'x> = Slot;
+}
+
+pub fn extrinsics<'ivm, 'r>() -> impl Register<HostTable<'ivm, 'r>> {
+  ExtFn("vi:repl:show", |(slot, str): (Slot, String)| {
+    *slot.0.lock().unwrap() = Some(str);
+  })
 }

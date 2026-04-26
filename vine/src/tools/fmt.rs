@@ -242,7 +242,7 @@ impl<'src> Formatter<'src> {
       ExprKind::Nat(span, _, ty) => self.fmt_expr_nat(*span, ty),
       ExprKind::Float(span, _, ty) => self.fmt_expr_float(*span, ty),
       ExprKind::String(init, rest) => self.fmt_expr_string(init, rest),
-      ExprKind::InlineIvy(binds, ty, net_span, _) => self.fmt_expr_inline_ivy(binds, ty, net_span),
+      ExprKind::InlineIvy(table, net) => self.fmt_expr_inline_ivy(table, net),
     }
   }
 

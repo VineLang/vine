@@ -1,6 +1,6 @@
-pub mod ast;
-pub mod host;
-pub mod lexer;
-pub mod optimize;
-pub mod parser;
-pub mod repl;
+pub mod engine;
+pub mod name;
+pub mod net;
+pub mod prune;
+pub mod text;
+pub mod translate;

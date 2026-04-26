@@ -4,11 +4,5 @@ version = "0.0.0"
 edition = "2024"
 
 [dependencies]
-indexmap = "2.2.6"
 unicode-id-start = "1.4.0"
-
-ivm = { path = "../ivm" }
 vine-util = { path = "../util" }
-
-[lints.clippy]
-absolute_paths = "warn"

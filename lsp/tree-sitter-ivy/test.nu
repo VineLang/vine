@@ -3,7 +3,7 @@ tree-sitter generate
 
 let success = (
   ls
-    ../../ivy/examples/*.iv
+    ../../ivm/examples/*.iv
   | each {
     let path = $in.name
     let success = tree-sitter parse $path | complete | $in.exit_code == 0

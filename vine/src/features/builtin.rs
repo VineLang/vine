@@ -59,7 +59,7 @@ pub enum Builtin {
   Default,
   DebugState,
   Show,
-  ShowToString,
+  ReplShow,
 }
 
 impl Parser<'_> {
@@ -129,7 +129,7 @@ impl Parser<'_> {
       "Default" => Builtin::Default,
       "debug_state" => Builtin::DebugState,
       "Show" => Builtin::Show,
-      "show_to_string" => Builtin::ShowToString,
+      "repl_show" => Builtin::ReplShow,
       _ => Err(Diag::BadBuiltin { span })?,
     })
   }
@@ -192,7 +192,7 @@ pub struct Builtins {
   pub debug_state: Option<FnId>,
 
   pub show: Option<TraitId>,
-  pub show_to_string: Option<FnId>,
+  pub repl_show: Option<FnId>,
 }
 
 impl Charter<'_> {
@@ -277,7 +277,7 @@ impl Charter<'_> {
       Builtin::Default => set(&mut builtins.default, trait_id),
       Builtin::DebugState => set(&mut builtins.debug_state, fn_id),
       Builtin::Show => set(&mut builtins.show, trait_id),
-      Builtin::ShowToString => set(&mut builtins.show_to_string, fn_id),
+      Builtin::ReplShow => set(&mut builtins.repl_show, fn_id),
     }
   }
 }

@@ -20,34 +20,31 @@ pub mod F64 {
 
   pub impl fork: Fork[F64] {
     fn fork(&f: &F64) -> F64 {
-      safe inline_ivy! (f0 <- f, f1 -> f) -> F64 {
-        f2
-        f0 = @f64_fork(f1 f2)
-      }
+      safe $ivy { ${f} = vi:ext#1[vi:f64:fork](${~f} ^) }
     }
   }
 
   pub impl drop: Drop[F64] {
     fn drop(f: F64) {
-      safe inline_ivy! (f <- f) -> () { _ f = @f64_drop(_ _) }
+      safe $ivy { ${f} = vi:ext#1[vi:f64:drop] }
     }
   }
 
   pub impl add: Add[F64, F64, F64] {
     fn add(a: F64, b: F64) -> F64 {
-      safe inline_ivy! (a <- a, b <- b) -> F64 { out a = @f64_add(b out) }
+      safe $ivy { ${a} = vi:ext#2[vi:f64:add](${b} ^) }
     }
   }
 
   pub impl sub: Sub[F64, F64, F64] {
     fn sub(a: F64, b: F64) -> F64 {
-      safe inline_ivy! (a <- a, b <- b) -> F64 { out a = @f64_sub(b out) }
+      safe $ivy { ${a} = vi:ext#2[vi:f64:sub](${b} ^) }
     }
   }
 
   pub impl mul: Mul[F64, F64, F64] {
     fn mul(a: F64, b: F64) -> F64 {
-      safe inline_ivy! (a <- a, b <- b) -> F64 { out a = @f64_mul(b out) }
+      safe $ivy { ${a} = vi:ext#2[vi:f64:mul](${b} ^) }
     }
   }
 
@@ -69,18 +66,18 @@ pub mod F64 {
 
   pub impl div: Div[F64, F64, F64] {
     fn div(a: F64, b: F64) -> F64 {
-      safe inline_ivy! (a <- a, b <- b) -> F64 { out a = @f64_div(b out) }
+      safe $ivy { ${a} = vi:ext#2[vi:f64:div](${b} ^) }
     }
   }
 
   pub impl rem: Rem[F64, F64, F64] {
     fn rem(a: F64, b: F64) -> F64 {
-      safe inline_ivy! (a <- a, b <- b) -> F64 { out a = @f64_rem(b out) }
+      safe $ivy { ${a} = vi:ext#2[vi:f64:rem](${b} ^) }
     }
   }
 
   pub fn .sqrt(a: F64) -> F64 {
-    safe inline_ivy! (a <- a) -> F64 { out a = @f64_sqrt(_ out) }
+    safe $ivy { ${a} = vi:ext#1[vi:f64:sqrt](^) }
   }
 
   pub impl pos: Pos[F64, F64] {
@@ -91,92 +88,86 @@ pub mod F64 {
 
   pub impl neg: Neg[F64, F64] {
     fn neg(f: F64) -> F64 {
-      safe inline_ivy! (f <- f) -> F64 { out f = @f64_sub$(-0.0f64 out) }
+      F64::from_bits(N64(0, I32::minimum as N32)) - f
     }
   }
 
   pub impl eq: Eq[F64] {
     fn eq(&a: &F64, &b: &F64) -> Bool {
-      safe inline_ivy! (a <- a, b <- b) -> Bool { out a = @f64_eq(b out) }
+      safe $ivy { ${a} = vi:ext#2[vi:f64:eq](${b} ^) }
     }
 
     fn ne(&a: &F64, &b: &F64) -> Bool {
-      safe inline_ivy! (a <- a, b <- b) -> Bool { out a = @f64_ne(b out) }
+      safe $ivy { ${a} = vi:ext#2[vi:f64:ne](${b} ^) }
     }
   }
 
   pub impl lt: Lt[F64] {
     fn lt(&a: &F64, &b: &F64) -> Bool {
-      safe inline_ivy! (a <- a, b <- b) -> Bool { out a = @f64_lt(b out) }
+      safe $ivy { ${a} = vi:ext#2[vi:f64:lt](${b} ^) }
     }
   }
 
   pub impl le: Le[F64] {
     fn le(&a: &F64, &b: &F64) -> Bool {
-      safe inline_ivy! (a <- a, b <- b) -> Bool { out a = @f64_le(b out) }
+      safe $ivy { ${a} = vi:ext#2[vi:f64:le](${b} ^) }
     }
   }
 
   pub impl from_n32: Cast[N32, F64] {
     fn cast(n: N32) -> F64 {
-      safe inline_ivy! (n <- n) -> F64 { out n = @n32_to_f64(_ out) }
+      safe $ivy { ${n} = vi:ext#1[vi:n32:to_f64](^) }
     }
   }
 
   pub impl to_n32: Cast[F64, N32] {
     fn cast(f: F64) -> N32 {
-      safe inline_ivy! (f <- f) -> N32 { out f = @f64_to_n32(_ out) }
+      safe $ivy { ${f} = vi:ext#1[vi:f64:to_n32](^) }
     }
   }
 
   pub impl from_i32: Cast[I32, F64] {
     fn cast(i: I32) -> F64 {
-      safe inline_ivy! (i <- i) -> F64 { out i = @i32_to_f64(_ out) }
+      safe $ivy { ${i} = vi:ext#1[vi:i32:to_f64](^) }
     }
   }
 
   pub impl to_i32: Cast[F64, I32] {
     fn cast(f: F64) -> I32 {
-      safe inline_ivy! (f <- f) -> I32 { out f = @f64_to_i32(_ out) }
+      safe $ivy { ${f} = vi:ext#1[vi:f64:to_i32](^) }
     }
   }
 
   pub impl from_f32: Cast[F32, F64] {
     fn cast(f: F32) -> F64 {
-      safe inline_ivy! (f <- f) -> F64 { out f = @f32_to_f64(_ out) }
+      safe $ivy { ${f} = vi:ext#1[vi:f32:to_f64](^) }
     }
   }
 
   pub impl to_f32: Cast[F64, F32] {
     fn cast(f: F64) -> F32 {
-      safe inline_ivy! (f <- f) -> F32 { out f = @f64_to_f32(_ out) }
+      safe $ivy { ${f} = vi:ext#1[vi:f64:to_f32](^) }
     }
   }
 
   pub impl from_n64: Cast[N64, F64] {
     fn cast(N64(lo, hi): N64) -> F64 {
-      safe inline_ivy! (lo <- lo, hi <- hi) -> F64 { out lo = @n64_to_f64(hi out) }
+      safe $ivy { ${lo} = vi:ext#2[vi:n64:to_f64](${hi} ^) }
     }
   }
 
   pub impl to_n64: Cast[F64, N64] {
     fn cast(f: F64) -> N64 {
-      let lo;
-      let hi;
-      safe inline_ivy! (f <- f, lo -> lo, hi -> hi) -> N64 { _ f = @f64_to_n64(lo hi) };
-      N64(lo, hi)
+      N64(safe $ivy { ${f} = vi:ext#1[vi:f64:to_n64](^0 ^1) })
     }
   }
 
   pub fn .to_bits(f: F64) -> N64 {
-    let lo;
-    let hi;
-    safe inline_ivy! (f <- f, lo -> lo, hi -> hi) -> N64 { _ f = @f64_to_bits(lo hi) };
-    N64(lo, hi)
+    N64(safe $ivy { ${f} = vi:ext#1[vi:f64:to_bits](^0 ^1) })
   }
 
   pub fn from_bits(N64(lo, hi): N64) -> F64 {
-    safe inline_ivy! (lo <- lo, hi <- hi) -> F64 { out lo = @f64_from_bits(hi out) }
+    safe $ivy { ${lo} = vi:ext#2[vi:f64:from_bits](${hi} ^) }
   }
 
   pub fn .abs(f: F64) -> F64 {
