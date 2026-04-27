@@ -27,16 +27,14 @@ fn main() {
       "ln" => (f.ln(), 1),
       _ => panic!("unknown operation: {op}"),
     };
-
-    if expected.is_nan() && actual.is_nan() {
+    let expected_bits = expected.to_bits();
+    let ulp_diff = expected_bits.abs_diff(actual_bits);
+    if expected.is_nan() && actual.is_nan() || ulp_diff <= max_ulp_diff {
       correct += 1;
-    } else if expected.to_bits().abs_diff(actual_bits) > max_ulp_diff {
-      eprintln!(
-        "incorrect {op} {f:.9}: expected = {expected:.9} ({:x}), actual = {actual:.9} ({actual_bits:x})",
-        expected.to_bits()
-      );
     } else {
-      correct += 1;
+      eprintln!(
+        "incorrect {op} {f_bits:016x} ({f:?}):\n  expect: {expected_bits:016x} ({expected:?})\n  actual: {actual_bits:016x} ({actual:?})\n  ulp_diff: {ulp_diff}",
+      );
     }
   }
 
