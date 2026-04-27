@@ -1,6 +1,9 @@
 
 use #root::rng::Pcg32;
 
+#[configurable]
+const max: N32 = 10_000;
+
 pub fn main(&io: &IO) {
   let interesting_floats = [
     +0.0,
@@ -33,7 +36,7 @@ pub fn main(&io: &IO) {
   ];
 
   let rng = Pcg32::seeded("how many logs could a log calculator calculate if a log calculator could calculate logs");
-  for _ in 0..100 {
+  for _ in 0..max {
     interesting_floats.push_back(F32::from_bits(rng.gen_n32()));
   }
 
