@@ -204,17 +204,14 @@ pub mod Int {
   }
 
   pub fn parse(str: String) -> Option[Int] {
-    if str!.pop_front() is Some(prefix) {
-      if prefix == '-' {
-        Nat::parse(str).map(fn? (x: Nat) { -(x as Int) })
-      } else {
-        if prefix != '+' {
-          str!.push_front(prefix);
-        }
-        Nat::parse(str).map(fn? (x: Nat) { x as Int })
-      }
+    assert str!.pop_front() is Some(prefix) else { None() }
+    if prefix == '-' {
+      Nat::parse(str).map(fn? (x: Nat) { -(x as Int) })
     } else {
-      None()
+      if prefix != '+' {
+        str!.push_front(prefix);
+      }
+      Nat::parse(str).map(fn? (x: Nat) { x as Int })
     }
   }
 

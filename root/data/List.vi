@@ -165,8 +165,6 @@ pub mod List {
     if len != 0 {
       len -= 1;
       Some(safe front.pop())
-    } else {
-      None()
     }
   }
 
@@ -231,8 +229,6 @@ pub mod List {
       if pred(&value) {
         break Some(&value);
       }
-    } else {
-      None()
     }
   }
 
@@ -426,8 +422,6 @@ pub mod List {
         if len != 0 {
           let head = safe cursor.*.head();
           Some(head, IterRef(len - 1, safe cursor.*.tail()))
-        } else {
-          None()
         }
       }
     }

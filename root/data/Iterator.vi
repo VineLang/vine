@@ -49,8 +49,6 @@ pub mod Iterator[I, T; Iterator[I, T]] {
       fn advance(FromNext[F](f)) -> Option[(T, FromNext[F])] {
         if f() is Some(value) {
           Some(value, FromNext(f))
-        } else {
-          None()
         }
       }
     }
@@ -162,8 +160,6 @@ pub mod Iterator[I, T; Iterator[I, T]] {
             if !f(&value) {
               break Some(value, SkipWhile(iter, None()));
             }
-          } else {
-            None()
           }
         } else {
           Option::map(iter.advance(), fn? ((value, iter)) { (value, SkipWhile(iter, None())) })
@@ -220,8 +216,6 @@ pub mod Iterator[I, T; Iterator[I, T]] {
       fn advance(Take[I](iter, count)) -> Option[(T, Take[I])] {
         if count != 0 and iter.advance() is Some(value, iter) {
           Some(value, Take(iter, count - 1))
-        } else {
-          None()
         }
       }
     }
@@ -238,8 +232,6 @@ pub mod Iterator[I, T; Iterator[I, T]] {
       fn advance(TakeWhile[I, F](iter, f)) -> Option[(T, TakeWhile[I, F])] {
         if iter.advance() is Some(value, iter) and f(&value) {
           Some(value, TakeWhile(iter, f))
-        } else {
-          None()
         }
       }
     }
@@ -256,8 +248,6 @@ pub mod Iterator[I, T; Iterator[I, T]] {
       fn advance(MapWhile[I, F](iter, f)) -> Option[(U, MapWhile[I, F])] {
         if iter.advance() is Some(value, iter) and f(value) is Some(value) {
           Some(value, MapWhile(iter, f))
-        } else {
-          None()
         }
       }
     }
@@ -319,8 +309,6 @@ pub mod Iterator[I, T; Iterator[I, T]] {
         let (i, ir) = iters as (I, IR);
         if i.advance() is Some(t, i) and ZipShortest(ir).advance() is Some(tr, ZipShortest(ir)) {
           Some((t, tr) as TS, ZipShortest((i, ir) as IS))
-        } else {
-          None()
         }
       }
     }
@@ -343,8 +331,6 @@ pub mod Iterator[I, T; Iterator[I, T]] {
             if j.advance() is Some(t, j) {
               break Some(t, Flatten(Some(j), i));
             }
-          } else {
-            None()
           }
         }
       }
@@ -413,8 +399,6 @@ pub mod Iterator[I, T; Iterator[I, T]] {
       fn start[I; Iterator[I, T]](iter: I) -> Option[(W, I)] {
         if iter.advance() is Some(init, iter) and Window::start[R, T, I](iter) is Some(rest, iter) {
           Some((init, rest) as W, iter)
-        } else {
-          None()
         }
       }
 
@@ -446,8 +430,6 @@ pub mod Iterator[I, T; Iterator[I, T]] {
         if iter.advance() is Some(value, iter) {
           let init = rest.shift(value);
           Some((init, rest) as W, Windows(Some(rest), iter))
-        } else {
-          None()
         }
       }
     }
@@ -485,8 +467,6 @@ pub mod Iterator[I, T; Iterator[I, T]] {
       if f(&value) {
         break Some(value);
       }
-    } else {
-      None()
     }
   }
 
@@ -495,8 +475,6 @@ pub mod Iterator[I, T; Iterator[I, T]] {
       if f(value) is Some(value) {
         break Some(value);
       }
-    } else {
-      None()
     }
   }
 
@@ -548,8 +526,6 @@ pub mod Iterator[I, T; Iterator[I, T]] {
       } else {
         index -= 1;
       }
-    } else {
-      None()
     }
   }
 
@@ -559,8 +535,6 @@ pub mod Iterator[I, T; Iterator[I, T]] {
         current = value;
       }
       Some(current)
-    } else {
-      None()
     }
   }
 
@@ -572,8 +546,6 @@ pub mod Iterator[I, T; Iterator[I, T]] {
         }
       }
       Some(max)
-    } else {
-      None()
     }
   }
 
@@ -585,8 +557,6 @@ pub mod Iterator[I, T; Iterator[I, T]] {
         }
       }
       Some(min)
-    } else {
-      None()
     }
   }
 
