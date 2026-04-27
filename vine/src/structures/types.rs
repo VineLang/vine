@@ -405,19 +405,15 @@ impl Types {
     }
   }
 
-  pub fn related(&self, ty: Type) -> HashSet<TypeIdx> {
-    let mut related = HashSet::new();
-    let mut stack = vec![ty];
-    while let Some(ty) = stack.pop() {
-      if !related.insert(self.find(ty).idx()) {
-        continue;
-      }
-      let Some((_, kind)) = self.kind(ty) else { continue };
+  pub(crate) fn find_related(&self, ty: Type, set: &mut HashSet<TypeIdx>) {
+    let ty = self.find(ty);
+    if set.insert(ty.idx())
+      && let Some((_, kind)) = self.kind(ty)
+    {
       for ty in kind.children() {
-        stack.push(ty);
+        self.find_related(ty, set);
       }
     }
-    related
   }
 
   pub fn show(&self, chart: &Chart, ty: Type) -> String {
@@ -650,12 +646,12 @@ impl Types {
   }
 
   pub fn finish_inference(&mut self) {
-    self.finish_inference_excluding(&HashSet::new());
+    self.finish_inference_where(|_| true);
   }
 
-  pub fn finish_inference_excluding(&mut self, excluding: &HashSet<TypeIdx>) {
+  pub fn finish_inference_where(&mut self, filter: impl Fn(TypeIdx) -> bool) {
     for (ty, node) in &mut self.types {
-      if !excluding.contains(&ty)
+      if filter(ty)
         && let TypeNode::Root { state, .. } = node
         && !matches!(state, TypeState::Known(..))
       {
