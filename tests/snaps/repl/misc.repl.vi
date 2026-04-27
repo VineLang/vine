@@ -540,7 +540,7 @@ let io: IO = <IO>;
 > let x = []
 
 let io: IO = <IO>;
-let x: List[?2800] = <List[?2800]>;
+let x: List[?3140] = <List[?3140]>;
 > x.push_back("hello");
 
 let io: IO = <IO>;
