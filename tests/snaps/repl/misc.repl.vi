@@ -31,7 +31,7 @@ let io: IO = <IO>;
 
 let io: IO = <IO>;
 > "abc" ++ 123
-error: cannot find impl of trait `Concat[String, N32, ?96]`
+error: cannot find impl of trait `Concat[String, N32, ?107]`
    @ input:1:1
  1 | "abc" ++ 123
 
@@ -352,7 +352,7 @@ error: expected type `{ a: N32, b: N32 }`; found `{ a: N32 }`
 
 let io: IO = <IO>;
 > do { let x; x = (x, x); }
-error: expected type `?2034`; found `(?2034, ?2034)`
+error: expected type `?2267`; found `(?2267, ?2267)`
    @ input:1:17
  1 | do { let x; x = (x, x); }
 

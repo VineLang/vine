@@ -14,7 +14,7 @@ error: types in item signatures cannot be elided
    @ atypical.vi:4:8
  4 | fn foo(x, y: Foo) {}
 
-error: `#atypical::Foo` expects 1 type parameter; was passed 0
+error: missing type argument `X`
    @ atypical.vi:4:14
  4 | fn foo(x, y: Foo) {}
 
@@ -30,23 +30,23 @@ error: expected type `F32`; found `N32`
    @ atypical.vi:8:16
  8 |   let x: F32 = 0;
 
-error: cannot find impl of trait `Add[(N32, N32), F32, ?13]`
+error: cannot find impl of trait `Add[(N32, N32), F32, ?16]`
    @ atypical.vi:9:23
  9 |   let x: (N32, N32) = (1, 2) + 0.0;
 
-error: expected type `(?19, ?20)`; found `N32`
+error: expected type `(?22, ?23)`; found `N32`
     @ atypical.vi:10:16
  10 |   let (a, b) = 0;
 
-error: search limit reached when finding impl of trait `Add[?22, N32, ?24]`
+error: search limit reached when finding impl of trait `Add[?28, N32, ?30]`
     @ atypical.vi:11:10
  11 |   let x; x + 1;
 
-error: cannot find impl of trait `Fn[N32, (), ?27]`
+error: cannot find impl of trait `Fn[N32, (), ?33]`
     @ atypical.vi:12:3
  12 |   1();
 
-error: cannot find impl of trait `Add[N32, ~N32, ?31]`
+error: cannot find impl of trait `Add[N32, ~N32, ?40]`
     @ atypical.vi:13:14
  13 |   let x = 3; 2 + ~x;
 
@@ -82,7 +82,7 @@ error: no value associated with `#atypical::Foo`
     @ atypical.vi:18:21
  18 |   let Thing((x,)) = Foo(1);
 
-error: expected type `(N32, N32)`; found `(?51,)`
+error: expected type `(N32, N32)`; found `(?60,)`
     @ atypical.vi:18:13
  18 |   let Thing((x,)) = Foo(1);
 
@@ -102,11 +102,11 @@ error: expected type `Ay`; found `N32`
     @ atypical.vi:22:19
  22 |   let Ay::Yay() = 0;
 
-error: cannot find impl of trait `Add[String, N32, ?72]`
+error: cannot find impl of trait `Add[String, N32, ?84]`
     @ atypical.vi:23:4
  23 |   (loop { break "x" } + 1);
 
-error: expected type `N32`; found `&?76`
+error: expected type `N32`; found `&?88`
     @ atypical.vi:24:7
  24 |   let &x: N32 = loop { continue };
 
@@ -122,7 +122,7 @@ error: expected type `()`; found `F32`
     @ atypical.vi:27:10
  27 |   return 0.0;
 
-error: cannot find impl of trait `Add[~N32, ~N32, ?82]`
+error: cannot find impl of trait `Add[~N32, ~N32, ?97]`
     @ atypical.vi:28:14
  28 |   let x = 1; ~x + ~x;
 

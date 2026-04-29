@@ -44,7 +44,7 @@ error: cannot find impl of trait `Default[TrafficLight]`
 
 let io: IO = <IO>;
 > 1 + _ // error
-error: search limit reached when finding impl of trait `Add[N32, ?121, ?122]`
+error: search limit reached when finding impl of trait `Add[N32, ?124, ?125]`
    @ input:1:1
  1 | 1 + _ // error
 
@@ -58,7 +58,7 @@ let io: IO = <IO>;
 
 let io: IO = <IO>;
 > "abc" ++ _[N32] // error
-error: cannot find impl of trait `Concat[String, N32, ?134]`
+error: cannot find impl of trait `Concat[String, N32, ?137]`
    @ input:1:1
  1 | "abc" ++ _[N32] // error
 
