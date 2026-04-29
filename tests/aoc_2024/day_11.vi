@@ -6,7 +6,7 @@ const max: N32 = 75;
 pub fn main(&io: &IO) {
   let input = io.read_line().assume();
 
-  let stones = Map::empty[N64, _];
+  let stones = Map::empty[N64];
   let input = input.split(" ");
   for stone in input.iter() {
     let stone = N32::parse(stone).assume() as N64;
@@ -20,7 +20,7 @@ pub fn main(&io: &IO) {
 }
 
 fn blink(old: Map[N64, N64]) -> Map[N64, N64] {
-  let new = Map::empty[N64, _];
+  let new = Map::empty[N64];
   let fn add_stones(number: N64, count: N64) {
     let &c = new.at_or_insert(number, 0[N64]);
     c += count;

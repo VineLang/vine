@@ -31,7 +31,7 @@ pub fn main(&io: &IO) {
   }
   let grid = grid as Array;
 
-  let pq = Map::empty[N32, _];
+  let pq = Map::empty[N32];
   pq.insert(0, [(start, 0)]);
 
   let fn try_insert(dist: N32, pos: (N32, N32), dir) {

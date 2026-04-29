@@ -204,7 +204,7 @@ pub mod Map[K, V; Ord[K]] {
 
   pub impl [K?, V?; Ord[K]]: Collect[Map[K, V], (K, V)] {
     fn collect[I; Iterator[I, (K, V)]](iter: I) -> Map[K, V] {
-      Map(iter.collect[Set, (K, V), _]())
+      Map(iter.collect[Set, (K, V)]())
     }
   }
 

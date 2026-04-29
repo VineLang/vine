@@ -2,7 +2,7 @@
 use #root::data::Map;
 
 pub fn main(&io: &IO) {
-  let map = Map::empty[N32, _];
+  let map = Map::empty[N32];
 
   let part1 = 0[N64];
 

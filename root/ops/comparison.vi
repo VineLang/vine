@@ -95,7 +95,7 @@ pub mod Eq {
     }
   }
 
-  pub impl variant_nil[R; Eq[R]]: Eq[Variant[(), R]] = variant[; nil, _];
+  pub impl variant_nil[R; Eq[R]]: Eq[Variant[(), R]] = variant[; nil];
 
   #[basic]
   pub impl enum_[E, V; Enum[E, V], Eq[V]]: Eq[E] {
@@ -248,7 +248,7 @@ pub mod Ord {
     }
   }
 
-  pub impl variant_nil[R; Ord[R]]: Ord[Variant[(), R]] = variant[; nil, _];
+  pub impl variant_nil[R; Ord[R]]: Ord[Variant[(), R]] = variant[; nil];
 
   #[basic]
   pub impl enum_[E, V; Enum[E, V], Ord[V]]: Ord[E] {

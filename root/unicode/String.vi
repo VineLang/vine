@@ -176,7 +176,7 @@ pub mod String {
   /// ```
   pub impl : Collect[String, Char] {
     fn collect[I; Iterator[I, Char]](iter: I) -> String {
-      String(iter.collect[List[Char], _, _]())
+      String(iter.collect[List[Char]]())
     }
   }
 

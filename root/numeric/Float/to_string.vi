@@ -16,16 +16,16 @@ pub impl to_string[
     if f.is_nan() {
       return "NaN";
     }
-    if f == Float::inf[F, _] {
+    if f == Float::inf[F] {
       return "inf";
     }
-    if f == Float::neg_inf[F, _] {
+    if f == Float::neg_inf[F] {
       return "-inf";
     }
 
     let { negative, raw_exp, mantissa } = f.to_parts();
 
-    if f == Float::zero[F, _] {
+    if f == Float::zero[F] {
       if negative {
         return "-0.0";
       } else {
@@ -33,14 +33,14 @@ pub impl to_string[
       }
     }
 
-    let exp = raw_exp as I32 - Float::max_exponent[F, _] - Float::num_mantissa_bits[F, _] as I32;
+    let exp = raw_exp as I32 - Float::max_exponent[F] - Float::num_mantissa_bits[F] as I32;
 
     if raw_exp == 0 {
       // Subnormal
       exp += +1;
     } else {
       // Set implicit 1 bit in mantissa
-      mantissa |= 1[Mantissa] << Float::num_mantissa_bits[F, _];
+      mantissa |= 1[Mantissa] << Float::num_mantissa_bits[F];
     }
 
     let num = mantissa as Nat;
@@ -69,7 +69,7 @@ pub impl to_string[
 
     // Use enough bits to be able to round trip the float.
     let digits = [];
-    for _ in 0..(Float::max_decimal_digits[F, _] - 1) {
+    for _ in 0..(Float::max_decimal_digits[F] - 1) {
       let (digit, rem) = num.div_rem(den);
       num = rem * 10;
       digits.push_front(digit as N32);
