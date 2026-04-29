@@ -296,7 +296,7 @@ impl Resolver<'_> {
     let args = args.unwrap_or(&_args);
     let params = &self.chart.generics[generics_id];
     let mut check_count = |got, expected, kind| {
-      if got != expected {
+      if got != expected && (!inference || got > expected) {
         self.diags.error(Diag::BadGenericCount {
           span,
           path: self.chart.defs[params.def].path.clone(),
@@ -311,12 +311,8 @@ impl Resolver<'_> {
       // Things with no inference cannot have implementation parameters; skip
       // checking the signature as this may not have been resolved yet.
       if !inference { 0 } else { self.sigs.impl_params[generics_id].types.inner.len() };
-    if !inference || !args.types.is_empty() {
-      check_count(args.types.len(), type_param_count, "type");
-    }
-    if !args.impls.is_empty() {
-      check_count(args.impls.len(), impl_param_count, "impl");
-    }
+    check_count(args.types.len(), type_param_count, "type");
+    check_count(args.impls.len(), impl_param_count, "impl");
     let has_impl_params = impl_param_count != 0;
     let type_params = if let Some(mut inferred) = inferred_type_params {
       for (inferred, ty) in inferred.iter_mut().zip(args.types.iter()) {
@@ -342,18 +338,14 @@ impl Resolver<'_> {
     let impl_params = if has_impl_params {
       let impl_params_types =
         self.types.import(&self.sigs.impl_params[generics_id].types, Some(&type_params));
-      if args.impls.is_empty() {
-        impl_params_types.into_iter().map(|ty| self.find_impl(args.span, &ty, false)).collect()
-      } else {
-        impl_params_types
-          .into_iter()
-          .enumerate()
-          .map(|(i, ty)| match args.impls.get(i) {
-            Some(impl_) => self.resolve_impl_type(impl_, &ty),
-            None => TirImpl::Error(ErrorGuaranteed::new_unchecked()),
-          })
-          .collect()
-      }
+      impl_params_types
+        .into_iter()
+        .enumerate()
+        .map(|(i, ty)| match args.impls.get(i) {
+          Some(impl_) => self.resolve_impl_type(impl_, &ty),
+          None => self.find_impl(args.span, &ty, false),
+        })
+        .collect()
     } else {
       Vec::new()
     };
