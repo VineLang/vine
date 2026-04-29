@@ -338,76 +338,28 @@ impl Resolver<'_> {
     let _args = GenericArgs::empty(span);
     let args = args.unwrap_or(&_args);
     let params = &self.chart.generics[generics_id];
-    let mut check_count = |got, expected, kind| {
-      if got > expected {
-        self.diags.error(Diag::BadGenericCount {
-          span,
-          path: self.chart.defs[params.def].path.clone(),
-          expected,
-          got,
-          kind,
-        });
-      }
-    };
-    let type_param_count = self.sigs.type_params[generics_id].params.len();
-    let impl_param_count =
-      // Things with no inference cannot have implementation parameters; skip
-      // checking the signature as this may not have been resolved yet.
-      if !inference { 0 } else { self.sigs.impl_params[generics_id].types.inner.len() };
-    check_count(args.types.len(), type_param_count, "type");
-    check_count(args.impls.len(), impl_param_count, "impl");
-    let has_impl_params = impl_param_count != 0;
-    let type_args = {
-      let mut type_args = vec![None; type_param_count];
-      let mut positional_idx = Counter(0);
-      for type_arg in &args.types {
-        let idx = if let Some(name) = &type_arg.name {
-          if let Some(&idx) = self.sigs.type_params[generics_id].lookup.get(name) {
-            idx
-          } else {
-            self.diags.error(Diag::NoSuchTypeParam {
-              span: type_arg.span,
-              path: self.chart.defs[params.def].path.clone(),
-              name: name.clone(),
-            });
-            continue;
-          }
-        } else {
-          positional_idx.next()
-        };
-        let Some(ty) = type_args.get_mut(idx) else { continue };
-        if ty.is_some() {
-          self.diags.error(Diag::DuplicateTypeArg {
-            span: type_arg.span,
-            name: self.sigs.type_params[generics_id].params[idx].clone(),
-          });
-        } else {
-          *ty = Some(self.resolve_ty(&type_arg.ty, inference));
-        }
-      }
-      type_args
-        .into_iter()
-        .enumerate()
-        .map(|(idx, ty)| {
-          ty.unwrap_or_else(|| {
-            if inference {
-              self.types.new_var(args.span)
-            } else {
-              self.types.error(self.diags.error(Diag::MissingTypeArg {
-                span,
-                name: self.sigs.type_params[generics_id].params[idx].clone(),
-              }))
-            }
-          })
-        })
-        .collect::<Vec<_>>()
-    };
+
+    let type_args = self.resolve_type_args(span, &args.types, generics_id, inference);
     if let Some(inferred) = inferred_type_args {
       for (inferred, &passed) in inferred.into_iter().zip(type_args.iter()) {
         _ = self.types.unify(inferred, passed);
       }
     }
-    let impl_args = if has_impl_params {
+
+    let impl_param_count =
+      // Things with no inference cannot have implementation parameters; skip
+      // checking the signature as this may not have been resolved yet.
+      if !inference { 0 } else { self.sigs.impl_params[generics_id].types.inner.len() };
+    if args.impls.len() > impl_param_count {
+      self.diags.error(Diag::BadGenericCount {
+        span,
+        path: self.chart.defs[params.def].path.clone(),
+        expected: impl_param_count,
+        got: args.impls.len(),
+        kind: "impl",
+      });
+    }
+    let impl_args = if impl_param_count != 0 {
       let impl_params_types =
         self.types.import(&self.sigs.impl_params[generics_id].types, Some(&type_args));
       impl_params_types
@@ -421,7 +373,71 @@ impl Resolver<'_> {
     } else {
       Vec::new()
     };
+
     (type_args, impl_args)
+  }
+
+  fn resolve_type_args(
+    &mut self,
+    span: Span,
+    args: &[TypeArg],
+    generics_id: GenericsId,
+    inference: bool,
+  ) -> Vec<Type> {
+    let path = || self.chart.defs[self.chart.generics[generics_id].def].path.clone();
+    let type_param_count = self.sigs.type_params[generics_id].params.len();
+    let mut type_args = vec![None; type_param_count];
+    let mut positional = Counter(0);
+    for arg in args {
+      let idx = if let Some(name) = &arg.name {
+        if let Some(&idx) = self.sigs.type_params[generics_id].lookup.get(name) {
+          idx
+        } else {
+          self.diags.error(Diag::NoSuchTypeParam {
+            span: arg.span,
+            path: path(),
+            name: name.clone(),
+          });
+          continue;
+        }
+      } else {
+        positional.next()
+      };
+      let Some(ty) = type_args.get_mut(idx) else { continue };
+      if ty.is_some() {
+        self.diags.error(Diag::DuplicateTypeArg {
+          span: arg.span,
+          name: self.sigs.type_params[generics_id].params[idx].clone(),
+        });
+      } else {
+        *ty = Some(self.resolve_ty(&arg.ty, inference));
+      }
+    }
+    if positional.count() > type_param_count {
+      self.diags.error(Diag::BadGenericCount {
+        span,
+        path: path(),
+        expected: type_param_count,
+        got: positional.count(),
+        kind: "type",
+      });
+    }
+    type_args
+      .into_iter()
+      .enumerate()
+      .map(|(idx, ty)| {
+        ty.unwrap_or_else(|| {
+          if inference {
+            self.types.new_var(span)
+          } else {
+            self.types.error(self.diags.error(Diag::MissingTypeArg {
+              span,
+              name: self.sigs.type_params[generics_id].params[idx].clone(),
+            }))
+          }
+        })
+      })
+      .collect::<Vec<_>>()
   }
 
   pub(crate) fn show_generics(&self, generics: GenericsId, impl_params: bool) -> String {
