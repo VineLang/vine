@@ -342,7 +342,8 @@ module.exports = grammar({
     ty_param: $ => seq($.ident, optional($.flex)),
     impl_param: $ => seq(optional(seq($.ident, ":")), $._trait),
 
-    generic_args: $ => generics(false, $._ty, $._impl),
+    generic_args: $ => generics(false, $.ty_arg, $._impl),
+    ty_arg: $ => seq(optional(seq($.ident, "=")), $._ty),
 
     flex: $ => choice("+", "?", "*"),
 
