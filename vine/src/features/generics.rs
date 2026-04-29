@@ -6,7 +6,8 @@ use crate::{
   components::{charter::Charter, lexer::Token, parser::Parser, resolver::Resolver},
   structures::{
     ast::{
-      GenericArgs, GenericParams, Generics, ImplParam, Path, Span, Trait, TraitKind, TypeParam,
+      GenericArgs, GenericParams, Generics, ImplKind, ImplParam, Path, Span, Trait, TraitKind,
+      TyKind, TypeParam,
     },
     chart::{DefId, GenericsDef, GenericsId, GenericsKind},
     diag::{Diag, ErrorGuaranteed},
@@ -91,11 +92,25 @@ impl Parser<'_> {
 
 impl<'src> Formatter<'src> {
   pub(crate) fn fmt_generic_params(&self, generics: &GenericParams) -> Doc<'src> {
-    self.fmt_generics(generics, |p| self.fmt_type_param(p), |p| self.fmt_impl_param(p))
+    self.fmt_generics(
+      generics.inherit,
+      &generics.types,
+      &generics.impls,
+      |p| self.fmt_type_param(p),
+      |p| self.fmt_impl_param(p),
+    )
   }
 
   pub(crate) fn fmt_generic_args(&self, generics: &GenericArgs) -> Doc<'src> {
-    self.fmt_generics(generics, |t| self.fmt_ty(t), |p| self.fmt_impl(p))
+    let mut types = &*generics.types;
+    let mut impls = &*generics.impls;
+    while types.last().is_some_and(|t| matches!(*t.kind, TyKind::Hole)) {
+      types = &types[..types.len() - 1];
+    }
+    while impls.last().is_some_and(|i| matches!(*i.kind, ImplKind::Hole)) {
+      impls = &impls[..impls.len() - 1];
+    }
+    self.fmt_generics(false, types, impls, |t| self.fmt_ty(t), |p| self.fmt_impl(p))
   }
 
   pub(crate) fn fmt_type_param(&self, param: &TypeParam) -> Doc<'src> {
@@ -111,24 +126,26 @@ impl<'src> Formatter<'src> {
 
   pub(crate) fn fmt_generics<T, I>(
     &self,
-    generics: &Generics<T, I>,
+    inherit: bool,
+    types: &[T],
+    impls: &[I],
     fmt_t: impl Fn(&T) -> Doc<'src>,
     fmt_i: impl Fn(&I) -> Doc<'src>,
   ) -> Doc<'src> {
-    let include_types = !generics.types.is_empty() || !generics.impls.is_empty();
-    let include_impls = !generics.impls.is_empty();
+    let include_types = !types.is_empty() || !impls.is_empty();
+    let include_impls = !impls.is_empty();
     let sections = [
-      include_types.then(|| self.fmt_generics_section(&generics.types, fmt_t)),
-      include_impls.then(|| self.fmt_generics_section(&generics.impls, fmt_i)),
+      include_types.then(|| self.fmt_generics_section(types, fmt_t)),
+      include_impls.then(|| self.fmt_generics_section(impls, fmt_i)),
     ];
     let has_sections = sections.iter().any(|x| x.is_some());
-    if !generics.inherit && !has_sections {
+    if !inherit && !has_sections {
       Doc::EMPTY
     } else {
       Doc::concat([
         Doc("["),
         Doc::group([
-          if generics.inherit {
+          if inherit {
             Doc::concat([Doc("..."), if has_sections { Doc::soft_line(" ") } else { Doc::EMPTY }])
           } else {
             Doc::EMPTY
