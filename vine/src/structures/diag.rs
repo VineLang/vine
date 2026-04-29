@@ -147,7 +147,13 @@ diags! {
   PathNoImpl { trait_: Ident, path: String }
     ["no impl of `{trait_}` associated with `{path}`"]
   BadGenericCount { path: String, expected: usize, got: usize, kind: &'static str }
-    ["`{path}` expects {expected} {kind} parameter{}; was passed {got}", plural(*expected, "s", "")]
+    ["`{path}` expects {expected} {kind} argument{}; was passed {got}", plural(*expected, "s", "")]
+  NoSuchTypeParam { path: String, name: Ident }
+    ["`{path}` has no type parameter named `{name}`"]
+  DuplicateTypeArg { name: Ident }
+    ["duplicate type argument `{name}`"]
+  MissingTypeArg { name: Ident }
+    ["missing type argument `{name}`"]
   MissingTupleField { ty: String, i: usize }
     ["type `{ty}` has no field `{i}`"]
   MissingObjectField { ty: String, key: Ident }
