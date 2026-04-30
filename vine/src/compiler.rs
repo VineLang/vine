@@ -149,7 +149,7 @@ impl Compiler {
   ) {
     let guide = &Guide::build(table);
 
-    for fragment_id in self.fragments.keys_from(checkpoint.fragments) {
+    for fragment_id in self.fragments.keys_from(checkpoint.templates) {
       let fragment = &self.fragments[fragment_id];
       let vir = &self.vir[fragment_id];
       let template = emit(self.debug, &self.chart, fragment, vir, &mut self.specs, table, guide);
