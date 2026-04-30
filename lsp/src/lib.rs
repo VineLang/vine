@@ -3,19 +3,20 @@ use std::{
   env::current_dir,
   fs,
   path::{Path, PathBuf},
+  sync::Arc,
   time::Instant,
 };
 
 use futures::{StreamExt, stream::FuturesUnordered};
-use tokio::sync::RwLock;
+use tokio::{
+  io::{AsyncRead, AsyncWrite},
+  sync::RwLock,
+};
 use tower_lsp::{Client, LanguageServer, LspService, Server, jsonrpc::Result, lsp_types::*};
 
 use vine::{
   compiler::Compiler,
-  components::{
-    loader::{FileId, Loader, RealFS},
-    parser::Parser,
-  },
+  components::{loader::FileId, parser::Parser},
   structures::{
     ast::{Ident, Item, ItemKind, Span, visit::VisitMut},
     checkpoint::Checkpoint,
@@ -25,30 +26,23 @@ use vine::{
 };
 use vine_util::idx::IdxVec;
 
-struct Backend {
+struct Backend<H> {
   client: Client,
-  entrypoints: Vec<String>,
   docs: RwLock<HashMap<Url, Doc>>,
-  lsp: RwLock<Lsp>,
+  lsp: Arc<RwLock<Lsp>>,
   checkpoint: Checkpoint,
+  hooks: H,
 }
 
-impl Backend {
+impl<H: Hooks> Backend<H> {
   async fn refresh(&self) {
     let mut lsp = self.lsp.write().await;
     let lsp = &mut *lsp;
     lsp.compiler.revert(&self.checkpoint);
     lsp.file_paths.truncate(self.checkpoint.files.0);
+    let docs = self.docs.read().await;
 
-    let mut loader = Loader::new(&mut lsp.compiler, RealFS, Some(&mut lsp.file_paths));
-    for glob in &self.entrypoints {
-      for entry in glob::glob(glob).unwrap() {
-        let path = entry.unwrap();
-        if let Some(name) = RealFS::detect_name(&path) {
-          loader.load_mod(name, path);
-        }
-      }
-    }
+    self.hooks.load_modules(&mut lsp.compiler, &mut lsp.file_paths, &docs);
 
     for id in lsp.file_paths.keys_from(self.checkpoint.files) {
       let path = &mut lsp.file_paths[id];
@@ -58,6 +52,7 @@ impl Backend {
     }
 
     let start = Instant::now();
+    self.hooks.pre_check(lsp.compiler.checkpoint());
     _ = lsp.compiler.check(());
     eprintln!("compiled in {:?}", start.elapsed());
 
@@ -86,15 +81,21 @@ impl Backend {
       futures.push(self.client.publish_diagnostics(uri, out, None));
     }
     futures.collect::<()>().await;
+
+    self.hooks.refresh(&mut lsp.compiler, &*self.docs.read().await);
   }
 }
 
-struct Lsp {
-  compiler: Compiler,
-  file_paths: IdxVec<FileId, PathBuf>,
+pub struct Lsp {
+  pub compiler: Compiler,
+  pub file_paths: IdxVec<FileId, PathBuf>,
 }
 
 impl Lsp {
+  pub fn new(compiler: Compiler, file_paths: IdxVec<FileId, PathBuf>) -> Self {
+    Self { compiler, file_paths }
+  }
+
   fn workspace_symbols(&self, params: WorkspaceSymbolParams) -> Option<Vec<SymbolInformation>> {
     let query = params.query.to_lowercase();
     let chart = &self.compiler.chart;
@@ -294,7 +295,7 @@ impl Lsp {
 }
 
 #[tower_lsp::async_trait]
-impl LanguageServer for Backend {
+impl<H: Hooks> LanguageServer for Backend<H> {
   async fn initialize(&self, params: InitializeParams) -> Result<InitializeResult> {
     let supports_utf8 = params.capabilities.general.is_some_and(|x| {
       x.position_encodings.is_some_and(|x| x.contains(&PositionEncodingKind::UTF8))
@@ -430,31 +431,62 @@ impl Doc {
   }
 }
 
+pub trait Hooks: Send + Sync + 'static {
+  fn load_modules(
+    &self,
+    compiler: &mut Compiler,
+    file_paths: &mut IdxVec<FileId, PathBuf>,
+    docs: &HashMap<Url, Doc>,
+  );
+
+  fn pre_check(&self, _checkpoint: Checkpoint) {}
+
+  fn refresh(&self, _compiler: &mut Compiler, _docs: &HashMap<Url, Doc>) {}
+}
+
 #[allow(clippy::absolute_paths)]
 #[tokio::main]
-pub async fn lsp(
-  mut compiler: Compiler,
-  mut file_paths: IdxVec<FileId, PathBuf>,
-  entrypoints: Vec<String>,
+pub async fn lsp_stdio<H: Hooks>(
+  compiler: Compiler,
+  file_paths: IdxVec<FileId, PathBuf>,
+  hooks: H,
 ) {
-  let stdin = tokio::io::stdin();
-  let stdout = tokio::io::stdout();
+  lsp(
+    Arc::new(RwLock::new(Lsp { compiler, file_paths })),
+    hooks,
+    tokio::io::stdin(),
+    tokio::io::stdout(),
+  )
+  .await;
+}
 
-  _ = compiler.check(());
-  let checkpoint = compiler.checkpoint();
+pub async fn lsp<H: Hooks>(
+  lsp: Arc<RwLock<Lsp>>,
+  hooks: H,
+  stdin: impl AsyncRead + Unpin,
+  stdout: impl AsyncWrite,
+) {
+  let checkpoint = {
+    let Lsp { compiler, file_paths } = &mut *lsp.write().await;
+    _ = compiler.check(());
+    let checkpoint = compiler.checkpoint();
 
-  for path in file_paths.values_mut() {
-    if let Ok(path_) = fs::canonicalize(&path) {
-      *path = path_;
+    for path in file_paths.values_mut() {
+      if let Ok(path_) = fs::canonicalize(&path) {
+        *path = path_;
+      }
     }
-  }
+
+    checkpoint
+  };
 
   let (service, socket) = LspService::new(|client| Backend {
     client,
-    entrypoints,
     docs: RwLock::new(HashMap::new()),
-    lsp: RwLock::new(Lsp { compiler, file_paths }),
+    lsp,
     checkpoint,
+    hooks,
   });
+
   Server::new(stdin, stdout, socket).serve(service).await;
 }
