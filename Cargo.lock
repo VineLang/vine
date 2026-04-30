@@ -1331,6 +1331,7 @@ dependencies = [
  "ivy",
  "notify",
  "rustyline",
+ "url",
  "vine",
  "vine-lsp",
  "vine-util",
@@ -1341,7 +1342,6 @@ name = "vine-lsp"
 version = "0.0.0"
 dependencies = [
  "futures",
- "glob",
  "tokio",
  "tower-lsp",
  "vine",

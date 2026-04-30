@@ -30,6 +30,7 @@ use ivy::{
 };
 use notify::{RecommendedWatcher, RecursiveMode, Watcher};
 use rustyline::DefaultEditor;
+use url::Url;
 use vine::{
   backend::{BackendConfig, Target, backend, vi_to_ivm},
   compiler::Compiler,
@@ -46,7 +47,7 @@ use vine::{
     repl::{self, Repl},
   },
 };
-use vine_lsp::lsp;
+use vine_lsp::{Doc, lsp_stdio};
 use vine_util::idx::IdxVec;
 
 use crate::common::RunArgs;
@@ -687,8 +688,38 @@ impl VineLspCommand {
   pub fn execute(self) -> Result<()> {
     let mut compiler = Compiler::default();
     let file_paths = self.check.libs.initialize(&mut compiler);
-    lsp(compiler, file_paths, self.check.entrypoints);
+    let hooks = VineCliLspHooks::new(self.check.entrypoints);
+    lsp_stdio(compiler, file_paths, hooks);
     Ok(())
+  }
+}
+
+struct VineCliLspHooks {
+  entrypoints: Vec<String>,
+}
+
+impl VineCliLspHooks {
+  fn new(entrypoints: Vec<String>) -> Self {
+    Self { entrypoints }
+  }
+}
+
+impl vine_lsp::Hooks for VineCliLspHooks {
+  fn load_modules(
+    &self,
+    compiler: &mut Compiler,
+    file_paths: &mut IdxVec<FileId, PathBuf>,
+    _docs: &HashMap<Url, Doc>,
+  ) {
+    let mut loader = Loader::new(compiler, RealFS, Some(file_paths));
+    for glob in &self.entrypoints {
+      for entry in glob::glob(glob).unwrap() {
+        let path = entry.unwrap();
+        if let Some(name) = RealFS::detect_name(&path) {
+          loader.load_mod(name, path);
+        }
+      }
+    }
   }
 }
 
