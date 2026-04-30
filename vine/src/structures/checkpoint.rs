@@ -35,6 +35,7 @@ pub struct Checkpoint {
   pub traits: TraitId,
   pub impls: ImplId,
   pub fragments: FragmentId,
+  pub templates: FragmentId,
   pub specs: SpecId,
   pub impl_trees: ImplTreeId,
   pub files: FileId,
@@ -59,6 +60,7 @@ impl Compiler {
       traits: self.chart.traits.next_index(),
       impls: self.chart.impls.next_index(),
       fragments: self.fragments.next_index(),
+      templates: self.templates.next_index(),
       specs: self.specs.specs.next_index(),
       impl_trees: self.specs.impls.next_index(),
       files: self.files.next_index(),
@@ -95,7 +97,7 @@ impl Compiler {
     files.truncate(checkpoint.files.0);
     fragments.truncate(checkpoint.fragments.0);
     vir.truncate(checkpoint.fragments.0);
-    templates.truncate(checkpoint.fragments.0);
+    templates.truncate(checkpoint.templates.0);
   }
 }
 
