@@ -259,7 +259,7 @@ impl RealFS {
   }
 }
 
-#[derive(PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum EntryKind {
   File,
   Dir,
