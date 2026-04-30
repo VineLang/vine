@@ -120,9 +120,10 @@ pub trait Lex<'src> {
             depth -= 1;
           }
         }
-        _ => {
+        Some(_) => {
           self.bump();
         }
+        None => break,
       }
     }
   }
