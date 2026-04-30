@@ -28,7 +28,7 @@ use vine_util::idx::IdxVec;
 struct Backend {
   client: Client,
   entrypoints: Vec<String>,
-  docs: RwLock<HashMap<Url, String>>,
+  docs: RwLock<HashMap<Url, Doc>>,
   lsp: RwLock<Lsp>,
   checkpoint: Checkpoint,
 }
@@ -337,15 +337,17 @@ impl LanguageServer for Backend {
 
   async fn did_open(&self, params: DidOpenTextDocumentParams) {
     let uri = params.text_document.uri;
+    let version = params.text_document.version;
     let text = params.text_document.text;
 
-    self.docs.write().await.insert(uri, text);
+    self.docs.write().await.insert(uri, Doc::new(version, text));
   }
 
   async fn did_change(&self, params: DidChangeTextDocumentParams) {
     let uri = params.text_document.uri;
+    let version = params.text_document.version;
     if let Some(change) = params.content_changes.into_iter().last() {
-      self.docs.write().await.insert(uri, change.text);
+      self.docs.write().await.insert(uri, Doc::new(version, change.text));
     }
   }
 
@@ -393,7 +395,7 @@ impl LanguageServer for Backend {
     let src = {
       let docs = self.docs.read().await;
       match docs.get(&uri) {
-        Some(text) => text.clone(),
+        Some(doc) => doc.text.clone(),
         None => return Ok(None),
       }
     };
@@ -412,6 +414,18 @@ impl LanguageServer for Backend {
 
   async fn shutdown(&self) -> Result<()> {
     Ok(())
+  }
+}
+
+#[derive(Clone)]
+pub struct Doc {
+  pub version: i32,
+  pub text: String,
+}
+
+impl Doc {
+  pub fn new(version: i32, text: String) -> Self {
+    Self { version, text }
   }
 }
 
