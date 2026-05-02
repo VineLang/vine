@@ -1,11 +1,7 @@
 
 pub fn main(&io: &IO) {
   match None() {
-    Some(_) {
-      return;
-    }
-    _ {
-      return;
-    }
+    Some(_) { return; }
+    _ { return; }
   }
 }
