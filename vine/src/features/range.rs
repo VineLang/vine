@@ -8,11 +8,12 @@ use crate::{
   },
   structures::{
     ast::{Expr, ExprKind, Span},
+    content::{Content, Punct},
     diag::Diag,
     tir::{TirExpr, TirExprKind},
     types::{Type, TypeKind},
   },
-  tools::fmt::{Formatter, doc::Doc},
+  tools::fmt::Formatter,
 };
 
 impl Parser<'_> {
@@ -30,30 +31,24 @@ impl Parser<'_> {
 }
 
 impl<'src> Formatter<'src> {
-  pub(crate) fn fmt_expr_range_inclusive(&self, start: &Option<Expr>, end: &Expr) -> Doc<'src> {
-    let mut docs = vec![];
-    if let Some(start) = start {
-      docs.push(self.fmt_expr(start));
-    }
-    docs.push(Doc("..="));
-    docs.push(self.fmt_expr(end));
-    Doc::concat_vec(docs)
+  pub(crate) fn fmt_expr_range_inclusive(&self, start: &Option<Expr>, end: &Expr) -> Content {
+    Content::even((
+      start.as_ref().map(|start| self.fmt_expr(start)),
+      Punct("..="),
+      self.fmt_expr(end),
+    ))
   }
 
   pub(crate) fn fmt_expr_range_exclusive(
     &self,
     start: &Option<Expr>,
     end: &Option<Expr>,
-  ) -> Doc<'src> {
-    let mut docs = vec![];
-    if let Some(start) = start {
-      docs.push(self.fmt_expr(start));
-    }
-    docs.push(Doc(".."));
-    if let Some(end) = end {
-      docs.push(self.fmt_expr(end));
-    }
-    Doc::concat_vec(docs)
+  ) -> Content {
+    Content::even((
+      start.as_ref().map(|start| self.fmt_expr(start)),
+      Punct(".."),
+      end.as_ref().map(|end| self.fmt_expr(end)),
+    ))
   }
 }
 

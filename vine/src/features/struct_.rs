@@ -21,13 +21,16 @@ use crate::{
     chart::{
       DefId, DefPatternKind, DefTypeKind, DefValueKind, GenericsId, StructDef, StructId, VisId,
     },
+    content::{
+      Color, Colored, Content, Delimited, Delims, Indent, Keyword, Operator, Punct, Space,
+    },
     diag::Diag,
     signatures::StructSig,
     tir::{TirExpr, TirExprKind, TirImpl, TirPat, TirPatKind},
     types::{Inverted, Type, TypeCtx, TypeKind, Types},
     vir::{Layer, Port, Stage, Step},
   },
-  tools::fmt::{Formatter, doc::Doc},
+  tools::fmt::{Chain, ChainKind, Formatter},
 };
 
 impl Parser<'_> {
@@ -51,7 +54,7 @@ impl Parser<'_> {
 }
 
 impl<'src> Formatter<'src> {
-  pub(crate) fn fmt_struct_item(&self, s: &StructItem) -> Doc<'src> {
+  pub(crate) fn fmt_struct_item(&self, s: &StructItem) -> Content {
     let tys = if let [ty] = &*s.data
       && let TyKind::Tuple(tys) = &*ty.kind
       && tys.len() != 1
@@ -60,32 +63,29 @@ impl<'src> Formatter<'src> {
     } else {
       &s.data
     };
-    Doc::concat([
-      Doc("struct"),
-      self.fmt_flex(s.flex),
-      Doc(" "),
-      Doc(s.name.clone()),
-      self.fmt_generic_params(&s.generics),
+    Content::right((
+      (Keyword("struct"), self.fmt_flex(s.flex), Space),
+      (Colored(Color::SPECIAL, s.name.0.clone()), self.fmt_generic_params(&s.generics)),
       if matches!(s.data_vis, Vis::Private) {
-        Doc::paren_comma(tys.iter().map(|t| self.fmt_ty(t)))
+        Content::even(Delimited::new(Delims::PAREN_COMMA, tys.iter().map(|t| self.fmt_ty(t))))
       } else {
-        Doc::concat([
-          Doc("("),
+        Content::even((
+          Punct("("),
           self.fmt_vis(&s.data_vis),
           if let [ty] = &**tys {
-            self.fmt_ty(ty)
+            Content::even(Indent::lazy(self.fmt_ty(ty)))
           } else {
-            Doc::paren_comma(tys.iter().map(|t| self.fmt_ty(t)))
+            Content::even(Delimited::new(Delims::PAREN_COMMA, tys.iter().map(|t| self.fmt_ty(t))))
           },
-          Doc(")"),
-        ])
+          Punct(")"),
+        ))
       },
-      Doc(";"),
-    ])
+      Punct(";"),
+    ))
   }
 
-  pub(crate) fn fmt_expr_unwrap(&self, expr: &Expr) -> Doc<'src> {
-    Doc::concat([self.fmt_expr(expr), Doc("!")])
+  pub(crate) fn fmt_expr_unwrap(&self, expr: &Expr) -> Chain {
+    self.chain_expr(expr).chain(ChainKind::Postfix, Operator("!"))
   }
 }
 

@@ -305,12 +305,12 @@ impl<'src> Parser<'src> {
     }
 
     if bp.permits(BP::LogicalAnd) && self.eat(Token::And)? {
-      let rhs = self.parse_expr_bp(BP::LogicalAnd)?;
+      let rhs = self.parse_expr_bp(BP::LogicalAnd.inc())?;
       return Ok(Ok(ExprKind::LogicalOp(LogicalOp::And, lhs, rhs)));
     }
 
     if bp.permits(BP::LogicalOr) && self.eat(Token::Or)? {
-      let rhs = self.parse_expr_bp(BP::LogicalOr)?;
+      let rhs = self.parse_expr_bp(BP::LogicalOr.inc())?;
       return Ok(Ok(ExprKind::LogicalOp(LogicalOp::Or, lhs, rhs)));
     }
 

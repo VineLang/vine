@@ -2,16 +2,17 @@ use crate::{
   components::{distiller::Distiller, resolver::Resolver},
   structures::{
     ast::{Expr, Span},
+    content::{Content, Punct, Space},
     diag::Diag,
     tir::{TirExpr, TirExprKind},
     vir::{Port, Stage},
   },
-  tools::fmt::{Formatter, doc::Doc},
+  tools::fmt::Formatter,
 };
 
 impl<'src> Formatter<'src> {
-  pub(crate) fn fmt_expr_place(&self, v: &Expr, s: &Expr) -> Doc<'src> {
-    Doc::concat([Doc("("), self.fmt_expr(v), Doc("; "), self.fmt_expr(s), Doc(")")])
+  pub(crate) fn fmt_expr_place(&self, v: &Expr, s: &Expr) -> Content {
+    Content::even((Punct("("), self.fmt_expr(v), Punct(";"), Space, self.fmt_expr(s), Punct(")")))
   }
 }
 

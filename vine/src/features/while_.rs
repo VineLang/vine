@@ -9,12 +9,13 @@ use crate::{
   },
   structures::{
     ast::{Block, Expr, ExprKind, Label, Span, Target, Ty},
+    content::{Content, Indent, Keyword, Space},
     diag::Diag,
     tir::{TargetId, TirExpr, TirExprKind},
     types::Type,
     vir::{Port, PortKind, Stage, Step, Transfer},
   },
-  tools::fmt::{Formatter, doc::Doc},
+  tools::fmt::Formatter,
 };
 
 impl Parser<'_> {
@@ -37,20 +38,17 @@ impl<'src> Formatter<'src> {
     ty: &Option<Ty>,
     body: &Block,
     else_: &Option<Block>,
-  ) -> Doc<'src> {
-    Doc::concat([
-      Doc("while"),
+  ) -> Content {
+    Content::smart((
+      Keyword("while"),
       self.fmt_label(label),
       self.fmt_arrow_ty(ty),
-      Doc(" "),
-      self.fmt_expr(cond),
-      Doc(" "),
+      Space,
+      Indent::eager(self.fmt_expr(cond)),
+      Space,
       self.fmt_block(body, true),
-      match else_ {
-        Some(else_) => Doc::concat([Doc(" else "), self.fmt_block(else_, true)]),
-        None => Doc(""),
-      },
-    ])
+      else_.as_ref().map(|else_| (Space, Keyword("else"), Space, self.fmt_block(else_, true))),
+    ))
   }
 }
 

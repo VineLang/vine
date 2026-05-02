@@ -22,13 +22,14 @@ use crate::{
       Chart, DefId, DefPatternKind, DefTypeKind, DefValueKind, EnumDef, EnumId, EnumVariant,
       GenericsId, VariantId, VisId,
     },
+    content::{Color, Colored, Content, Delimited, Delims, Keyword, Space},
     diag::Diag,
     signatures::EnumSig,
     tir::{TirExpr, TirExprKind, TirImpl, TirPat, TirPatKind},
     types::{Inverted, Type, TypeCtx, TypeKind, Types},
     vir::{Header, Interface, InterfaceKind, Layer, Port, Stage, Step, Transfer},
   },
-  tools::fmt::{Formatter, doc::Doc},
+  tools::fmt::Formatter,
 };
 
 impl Parser<'_> {
@@ -52,26 +53,30 @@ impl Parser<'_> {
 }
 
 impl<'src> Formatter<'src> {
-  pub(crate) fn fmt_enum_item(&self, e: &EnumItem) -> Doc<'src> {
-    Doc::concat([
-      Doc("enum"),
-      self.fmt_flex(e.flex),
-      Doc(" "),
-      Doc(e.name.clone()),
-      self.fmt_generic_params(&e.generics),
-      Doc(" "),
-      Doc::brace_comma_multiline(e.variants.iter().map(|v| {
-        let tys = if let [ty] = &*v.data
-          && let TyKind::Tuple(tys) = &*ty.kind
-          && tys.len() != 1
-        {
-          tys
-        } else {
-          &v.data
-        };
-        Doc::concat([Doc(v.name.clone()), Doc::paren_comma(tys.iter().map(|t| self.fmt_ty(t)))])
-      })),
-    ])
+  pub(crate) fn fmt_enum_item(&self, e: &EnumItem) -> Content {
+    Content::even((
+      (Keyword("enum"), self.fmt_flex(e.flex), Space),
+      (Colored(Color::SPECIAL, e.name.0.clone()), self.fmt_generic_params(&e.generics)),
+      Space,
+      Delimited::new(
+        Delims::BRACE_COMMA,
+        e.variants.iter().map(|v| {
+          let tys = if let [ty] = &*v.data
+            && let TyKind::Tuple(tys) = &*ty.kind
+            && tys.len() != 1
+          {
+            tys
+          } else {
+            &v.data
+          };
+          Content::even((
+            v.name.clone(),
+            Delimited::new(Delims::PAREN_COMMA, tys.iter().map(|t| self.fmt_ty(t))),
+          ))
+        }),
+      )
+      .force_multi(true),
+    ))
   }
 }
 

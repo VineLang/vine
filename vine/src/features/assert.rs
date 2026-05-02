@@ -4,11 +4,12 @@ use crate::{
   components::{lexer::Token, parser::Parser, resolver::Resolver},
   structures::{
     ast::{AssertStmt, Span, Stmt, StmtKind},
+    content::{Content, Indent, Keyword, Space},
     diag::Diag,
     tir::TirExprKind,
     types::Type,
   },
-  tools::fmt::{Formatter, doc::Doc},
+  tools::fmt::Formatter,
 };
 
 impl Parser<'_> {
@@ -22,13 +23,16 @@ impl Parser<'_> {
 }
 
 impl<'src> Formatter<'src> {
-  pub(crate) fn fmt_stmt_assert(&self, stmt: &AssertStmt) -> Doc<'src> {
-    Doc::concat([
-      Doc("assert "),
-      self.fmt_expr(&stmt.expr),
-      Doc(" else "),
+  pub(crate) fn fmt_stmt_assert(&self, stmt: &AssertStmt) -> Content {
+    Content::right((
+      Keyword("assert"),
+      Space,
+      Indent::eager(self.fmt_expr(&stmt.expr)),
+      Space,
+      Keyword("else"),
+      Space,
       self.fmt_block(&stmt.else_, false),
-    ])
+    ))
   }
 }
 

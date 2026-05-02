@@ -27,8 +27,8 @@ macro_rules! new_idx {
     #[derive(Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
     $vis struct $Ty(pub usize);
 
-    impl Into<usize> for $Ty {
-      fn into(self) -> usize { self.0 }
+    impl From<$Ty> for usize {
+      fn from(i: $Ty) -> usize { i.0 }
     }
 
     impl From<usize> for $Ty {

@@ -10,12 +10,13 @@ use crate::{
       TypeArg, TypeParam,
     },
     chart::{DefId, GenericsDef, GenericsId, GenericsKind},
+    content::{Color, Colored, Content, Delimited, Delims, Punct, Space},
     diag::Diag,
     signatures::ImplParams,
     tir::TirImpl,
     types::{ImplType, Type, TypeKind},
   },
-  tools::fmt::{Formatter, doc::Doc},
+  tools::fmt::Formatter,
 };
 
 impl Parser<'_> {
@@ -106,7 +107,7 @@ impl Parser<'_> {
 }
 
 impl<'src> Formatter<'src> {
-  pub(crate) fn fmt_generic_params(&self, generics: &GenericParams) -> Doc<'src> {
+  pub(crate) fn fmt_generic_params(&self, generics: &GenericParams) -> Content {
     self.fmt_generics(
       generics.inherit,
       &generics.types,
@@ -116,7 +117,7 @@ impl<'src> Formatter<'src> {
     )
   }
 
-  pub(crate) fn fmt_generic_args(&self, generics: &GenericArgs) -> Doc<'src> {
+  pub(crate) fn fmt_generic_args(&self, generics: &GenericArgs) -> Content {
     let mut types = &*generics.types;
     let mut impls = &*generics.impls;
     while types.last().is_some_and(|t| t.name.is_none() && matches!(*t.ty.kind, TyKind::Hole)) {
@@ -128,24 +129,20 @@ impl<'src> Formatter<'src> {
     self.fmt_generics(false, types, impls, |t| self.fmt_type_arg(t), |p| self.fmt_impl(p))
   }
 
-  pub(crate) fn fmt_type_param(&self, param: &TypeParam) -> Doc<'src> {
-    Doc::concat([Doc(param.name.clone()), self.fmt_flex(param.flex)])
+  pub(crate) fn fmt_type_param(&self, param: &TypeParam) -> Content {
+    Content::even((Colored(Color::SPECIAL, param.name.0.clone()), self.fmt_flex(param.flex)))
   }
 
-  pub(crate) fn fmt_type_arg(&self, arg: &TypeArg) -> Doc<'src> {
-    Doc::concat([
-      if let Some(name) = &arg.name {
-        Doc::concat([Doc(name.clone()), Doc(" = ")])
-      } else {
-        Doc::EMPTY
-      },
+  pub(crate) fn fmt_type_arg(&self, arg: &TypeArg) -> Content {
+    Content::even((
+      arg.name.clone().map(|name| (name, Space, Punct("="), Space)),
       self.fmt_ty(&arg.ty),
-    ])
+    ))
   }
 
-  fn fmt_impl_param(&self, param: &ImplParam) -> Doc<'src> {
+  fn fmt_impl_param(&self, param: &ImplParam) -> Content {
     match param.name.clone() {
-      Some(name) => Doc::concat([Doc(name), Doc(": "), self.fmt_trait(&param.trait_)]),
+      Some(name) => Content::even((name, Punct(":"), Space, self.fmt_trait(&param.trait_))),
       None => self.fmt_trait(&param.trait_),
     }
   }
@@ -155,52 +152,48 @@ impl<'src> Formatter<'src> {
     inherit: bool,
     types: &[T],
     impls: &[I],
-    fmt_t: impl Fn(&T) -> Doc<'src>,
-    fmt_i: impl Fn(&I) -> Doc<'src>,
-  ) -> Doc<'src> {
-    let include_types = !types.is_empty() || !impls.is_empty();
+    fmt_t: impl Fn(&T) -> Content,
+    fmt_i: impl Fn(&I) -> Content,
+  ) -> Content {
+    let include_types = !types.is_empty();
     let include_impls = !impls.is_empty();
     let sections = [
       include_types.then(|| self.fmt_generics_section(types, fmt_t)),
       include_impls.then(|| self.fmt_generics_section(impls, fmt_i)),
     ];
-    let has_sections = sections.iter().any(|x| x.is_some());
-    if !inherit && !has_sections {
-      Doc::EMPTY
-    } else {
-      Doc::concat([
-        Doc("["),
-        Doc::group([
-          if inherit {
-            Doc::concat([Doc("..."), if has_sections { Doc::soft_line(" ") } else { Doc::EMPTY }])
-          } else {
-            Doc::EMPTY
-          },
-          Doc::interleave(
-            sections.into_iter().flatten(),
-            Doc::concat([Doc(";"), Doc::soft_line(" ")]),
-          ),
-          Doc::if_multi(";"),
-        ]),
-        Doc("]"),
-      ])
-    }
+    let sections_count = include_types as usize + include_impls as usize;
+    Content::even((inherit || sections_count != 0).then(|| {
+      (
+        Punct("["),
+        inherit.then_some((Punct("..."), (sections_count != 0).then_some(Space))),
+        (include_impls && !include_types).then_some((Punct(";"), Space)),
+        Delimited::new(
+          Delims::NONE,
+          sections.into_iter().flatten().enumerate().map(|(i, section)| {
+            Content::even((section, (i != sections_count - 1).then_some((Punct(";"), Space))))
+          }),
+        ),
+        Punct("]"),
+      )
+    }))
   }
 
-  fn fmt_generics_section<E>(
-    &self,
-    section: &[E],
-    fmt_element: impl Fn(&E) -> Doc<'src>,
-  ) -> Doc<'src> {
-    if section.is_empty() {
-      Doc::EMPTY
-    } else if let [element] = section {
-      fmt_element(element)
-    } else {
-      Doc::bare_group([Doc::interleave(
-        section.iter().map(fmt_element),
-        Doc::concat([Doc(","), Doc::soft_line(" ")]),
-      )])
+  fn fmt_generics_section<E>(&self, section: &[E], fmt_element: impl Fn(&E) -> Content) -> Content {
+    match section {
+      [] => Content::even(()),
+      [initial @ .., last] => Content::left((
+        Delimited::new(
+          &Delims {
+            empty: "",
+            single: ("", ", ", ", "),
+            multi: ("", "", ",", ""),
+            color: Color::VAGUE,
+          },
+          initial.iter().map(&fmt_element),
+        )
+        .indent(false),
+        fmt_element(last),
+      )),
     }
   }
 }

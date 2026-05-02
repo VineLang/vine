@@ -4,12 +4,13 @@ use crate::{
   components::{distiller::Distiller, lexer::Token, parser::Parser, resolver::Resolver},
   structures::{
     ast::{LetStmt, LetStmtKind, Span, Stmt, StmtKind},
+    content::{Content, Indent, Keyword, Punct, Space},
     diag::Diag,
     tir::{TirExpr, TirExprKind, TirExprLetKind, TirPat},
     types::Type,
     vir::{Port, Stage, Step},
   },
-  tools::fmt::{Formatter, doc::Doc},
+  tools::fmt::Formatter,
 };
 
 impl Parser<'_> {
@@ -33,18 +34,23 @@ impl Parser<'_> {
 }
 
 impl<'src> Formatter<'src> {
-  pub(crate) fn fmt_stmt_let(&self, stmt: &LetStmt) -> Doc<'src> {
-    Doc::concat([
-      Doc("let "),
+  pub(crate) fn fmt_stmt_let(&self, stmt: &LetStmt) -> Content {
+    Content::even((
+      Keyword("let"),
+      Space,
       match &stmt.kind {
-        LetStmtKind::Init(expr) => {
-          Doc::concat([self.fmt_pat(&stmt.bind), Doc(" = "), self.fmt_expr(expr)])
-        }
+        LetStmtKind::Init(expr) => Content::smart((
+          Indent::lazy(self.fmt_pat(&stmt.bind)),
+          Space,
+          Punct("="),
+          Space,
+          Indent::lazy(self.fmt_expr(expr)),
+        )),
         LetStmtKind::Uninit => self.fmt_pat(&stmt.bind),
-        LetStmtKind::Loop => Doc::concat([Doc("loop "), self.fmt_pat(&stmt.bind)]),
+        LetStmtKind::Loop => Content::even((Keyword("loop"), Space, self.fmt_pat(&stmt.bind))),
       },
-      Doc(";"),
-    ])
+      Punct(";"),
+    ))
   }
 }
 

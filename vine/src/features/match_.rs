@@ -10,12 +10,13 @@ use crate::{
   },
   structures::{
     ast::{Block, Expr, ExprKind, Pat, Span, Ty},
+    content::{Content, Delimited, Delims, Keyword, Space},
     diag::Diag,
     tir::{TirExpr, TirExprKind, TirPat},
     types::Type,
     vir::{Port, Stage},
   },
-  tools::fmt::{Formatter, doc::Doc},
+  tools::fmt::Formatter,
 };
 
 impl Parser<'_> {
@@ -38,18 +39,21 @@ impl<'src> Formatter<'src> {
     expr: &Expr,
     ty: &Option<Ty>,
     arms: &[(Pat, Block)],
-  ) -> Doc<'src> {
-    Doc::concat([
-      Doc("match "),
+  ) -> Content {
+    Content::even((
+      Keyword("match"),
+      Space,
       self.fmt_expr(expr),
       self.fmt_arrow_ty(ty),
-      Doc(" "),
-      Doc::brace_multiline(
+      Space,
+      Delimited::new(
+        Delims::BRACE,
         arms
           .iter()
-          .map(|(p, e)| Doc::concat([self.fmt_pat(p), Doc(" "), self.fmt_block(e, false)])),
-      ),
-    ])
+          .map(|(p, e)| Content::right((self.fmt_pat(p), Space, self.fmt_block(e, false)))),
+      )
+      .force_multi(true),
+    ))
   }
 }
 

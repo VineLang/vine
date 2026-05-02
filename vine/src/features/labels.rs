@@ -9,11 +9,12 @@ use crate::{
   },
   structures::{
     ast::{Expr, Label, Span, StmtKind, Target},
+    content::{Content, Indent, Keyword, Punct, Space},
     diag::Diag,
     tir::{TargetId, TirExpr, TirExprKind},
     vir::{Port, PortKind, Stage, Step, Transfer},
   },
-  tools::fmt::{Formatter, doc::Doc},
+  tools::fmt::Formatter,
 };
 
 impl Parser<'_> {
@@ -56,37 +57,33 @@ impl Parser<'_> {
 }
 
 impl<'src> Formatter<'src> {
-  pub(crate) fn fmt_label(&self, label: Label) -> Doc<'src> {
-    if let Some(label) = label.0 { Doc::concat([Doc("."), Doc(label)]) } else { Doc("") }
+  pub(crate) fn fmt_label(&self, label: Label) -> Content {
+    Content::even(label.0.map(|label| (Punct("."), label)))
   }
 
-  pub(crate) fn fmt_target(&self, target: Target) -> Doc<'src> {
+  pub(crate) fn fmt_target(&self, target: Target) -> Content {
     match target {
-      Target::AnyLoop => Doc(""),
-      Target::Label(label) => Doc::concat([Doc("."), Doc(label)]),
-      Target::Do => Doc(".do"),
-      Target::Loop => Doc(".loop"),
-      Target::While => Doc(".while"),
-      Target::For => Doc(".for"),
-      Target::When => Doc(".when"),
+      Target::AnyLoop => Content::even(()),
+      Target::Label(label) => Content::even((Punct("."), label)),
+      Target::Do => Content::even((Punct("."), Keyword("do"))),
+      Target::Loop => Content::even((Punct("."), Keyword("loop"))),
+      Target::While => Content::even((Punct("."), Keyword("while"))),
+      Target::For => Content::even((Punct("."), Keyword("for"))),
+      Target::When => Content::even((Punct("."), Keyword("when"))),
     }
   }
 
-  pub(crate) fn fmt_stmt_break(&self, target: Target, expr: &Option<Expr>) -> Doc<'src> {
-    match expr {
-      Some(expr) => Doc::concat([
-        Doc("break"),
-        self.fmt_target(target),
-        Doc(" "),
-        self.fmt_expr(expr),
-        Doc(";"),
-      ]),
-      None => Doc::concat([Doc("break"), self.fmt_target(target), Doc(";")]),
-    }
+  pub(crate) fn fmt_stmt_break(&self, target: Target, expr: &Option<Expr>) -> Content {
+    Content::even((
+      Keyword("break"),
+      self.fmt_target(target),
+      expr.as_ref().map(|expr| (Space, Indent::lazy(self.fmt_expr(expr)))),
+      Punct(";"),
+    ))
   }
 
-  pub(crate) fn fmt_stmt_continue(&self, target: Target) -> Doc<'src> {
-    Doc::concat([Doc("continue"), self.fmt_target(target), Doc(";")])
+  pub(crate) fn fmt_stmt_continue(&self, target: Target) -> Content {
+    Content::even((Keyword("continue"), self.fmt_target(target), Punct(";")))
   }
 }
 

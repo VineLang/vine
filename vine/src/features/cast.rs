@@ -2,18 +2,30 @@ use crate::{
   components::resolver::Resolver,
   structures::{
     ast::{Expr, Span, Ty},
+    content::{Content, Indent, Keyword, Punct, Space},
     diag::Diag,
     tir::{TirExpr, TirExprKind},
   },
-  tools::fmt::{Formatter, doc::Doc},
+  tools::fmt::{Chain, ChainKind, Formatter},
 };
 
 impl<'src> Formatter<'src> {
-  pub(crate) fn fmt_expr_cast(&self, expr: &Expr, ty: &Ty, postfix: bool) -> Doc<'src> {
+  pub(crate) fn fmt_expr_cast(&self, expr: &Expr, ty: &Ty, postfix: bool) -> Chain {
     if postfix {
-      Doc::concat([self.fmt_expr(expr), Doc(".as["), self.fmt_ty(ty), Doc("]")])
+      self.chain_expr(expr).chain(
+        ChainKind::Postfix,
+        Content::even((
+          Punct("."),
+          Keyword("as"),
+          Punct("["),
+          Indent::eager(self.fmt_ty(ty)),
+          Punct("]"),
+        )),
+      )
     } else {
-      Doc::concat([self.fmt_expr(expr), Doc(" as "), self.fmt_ty(ty)])
+      self
+        .chain_expr(expr)
+        .chain(ChainKind::As, Content::even((Space, Keyword("as"), Space, self.fmt_ty(ty))))
     }
   }
 }

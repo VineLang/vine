@@ -36,7 +36,7 @@ use vine::{
   structures::{ast::Ident, resolutions::FragmentId},
   tools::{
     doc::document,
-    fmt::Formatter,
+    fmt::{DEFAULT_MAX_WIDTH, Formatter},
     repl::{self, Repl},
   },
 };
@@ -523,7 +523,7 @@ impl VineFmtCommand {
   }
 
   fn fmt(path: impl fmt::Display, src: &str) -> Option<String> {
-    match Formatter::fmt(src) {
+    match Formatter::fmt(src, DEFAULT_MAX_WIDTH) {
       Ok(out) => Some(out),
       Err(diag) => {
         eprintln!("error formatting {path}:\n{diag}");

@@ -14,12 +14,13 @@ use crate::{
     chart::{
       DefId, DefTypeKind, GenericsId, OpaqueTypeDef, OpaqueTypeId, TypeAliasDef, TypeAliasId, VisId,
     },
+    content::{Color, Colored, Content, Indent, Keyword, Punct, Space},
     diag::Diag,
     signatures::{TypeAliasSig, TypeAliasState},
     tir::TirImpl,
     types::{Inverted, Type, TypeCtx, TypeKind, Types},
   },
-  tools::fmt::{Formatter, doc::Doc},
+  tools::fmt::Formatter,
 };
 
 impl Parser<'_> {
@@ -35,17 +36,17 @@ impl Parser<'_> {
 }
 
 impl<'src> Formatter<'src> {
-  pub(crate) fn fmt_type_item(&self, t: &TypeItem) -> Doc<'src> {
-    Doc::concat([
-      Doc("type "),
-      Doc(t.name.clone()),
+  pub(crate) fn fmt_type_item(&self, t: &TypeItem) -> Content {
+    Content::right((
+      Keyword("type"),
+      Space,
+      Colored(Color::SPECIAL, t.name.0.clone()),
       self.fmt_generic_params(&t.generics),
-      match &t.ty {
-        Some(ty) => Doc::concat([Doc(" = "), self.fmt_ty(ty)]),
-        None => Doc(""),
-      },
-      Doc(";"),
-    ])
+      t.ty
+        .as_ref()
+        .map(|ty| Content::even((Space, Punct("="), Space, Indent::lazy(self.fmt_ty(ty))))),
+      Punct(";"),
+    ))
   }
 }
 

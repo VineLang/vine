@@ -9,9 +9,10 @@ use crate::{
   structures::{
     ast::{ItemKind, ModItem, ModKind, Span},
     chart::{DefId, GenericsId, VisId},
+    content::{Content, Keyword, Punct, Space},
     diag::Diag,
   },
-  tools::fmt::{Formatter, doc::Doc},
+  tools::fmt::Formatter,
 };
 
 impl Parser<'_> {
@@ -38,20 +39,19 @@ impl Parser<'_> {
 }
 
 impl<'src> Formatter<'src> {
-  pub(crate) fn fmt_mod_item(&self, m: &ModItem) -> Doc<'src> {
-    Doc::concat([
-      Doc("mod "),
-      Doc(m.name.clone()),
-      self.fmt_generic_params(&m.generics),
+  pub(crate) fn fmt_mod_item(&self, m: &ModItem) -> Content {
+    Content::even((
+      (Keyword("mod"), Space),
+      (m.name.clone(), self.fmt_generic_params(&m.generics)),
       match &m.kind {
-        ModKind::Loaded(span, _, items) => Doc::concat([
-          Doc(" "),
-          self.fmt_block_like(*span, items.iter().map(|x| (x.span, self.fmt_item(x)))),
-        ]),
-        ModKind::Unloaded => Doc::concat([Doc(";")]),
+        ModKind::Loaded(span, _, items) => Content::even((
+          Space,
+          self.fmt_block_like(*span, true, items.iter().map(|x| (x.span, self.fmt_item(x)))),
+        )),
+        ModKind::Unloaded => Content::even(Punct(";")),
         ModKind::Error(_) => unreachable!(),
       },
-    ])
+    ))
   }
 }
 

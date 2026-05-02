@@ -10,12 +10,13 @@ use crate::{
   },
   structures::{
     ast::{Expr, ExprKind, Span},
+    content::{Content, Delimited, Delims},
     diag::Diag,
     tir::{TirExpr, TirExprKind},
     types::Type,
     vir::{Port, Stage, Step},
   },
-  tools::fmt::{Formatter, doc::Doc},
+  tools::fmt::Formatter,
 };
 
 impl Parser<'_> {
@@ -26,8 +27,8 @@ impl Parser<'_> {
 }
 
 impl<'src> Formatter<'src> {
-  pub(crate) fn fmt_expr_list(&self, elements: &[Expr]) -> Doc<'src> {
-    Doc::bracket_comma(elements.iter().map(|x| self.fmt_expr(x)))
+  pub(crate) fn fmt_expr_list(&self, elements: &[Expr]) -> Content {
+    Content::even(Delimited::new(Delims::BRACKET_COMMA, elements.iter().map(|x| self.fmt_expr(x))))
   }
 }
 

@@ -9,12 +9,13 @@ use crate::{
   },
   structures::{
     ast::{Block, ExprKind, Label, Span, Target, Ty},
+    content::{Content, Keyword, Space},
     diag::Diag,
     tir::{TargetId, TirExpr, TirExprKind},
     types::Type,
     vir::{Port, Stage},
   },
-  tools::fmt::{Formatter, doc::Doc},
+  tools::fmt::Formatter,
 };
 
 impl Parser<'_> {
@@ -28,14 +29,14 @@ impl Parser<'_> {
 }
 
 impl<'src> Formatter<'src> {
-  pub(crate) fn fmt_expr_loop(&self, label: Label, ty: &Option<Ty>, body: &Block) -> Doc<'src> {
-    Doc::concat([
-      Doc("loop"),
+  pub(crate) fn fmt_expr_loop(&self, label: Label, ty: &Option<Ty>, body: &Block) -> Content {
+    Content::even((
+      Keyword("loop"),
       self.fmt_label(label),
       self.fmt_arrow_ty(ty),
-      Doc(" "),
+      Space,
       self.fmt_block(body, true),
-    ])
+    ))
   }
 }
 

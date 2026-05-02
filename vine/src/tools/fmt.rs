@@ -1,13 +1,13 @@
-pub mod doc;
-
-use doc::{Doc, Writer};
-
 use crate::{
   components::{loader::FileId, parser::Parser},
   structures::{
     ast::{
-      Expr, ExprKind, Flex, Impl, ImplKind, Item, ItemKind, Pat, PatKind, Span, Stmt, StmtKind,
-      Trait, TraitKind, Ty, TyKind, Vis,
+      BinaryOp, Expr, ExprKind, Flex, Impl, ImplKind, Item, ItemKind, LogicalOp, Pat, PatKind,
+      Span, Stmt, StmtKind, Trait, TraitKind, Ty, TyKind, Vis,
+    },
+    content::{
+      Blank, Color, Colored, Content, Delimited, Delims, Element, Indent, IntoElement, Keyword,
+      Length, Line, Lines, Operator, Punct, Space, Surround, Writer,
     },
     diag::Diag,
   },
@@ -17,99 +17,87 @@ pub struct Formatter<'src> {
   src: &'src str,
 }
 
+pub const DEFAULT_MAX_WIDTH: u32 = 100;
 impl<'src> Formatter<'src> {
-  pub fn fmt(src: &str) -> Result<String, Diag> {
+  pub fn fmt(src: &str, max_width: u32) -> Result<String, Diag> {
+    let mut output = String::new();
+    Self::_fmt(src)?.format(&mut Writer::new(Length(max_width), &mut output), Surround::EMPTY);
+    Ok(output)
+  }
+
+  pub fn _fmt(src: &str) -> Result<Content, Diag> {
     let ast = Parser::parse(FileId(0), src)?;
     let fmt = Formatter { src };
-    let doc = Doc::concat_vec(
+    Ok(Content::even(Lines::new(
       fmt.line_break_separated(
         Span { file: FileId(0), start: 0, end: src.len() },
-        [(Span { file: FileId(0), start: 0, end: 0 }, Doc::EMPTY)]
+        [(Span { file: FileId(0), start: 0, end: 0 }, Content::even(Blank))]
           .into_iter()
           .chain(ast.iter().map(|x| (x.span, fmt.fmt_item(x)))),
       ),
-    );
-    let mut writer = Writer::default();
-    writer.write_doc(&doc, false);
-    writer.newline();
-    Ok(writer.out)
+    )))
   }
 
-  pub(crate) fn fmt_item(&self, item: &Item) -> Doc<'src> {
-    Doc::concat(
-      [].into_iter()
-        .chain(item.docs.iter().flat_map(|d| [Doc(d.clone()), Doc::LINE]))
-        .chain(item.attrs.iter().flat_map(|x| [self.fmt_verbatim(x.span), Doc::LINE]))
-        .chain([
-          self.fmt_vis(&item.vis),
-          if item.unsafe_ { Doc("unsafe ") } else { Doc::EMPTY },
-          match &item.kind {
-            ItemKind::Fn(f) => self.fmt_fn_item(f),
-            ItemKind::Const(c) => self.fmt_const_item(c),
-            ItemKind::Struct(s) => self.fmt_struct_item(s),
-            ItemKind::Enum(e) => self.fmt_enum_item(e),
-            ItemKind::Type(t) => self.fmt_type_item(t),
-            ItemKind::Mod(m) => self.fmt_mod_item(m),
-            ItemKind::Trait(t) => self.fmt_trait_item(t),
-            ItemKind::Impl(i) => self.fmt_impl_item(i),
-            ItemKind::Use(u) => self.fmt_use_item(u),
-            ItemKind::OuterMod => Doc("mod;"),
-            ItemKind::Taken => unreachable!(),
-          },
-        ]),
-    )
+  pub(crate) fn fmt_item(&self, item: &Item) -> Content {
+    Content::even((
+      Lines::new(item.docs.iter().map(|d| Colored(Color::COMMENT, d.clone()))),
+      Lines::new(item.attrs.iter().map(|x| self.fmt_verbatim(Color::VAGUE, x.span))),
+      self.fmt_vis(&item.vis),
+      item.unsafe_.then_some((Keyword("unsafe"), Space)),
+      match &item.kind {
+        ItemKind::Fn(f) => self.fmt_fn_item(f),
+        ItemKind::Const(c) => self.fmt_const_item(c),
+        ItemKind::Struct(s) => self.fmt_struct_item(s),
+        ItemKind::Enum(e) => self.fmt_enum_item(e),
+        ItemKind::Type(t) => self.fmt_type_item(t),
+        ItemKind::Mod(m) => self.fmt_mod_item(m),
+        ItemKind::Trait(t) => self.fmt_trait_item(t),
+        ItemKind::Impl(i) => self.fmt_impl_item(i),
+        ItemKind::Use(u) => self.fmt_use_item(u),
+        ItemKind::OuterMod => Content::even((Keyword("mod"), Punct(";"))),
+        ItemKind::Taken => unreachable!(),
+      },
+    ))
   }
 
-  pub(crate) fn fmt_vis(&self, vis: &Vis) -> Doc<'src> {
-    Doc::concat([self._fmt_vis(vis), Doc(if !matches!(vis, Vis::Private) { " " } else { "" })])
-  }
-
-  pub(crate) fn _fmt_vis(&self, vis: &Vis) -> Doc<'src> {
+  pub(crate) fn fmt_vis(&self, vis: &Vis) -> Content {
     match vis {
-      Vis::Private => Doc::EMPTY,
-      Vis::Public => Doc("pub"),
-      Vis::PublicTo(_, name) => Doc::concat([Doc("pub."), Doc(name.clone())]),
+      Vis::Private => Content::even(()),
+      Vis::Public => Content::even((Keyword("pub"), Space)),
+      Vis::PublicTo(_, name) => Content::even((Keyword("pub"), Punct("."), name.clone(), Space)),
     }
   }
 
   pub(crate) fn fmt_block_like(
     &self,
     span: Span,
-    els: impl ExactSizeIterator<Item = (Span, Doc<'src>)>,
-  ) -> Doc<'src> {
-    if els.len() == 0 {
-      let mut inner = vec![];
-      self.get_line_break(false, false, span.start, span.end, &mut inner);
-      inner.pop();
-      if inner.is_empty() {
-        Doc("{}")
-      } else {
-        Doc::concat([Doc("{"), Doc::indent_vec(inner), Doc("}")])
-      }
+    force_multi: bool,
+    els: impl ExactSizeIterator<Item = (Span, Content)>,
+  ) -> Content {
+    let mut lines = self.line_break_separated(span, els);
+    if lines.is_empty() {
+      Content::even(Punct("{}"))
+    } else if !force_multi && lines.len() == 1 {
+      Content::even((Punct("{"), Space, Indent::eager(lines.pop().unwrap()), Space, Punct("}")))
     } else {
-      Doc::concat([Doc("{"), Doc::indent(self.line_break_separated(span, els)), Doc("}")])
+      Content::even((Punct("{"), Indent::always(Lines::new(lines)), Punct("}")))
     }
   }
 
   fn line_break_separated(
     &self,
     span: Span,
-    els: impl Iterator<Item = (Span, Doc<'src>)>,
-  ) -> Vec<Doc<'src>> {
-    let mut docs = Vec::new();
+    els: impl Iterator<Item = (Span, Content)>,
+  ) -> Vec<Box<dyn Element>> {
+    let mut lines = Vec::new();
     let mut cur = span.start;
-    for (i, (span, doc)) in els.enumerate() {
-      if i != 0 {
-        docs.push(Doc::LINE);
-      }
-      self.get_line_break(i != 0, true, cur, span.start, &mut docs);
-      docs.push(doc);
+    for (i, (span, content)) in els.enumerate() {
+      self.get_line_break(i != 0, true, cur, span.start, &mut lines);
+      lines.push(content.into_element());
       cur = span.end;
     }
-    docs.push(Doc::LINE);
-    self.get_line_break(true, false, cur, span.end, &mut docs);
-    docs.pop();
-    docs
+    self.get_line_break(true, false, cur, span.end, &mut lines);
+    lines
   }
 
   fn get_line_break(
@@ -118,19 +106,19 @@ impl<'src> Formatter<'src> {
     end_blank: bool,
     start: usize,
     end: usize,
-    docs: &mut Vec<Doc<'src>>,
+    lines: &mut Vec<Box<dyn Element>>,
   ) {
     let mut str = &self.src[start..end];
     let mut line_count = 0;
     while !str.is_empty() {
       if str.starts_with("//") {
         if line_count > 1 && start_blank {
-          docs.push(Doc::LINE);
+          lines.push(Blank.into_element());
         }
         start_blank = true;
         let end = str.find('\n').unwrap_or(str.len());
-        docs.push(Doc(&str[..end]));
-        docs.push(Doc::LINE);
+        lines.push(Colored(Color::COMMENT, str[..end].to_owned()).into_element());
+        lines.push(Line.into_element());
         str = &str[end..];
         line_count = 0;
       } else {
@@ -141,76 +129,88 @@ impl<'src> Formatter<'src> {
       }
     }
     if line_count > 1 && start_blank && end_blank {
-      docs.push(Doc::LINE);
+      lines.push(Blank.into_element());
     }
   }
 
-  pub(crate) fn fmt_stmt(&self, stmt: &Stmt) -> Doc<'src> {
+  pub(crate) fn fmt_stmt(&self, stmt: &Stmt) -> Content {
     match &stmt.kind {
       StmtKind::Assert(a) => self.fmt_stmt_assert(a),
       StmtKind::Let(l) => self.fmt_stmt_let(l),
       StmtKind::LetFn(d) => self.fmt_stmt_let_fn(d),
       StmtKind::Expr(expr, false) => self.fmt_expr(expr),
-      StmtKind::Expr(expr, true) => Doc::concat([self.fmt_expr(expr), Doc(";")]),
+      StmtKind::Expr(expr, true) => Content::even((self.fmt_expr(expr), Punct(";"))),
       StmtKind::Item(item) => self.fmt_item(item),
       StmtKind::Return(expr) => self.fmt_stmt_return(expr),
       StmtKind::Break(label, expr) => self.fmt_stmt_break(label.clone(), expr),
       StmtKind::Continue(label) => self.fmt_stmt_continue(label.clone()),
-      StmtKind::Empty => Doc::EMPTY,
+      StmtKind::Empty => Content::even(()),
     }
   }
 
-  pub(crate) fn fmt_flex(&self, flex: Flex) -> Doc<'src> {
-    Doc(flex.sigil())
+  pub(crate) fn fmt_flex(&self, flex: Flex) -> Content {
+    Content::even(Operator(flex.sigil()))
   }
 
-  pub(crate) fn fmt_impl(&self, impl_: &Impl) -> Doc<'src> {
+  pub(crate) fn fmt_impl(&self, impl_: &Impl) -> Content {
     match &*impl_.kind {
       ImplKind::Error(_) => unreachable!(),
-      ImplKind::Hole => Doc("_"),
-      ImplKind::Safe(_, impl_) => Doc::concat([Doc("safe "), self.fmt_impl(impl_)]),
-      ImplKind::Path(path) => self.fmt_path(path),
-      ImplKind::Fn(path) => Doc::concat([Doc("fn "), self.fmt_path(path)]),
+      ImplKind::Hole => Content::even(Punct("_")),
+      ImplKind::Safe(_, impl_) => Content::even((Keyword("safe"), Space, self.fmt_impl(impl_))),
+      ImplKind::Path(path) => self.fmt_path(Color::WHITE, path),
+      ImplKind::Fn(path) => {
+        Content::even((Keyword("fn"), Space, self.fmt_path(Color::SPECIAL, path)))
+      }
     }
   }
 
-  pub(crate) fn fmt_trait(&self, trait_: &Trait) -> Doc<'src> {
+  pub(crate) fn fmt_trait(&self, trait_: &Trait) -> Content {
     match &*trait_.kind {
       TraitKind::Error(_) => unreachable!(),
-      TraitKind::Path(path) => self.fmt_path(path),
-      TraitKind::Fn(receiver, args, ret) => Doc::concat([
-        Doc("fn "),
+      TraitKind::Path(path) => self.fmt_path(Color::SPECIAL, path),
+      TraitKind::Fn(receiver, args, ret) => Content::smart((
+        Keyword("fn"),
+        Space,
         self.fmt_ty(receiver),
-        Doc::paren_comma(args.iter().map(|a| self.fmt_ty(a))),
-        match ret {
-          Some(ty) => Doc::concat([Doc(" -> "), self.fmt_ty(ty)]),
-          None => Doc(""),
-        },
-      ]),
+        Delimited::new(Delims::PAREN_COMMA, args.iter().map(|a| self.fmt_ty(a))),
+        self.fmt_arrow_ty(ret),
+      )),
     }
   }
 
-  pub(crate) fn fmt_expr(&self, expr: &Expr) -> Doc<'src> {
+  pub(crate) fn fmt_expr(&self, expr: &Expr) -> Content {
+    self.chain_expr(expr).finish()
+  }
+
+  pub(crate) fn chain_expr(&self, expr: &Expr) -> Chain {
     match &*expr.kind {
       ExprKind::Error(_) => unreachable!(),
-      ExprKind::Paren(p) => Doc::paren(self.fmt_expr(p)),
-      ExprKind::Safe(_, expr_) => Doc::concat([Doc("safe "), self.fmt_expr(expr_)]),
-      ExprKind::Hole(ty) => self.fmt_expr_hole(ty),
-      ExprKind::Path(path, args) => self.fmt_expr_path(path, args),
-      ExprKind::Do(label, ty, body) => self.fmt_expr_do(label.clone(), ty, body),
-      ExprKind::Assign(inverted, space, value) => self.fmt_expr_assign(*inverted, space, value),
-      ExprKind::Match(expr, ty, arms) => self.fmt_expr_match(expr, ty, arms),
-      ExprKind::If(cond, ty, then, else_) => self.fmt_expr_if(cond, ty, then, else_),
-      ExprKind::IfConst(cond, then, else_) => self.fmt_expr_if_const(cond, then, else_),
-      ExprKind::When(label, ty, arms, leg) => self.fmt_expr_when(label.clone(), ty, arms, leg),
+      ExprKind::Paren(p) => {
+        Chain::new(Content::even((Punct("("), Indent::lazy(self.fmt_expr(p)), Punct(")"))))
+      }
+      ExprKind::Safe(_, expr_) => {
+        Chain::new(Content::even((Keyword("safe"), Space, self.fmt_expr(expr_))))
+      }
+      ExprKind::Hole(ty) => Chain::new(self.fmt_expr_hole(ty)),
+      ExprKind::Path(path, args) => Chain::new(self.fmt_expr_path(path, args)),
+      ExprKind::Do(label, ty, body) => Chain::new(self.fmt_expr_do(label.clone(), ty, body)),
+      ExprKind::Assign(inverted, space, value) => {
+        Chain::new(self.fmt_expr_assign(*inverted, space, value))
+      }
+      ExprKind::Match(expr, ty, arms) => Chain::new(self.fmt_expr_match(expr, ty, arms)),
+      ExprKind::If(cond, ty, then, else_) => Chain::new(self.fmt_expr_if(cond, ty, then, else_)),
+      ExprKind::IfConst(cond, then, else_) => Chain::new(self.fmt_expr_if_const(cond, then, else_)),
+      ExprKind::When(label, ty, arms, leg) => {
+        Chain::new(self.fmt_expr_when(label.clone(), ty, arms, leg))
+      }
       ExprKind::While(label, cond, ty, body, else_) => {
-        self.fmt_expr_while(label.clone(), cond, ty, body, else_)
+        Chain::new(self.fmt_expr_while(label.clone(), cond, ty, body, else_))
       }
-      ExprKind::Loop(label, ty, body) => self.fmt_expr_loop(label.clone(), ty, body),
+      ExprKind::Loop(label, ty, body) => Chain::new(self.fmt_expr_loop(label.clone(), ty, body)),
       ExprKind::For(label, pat, expr, ty, block, else_) => {
-        self.fmt_expr_for(label.clone(), pat, expr, ty, block, else_)
+        Chain::new(self.fmt_expr_for(label.clone(), pat, expr, ty, block, else_))
       }
-      ExprKind::Fn(flex, params, ty, body) => self.fmt_expr_fn(flex, params, ty, body),
+      ExprKind::Fn(flex, params, ty, body) => Chain::new(self.fmt_expr_fn(flex, params, ty, body)),
       ExprKind::Ref(expr, postfix) => self.fmt_expr_ref(expr, *postfix),
       ExprKind::Deref(expr, postfix) => self.fmt_expr_deref(expr, *postfix),
       ExprKind::Inverse(expr, postfix) => self.fmt_expr_inverse(expr, *postfix),
@@ -218,40 +218,47 @@ impl<'src> Formatter<'src> {
       ExprKind::Unwrap(expr) => self.fmt_expr_unwrap(expr),
       ExprKind::Try(expr) => self.fmt_expr_try(expr),
       ExprKind::Index(expr, index) => self.fmt_expr_index(expr, index),
-      ExprKind::RangeExclusive(start, end) => self.fmt_expr_range_exclusive(start, end),
-      ExprKind::RangeInclusive(start, end) => self.fmt_expr_range_inclusive(start, end),
-      ExprKind::Place(value, space) => self.fmt_expr_place(value, space),
-      ExprKind::Tuple(elements) => self.fmt_expr_tuple(elements),
-      ExprKind::Object(entries) => self.fmt_expr_object(entries),
-      ExprKind::List(elements) => self.fmt_expr_list(elements),
+      ExprKind::RangeExclusive(start, end) => Chain::new(self.fmt_expr_range_exclusive(start, end)),
+      ExprKind::RangeInclusive(start, end) => Chain::new(self.fmt_expr_range_inclusive(start, end)),
+      ExprKind::Place(value, space) => Chain::new(self.fmt_expr_place(value, space)),
+      ExprKind::Tuple(elements) => Chain::new(self.fmt_expr_tuple(elements)),
+      ExprKind::Object(entries) => Chain::new(self.fmt_expr_object(entries)),
+      ExprKind::List(elements) => Chain::new(self.fmt_expr_list(elements)),
       ExprKind::TupleField(expr, index) => self.fmt_expr_tuple_field(expr, *index),
       ExprKind::ObjectField(expr, key) => self.fmt_expr_object_field(expr, key),
       ExprKind::Method(receiver, _, name, generics, args) => {
         self.fmt_expr_method(receiver, name, generics, args)
       }
       ExprKind::Call(func, args) => self.fmt_expr_call(func, args),
-      ExprKind::Sign(sign, expr) => self.fmt_expr_sign(*sign, expr),
-      ExprKind::Bool(bool) => self.fmt_expr_bool(*bool),
-      ExprKind::Not(expr) => self.fmt_expr_not(expr),
+      ExprKind::Sign(sign, expr) => Chain::new(self.fmt_expr_sign(*sign, expr)),
+      ExprKind::Bool(bool) => Chain::new(self.fmt_expr_bool(*bool)),
+      ExprKind::Not(expr) => Chain::new(self.fmt_expr_not(expr)),
       ExprKind::Is(expr, pat) => self.fmt_expr_is(expr, pat),
       ExprKind::LogicalOp(op, lhs, rhs) => self.fmt_expr_logical_op(op, lhs, rhs),
       ExprKind::ComparisonOp(init, cmps) => self.fmt_expr_comparison_op(init, cmps),
       ExprKind::BinaryOp(op, lhs, rhs) => self.fmt_expr_binary_op(op, lhs, rhs),
-      ExprKind::BinaryOpAssign(op, lhs, rhs) => self.fmt_expr_binary_op_assign(op, lhs, rhs),
-      ExprKind::N32(_) | ExprKind::F32(_) | ExprKind::Char(_) => self.fmt_verbatim(expr.span),
-      ExprKind::Nat(span, _, ty) => self.fmt_expr_nat(*span, ty),
-      ExprKind::Float(span, _, ty) => self.fmt_expr_float(*span, ty),
-      ExprKind::String(init, rest) => self.fmt_expr_string(init, rest),
-      ExprKind::InlineIvy(table, net) => self.fmt_expr_inline_ivy(table, net),
+      ExprKind::BinaryOpAssign(op, lhs, rhs) => {
+        Chain::new(self.fmt_expr_binary_op_assign(op, lhs, rhs))
+      }
+      ExprKind::N32(_) | ExprKind::F32(_) => {
+        Chain::new(self.fmt_verbatim(Color::KEYWORD, expr.span))
+      }
+      ExprKind::Char(_) => Chain::new(self.fmt_verbatim(Color::STRING, expr.span)),
+      ExprKind::Nat(span, _, ty) => Chain::new(self.fmt_expr_nat(*span, ty)),
+      ExprKind::Float(span, _, ty) => Chain::new(self.fmt_expr_float(*span, ty)),
+      ExprKind::String(init, rest) => Chain::new(self.fmt_expr_string(init, rest)),
+      ExprKind::InlineIvy(table, net) => Chain::new(self.fmt_expr_inline_ivy(table, net)),
     }
   }
 
-  pub(crate) fn fmt_pat(&self, pat: &Pat) -> Doc<'src> {
+  pub(crate) fn fmt_pat(&self, pat: &Pat) -> Content {
     match &*pat.kind {
       PatKind::Error(_) => unreachable!(),
-      PatKind::Hole => Doc("_"),
-      PatKind::Paren(pat) => Doc::paren(self.fmt_pat(pat)),
-      PatKind::Safe(_, pat_) => Doc::concat([Doc("safe "), self.fmt_pat(pat_)]),
+      PatKind::Hole => Content::even(Punct("_")),
+      PatKind::Paren(pat) => {
+        Content::even((Punct("("), Indent::lazy(self.fmt_pat(pat)), Punct(")")))
+      }
+      PatKind::Safe(_, pat_) => Content::even((Keyword("safe"), Space, self.fmt_pat(pat_))),
       PatKind::Path(path, args) => self.fmt_pat_path(path, args),
       PatKind::Ref(pat) => self.fmt_pat_ref(pat),
       PatKind::Deref(pat) => self.fmt_pat_deref(pat),
@@ -262,31 +269,88 @@ impl<'src> Formatter<'src> {
     }
   }
 
-  pub(crate) fn fmt_ty(&self, ty: &Ty) -> Doc<'src> {
+  pub(crate) fn fmt_ty(&self, ty: &Ty) -> Content {
     match &*ty.kind {
       TyKind::Error(_) => unreachable!(),
-      TyKind::Hole => Doc("_"),
-      TyKind::Never => Doc("!"),
-      TyKind::Paren(pat) => Doc::paren(self.fmt_ty(pat)),
+      TyKind::Hole => Content::even(Punct("_")),
+      TyKind::Never => Content::even(Punct("!")),
+      TyKind::Paren(pat) => Content::even((Punct("("), Indent::lazy(self.fmt_ty(pat)), Punct(")"))),
       TyKind::Tuple(elements) => self.fmt_ty_tuple(elements),
       TyKind::Ref(ty) => self.fmt_ty_ref(ty),
-      TyKind::Key(ident) => Doc::concat([Doc("."), Doc(ident.clone())]),
+      TyKind::Key(ident) => Content::even((Punct("."), ident.clone())),
       TyKind::Inverse(ty) => self.fmt_ty_inverse(ty),
-      TyKind::Path(path) => self.fmt_path(path),
-      TyKind::Fn(path) => Doc::concat([Doc("fn "), self.fmt_path(path)]),
+      TyKind::Path(path) => self.fmt_path(Color::SPECIAL, path),
+      TyKind::Fn(path) => {
+        Content::even((Keyword("fn"), Space, self.fmt_path(Color::SPECIAL, path)))
+      }
       TyKind::Object(object) => self.fmt_ty_object(object),
       TyKind::IfConst(cond, then, else_) => self.fmt_ty_if_const(cond, then, else_),
     }
   }
 
-  pub(crate) fn fmt_arrow_ty(&self, ty: &Option<Ty>) -> Doc<'src> {
-    match ty {
-      Some(ty) => Doc::concat([Doc(" -> "), self.fmt_ty(ty)]),
-      None => Doc(""),
-    }
+  pub(crate) fn fmt_arrow_ty(&self, ty: &Option<Ty>) -> Content {
+    Content::even(ty.as_ref().map(|ty| (Space, Punct("->"), Space, Indent::eager(self.fmt_ty(ty)))))
   }
 
-  pub(crate) fn fmt_verbatim(&self, span: Span) -> Doc<'src> {
-    Doc(&self.src[span.start..span.end])
+  pub(crate) fn fmt_verbatim(&self, color: Color, span: Span) -> Content {
+    Content::even(Colored(color, self.src[span.start..span.end].to_owned()))
+  }
+}
+
+pub struct Chain {
+  head: Box<dyn Element>,
+  chains: Vec<Box<dyn Element>>,
+  kind: Option<ChainKind>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ChainKind {
+  Postfix,
+  BinaryOp(BinaryOp),
+  LogicalOp(LogicalOp),
+  Comparison,
+  As,
+  Is,
+}
+
+impl Chain {
+  pub fn new(head: impl IntoElement) -> Self {
+    Chain { head: head.into_element(), chains: Vec::new(), kind: None }
+  }
+
+  pub fn chain(mut self, kind: ChainKind, chain: impl IntoElement) -> Self {
+    if self.kind.is_some_and(|k| k != kind) {
+      return Chain::new(self.finish()).chain(kind, chain);
+    }
+    self.kind = Some(kind);
+    self.chains.push(chain.into_element());
+    self
+  }
+
+  pub fn chains<C: IntoElement>(
+    mut self,
+    kind: ChainKind,
+    chains: impl IntoIterator<Item = C>,
+  ) -> Self {
+    if self.kind.is_some_and(|k| k != kind) {
+      return Chain::new(self.finish()).chains(kind, chains);
+    }
+    self.kind = Some(kind);
+    self.chains.extend(chains.into_iter().map(|c| c.into_element()));
+    self
+  }
+
+  pub fn finish(self) -> Content {
+    if self.chains.is_empty() {
+      Content::even(self.head)
+    } else {
+      let len = self.chains.len();
+      Content::smart((
+        self.head,
+        Delimited::new(Delims::NONE, self.chains)
+          .allow_final_multi(self.kind == Some(ChainKind::Postfix))
+          .break_final(self.kind == Some(ChainKind::Postfix) && len == 1),
+      ))
+    }
   }
 }

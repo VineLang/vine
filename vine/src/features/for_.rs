@@ -11,13 +11,14 @@ use crate::{
   structures::{
     ast::{Block, Expr, ExprKind, Label, Pat, Span, Target, Ty},
     chart::VariantId,
+    content::{Content, Indent, Keyword, Space},
     diag::Diag,
     resolutions::FnRelId,
     tir::{TargetId, TirExpr, TirExprKind, TirLocal, TirPat, TirPatKind},
     types::{Type, TypeKind},
     vir::{Port, PortKind, Stage, Step, Transfer},
   },
-  tools::fmt::{Formatter, doc::Doc},
+  tools::fmt::Formatter,
 };
 
 impl Parser<'_> {
@@ -43,22 +44,19 @@ impl<'src> Formatter<'src> {
     ty: &Option<Ty>,
     block: &Block,
     else_: &Option<Block>,
-  ) -> Doc<'src> {
-    Doc::concat([
-      Doc("for"),
-      self.fmt_label(label),
-      Doc(" "),
-      self.fmt_pat(pat),
-      Doc(" in "),
-      self.fmt_expr(expr),
+  ) -> Content {
+    Content::smart((
+      (Keyword("for"), self.fmt_label(label), Space),
+      Indent::eager(self.fmt_pat(pat)),
+      (Space, Keyword("in"), Space),
+      Indent::eager(self.fmt_expr(expr)),
       self.fmt_arrow_ty(ty),
-      Doc(" "),
+      Space,
       self.fmt_block(block, true),
-      match else_ {
-        Some(else_) => Doc::concat([Doc(" else "), self.fmt_block(else_, true)]),
-        None => Doc(""),
-      },
-    ])
+      else_
+        .as_ref()
+        .map(|else_| Content::even((Space, Keyword("else"), Space, self.fmt_block(else_, true)))),
+    ))
   }
 }
 

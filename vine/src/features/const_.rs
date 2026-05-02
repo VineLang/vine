@@ -15,6 +15,7 @@ use crate::{
   structures::{
     ast::{ConstItem, ItemKind, Path, Span},
     chart::{ConcreteConstDef, ConcreteConstId, ConstId, DefId, DefValueKind, GenericsId, VisId},
+    content::{Content, Indent, Keyword, Punct, Space},
     diag::Diag,
     resolutions::ConstRelId,
     signatures::ConstSig,
@@ -22,7 +23,7 @@ use crate::{
     types::{Inverted, Type, TypeCtx, TypeKind},
     vir::{Port, Stage, Step},
   },
-  tools::fmt::{Formatter, doc::Doc},
+  tools::fmt::Formatter,
 };
 
 impl Parser<'_> {
@@ -40,19 +41,13 @@ impl Parser<'_> {
 }
 
 impl<'src> Formatter<'src> {
-  pub(crate) fn fmt_const_item(&self, c: &ConstItem) -> Doc<'src> {
-    Doc::concat([
-      Doc("const "),
-      Doc(c.name.clone()),
-      self.fmt_generic_params(&c.generics),
-      Doc(": "),
-      self.fmt_ty(&c.ty),
-      match &c.value {
-        Some(v) => Doc::concat([Doc(" = "), self.fmt_expr(v)]),
-        None => Doc(""),
-      },
-      Doc(";"),
-    ])
+  pub(crate) fn fmt_const_item(&self, c: &ConstItem) -> Content {
+    Content::right((
+      (Keyword("const"), Space, c.name.clone(), self.fmt_generic_params(&c.generics)),
+      (Punct(":"), Space, Indent::lazy(self.fmt_ty(&c.ty))),
+      c.value.as_ref().map(|v| (Space, Punct("="), Space, Indent::lazy(self.fmt_expr(v)))),
+      Punct(";"),
+    ))
   }
 }
 

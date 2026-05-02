@@ -15,12 +15,13 @@ use crate::{
   },
   structures::{
     ast::{Expr, ExprKind, Span},
+    content::{Color, Colored, Content, Delimited, Delims, Indent, Keyword, Punct, Space},
     diag::Diag,
     tir::{TirExpr, TirExprKind},
     types::{Type, TypeKind},
     vir::{Port, Stage, Step},
   },
-  tools::fmt::{Formatter, doc::Doc},
+  tools::fmt::Formatter,
 };
 
 impl Parser<'_> {
@@ -68,67 +69,64 @@ impl Parser<'_> {
 }
 
 impl<'src> Formatter<'src> {
-  pub(crate) fn fmt_expr_inline_ivy(&self, table: &Table, net: &Net<Expr>) -> Doc<'src> {
-    Doc::concat([Doc("$ivy "), self.fmt_ivy_stmts(table, &net.stmts)])
+  pub(crate) fn fmt_expr_inline_ivy(&self, table: &Table, net: &Net<Expr>) -> Content {
+    Content::even((Keyword("$ivy"), Space, self.fmt_ivy_stmts(table, &net.stmts)))
   }
 
-  fn fmt_ivy_stmts(&self, table: &Table, stmts: &[(IvyExpr<Expr>, IvyExpr<Expr>)]) -> Doc<'src> {
-    if stmts.len() == 1 {
-      Doc::concat([
-        Doc("{"),
-        Doc::if_single(" "),
-        self.fmt_ivy_stmt(table, &stmts[0]),
-        Doc::if_single(" "),
-        Doc("}"),
-      ])
-    } else {
-      Doc::brace_multiline(stmts.iter().map(|s| self.fmt_ivy_stmt(table, s)))
-    }
+  fn fmt_ivy_stmts(&self, table: &Table, stmts: &[(IvyExpr<Expr>, IvyExpr<Expr>)]) -> Content {
+    Content::even(
+      Delimited::new(Delims::BRACE, stmts.iter().map(|s| self.fmt_ivy_stmt(table, s)))
+        .force_multi(stmts.len() > 1),
+    )
   }
 
-  fn fmt_ivy_stmt(&self, table: &Table, (a, b): &IvyStmt<Expr>) -> Doc<'src> {
-    Doc::concat([self.fmt_ivy_expr(table, a), Doc(" = "), self.fmt_ivy_expr(table, b)])
+  fn fmt_ivy_stmt(&self, table: &Table, (a, b): &IvyStmt<Expr>) -> Content {
+    Content::smart((
+      self.fmt_ivy_expr(table, a),
+      (Space, Punct("="), Space),
+      self.fmt_ivy_expr(table, b),
+    ))
   }
 
-  fn fmt_ivy_expr(&self, table: &Table, expr: &IvyExpr<Expr>) -> Doc<'src> {
+  fn fmt_ivy_expr(&self, table: &Table, expr: &IvyExpr<Expr>) -> Content {
     match expr {
-      IvyExpr::Node(name, exprs) => Doc::concat([
+      IvyExpr::Node(name, exprs) => Content::smart((
         self.fmt_ivy_name(table, name),
-        if !exprs.is_empty() {
-          Doc::concat([
-            Doc("("),
-            Doc::group([Doc::interleave(
-              exprs.iter().map(|e| self.fmt_ivy_expr(table, e)),
-              Doc::soft_line(" "),
-            )]),
-            Doc(")"),
-          ])
-        } else {
-          Doc::EMPTY
-        },
-      ]),
-      IvyExpr::Wire(wire) => Doc(wire.clone()),
-      IvyExpr::Free(None) => Doc("^"),
-      IvyExpr::Free(Some(n)) => Doc(format!("^{n}")),
+        Delimited::new(
+          &Delims {
+            empty: "",
+            single: ("(", " ", ")"),
+            multi: ("(", "", "", ")"),
+            color: Color::VAGUE,
+          },
+          exprs.iter().map(|e| self.fmt_ivy_expr(table, e)),
+        ),
+      )),
+      IvyExpr::Wire(wire) => Content::even(Colored(Color::WHITE, wire.clone())),
+      IvyExpr::Free(None) => Content::even(Colored(Color::KEYWORD, "^")),
+      IvyExpr::Free(Some(n)) => Content::even(Colored(Color::KEYWORD, format!("^{n}"))),
       IvyExpr::Interpolation(expr) => {
-        Doc::concat([Doc("${"), Doc::group([self.fmt_expr(expr)]), Doc("}")])
+        Content::even((Punct("$"), Punct("{"), Indent::eager(self.fmt_expr(expr)), Punct("}")))
       }
       IvyExpr::Subnet(expr, stmts) => {
-        Doc::concat([self.fmt_ivy_expr(table, expr), Doc(" "), self.fmt_ivy_stmts(table, stmts)])
+        Content::right((self.fmt_ivy_expr(table, expr), Space, self.fmt_ivy_stmts(table, stmts)))
       }
     }
   }
 
-  fn fmt_ivy_name(&self, table: &Table, name: &Name) -> Doc<'src> {
-    Doc::concat([
-      Doc(table.path(name.path).to_owned()),
-      if !name.payload.is_zero() { Doc(format!("#{}", name.payload)) } else { Doc("") },
-      if !name.children.is_empty() {
-        Doc::bracket_comma(name.children.iter().map(|&n| self.fmt_ivy_name(table, table.name(n))))
-      } else {
-        Doc("")
-      },
-    ])
+  fn fmt_ivy_name(&self, table: &Table, name: &Name) -> Content {
+    let path = table.path(name.path);
+    Content::even((
+      Colored(if path.starts_with(":") { Color::STRING } else { Color::SPECIAL }, path.to_owned()),
+      (!name.payload.is_zero())
+        .then(|| (Punct("#"), Colored(Color::KEYWORD, format!("{}", name.payload)))),
+      (!name.children.is_empty()).then(|| {
+        Delimited::new(
+          Delims::BRACKET_COMMA,
+          name.children.iter().map(|&n| self.fmt_ivy_name(table, table.name(n))),
+        )
+      }),
+    ))
   }
 }
 

@@ -3,37 +3,44 @@ use crate::{
   structures::{
     ast::{Expr, ExprKind, LogicalOp, Pat, Span},
     chart::FnId,
+    content::{Content, Keyword, Punct, Space},
     diag::Diag,
     tir::{TirExpr, TirExprKind, TirImpl},
     types::Type,
     vir::{Interface, InterfaceKind, Layer, Port, PortKind, Stage, Step, Transfer},
   },
-  tools::fmt::{Formatter, doc::Doc},
+  tools::fmt::{Chain, ChainKind, Formatter},
 };
 
 impl<'src> Formatter<'src> {
-  pub(crate) fn fmt_expr_bool(&self, bool: bool) -> Doc<'src> {
-    Doc(if bool { "true" } else { "false" })
+  pub(crate) fn fmt_expr_bool(&self, bool: bool) -> Content {
+    Content::even(Keyword(if bool { "true" } else { "false" }))
   }
 
-  pub(crate) fn fmt_expr_not(&self, expr: &Expr) -> Doc<'src> {
-    Doc::concat([Doc("!"), self.fmt_expr(expr)])
+  pub(crate) fn fmt_expr_not(&self, expr: &Expr) -> Content {
+    Content::even((Punct("!"), self.fmt_expr(expr)))
   }
 
-  pub(crate) fn fmt_expr_is(&self, expr: &Expr, pat: &Pat) -> Doc<'src> {
-    Doc::concat([self.fmt_expr(expr), Doc(" is "), self.fmt_pat(pat)])
+  pub(crate) fn fmt_expr_is(&self, expr: &Expr, pat: &Pat) -> Chain {
+    self
+      .chain_expr(expr)
+      .chain(ChainKind::Is, Content::even((Space, Keyword("is"), Space, self.fmt_pat(pat))))
   }
 
-  pub(crate) fn fmt_expr_logical_op(&self, op: &LogicalOp, lhs: &Expr, rhs: &Expr) -> Doc<'src> {
-    Doc::concat([
-      self.fmt_expr(lhs),
-      Doc(match op {
-        LogicalOp::And => " and ",
-        LogicalOp::Or => " or ",
-        LogicalOp::Implies => " impl ",
-      }),
-      self.fmt_expr(rhs),
-    ])
+  pub(crate) fn fmt_expr_logical_op(&self, op: &LogicalOp, lhs: &Expr, rhs: &Expr) -> Chain {
+    self.chain_expr(lhs).chain(
+      ChainKind::LogicalOp(*op),
+      Content::even((
+        Space,
+        Keyword(match op {
+          LogicalOp::And => "and",
+          LogicalOp::Or => "or",
+          LogicalOp::Implies => "impl",
+        }),
+        Space,
+        self.fmt_expr(rhs),
+      )),
+    )
   }
 }
 

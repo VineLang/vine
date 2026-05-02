@@ -19,6 +19,7 @@ use crate::{
       Stmt, StmtKind, Ty,
     },
     chart::{ConcreteFnDef, ConcreteFnId, DefId, DefValueKind, FnId, GenericsId, TraitFnId, VisId},
+    content::{Color, Colored, Content, Delimited, Delims, Indent, Keyword, Punct, Space},
     diag::Diag,
     resolutions::{FnRelId, Fragment},
     signatures::FnSig,
@@ -26,7 +27,7 @@ use crate::{
     types::{ImplType, Inverted, Type, TypeCtx, TypeKind, Types},
     vir::{Header, Interface, InterfaceKind, Port, PortKind, Stage, Step, Transfer},
   },
-  tools::fmt::{Formatter, doc::Doc},
+  tools::fmt::{Chain, ChainKind, Formatter},
 };
 
 impl Parser<'_> {
@@ -70,33 +71,31 @@ impl Parser<'_> {
 }
 
 impl<'src> Formatter<'src> {
-  pub(crate) fn fmt_fn_item(&self, f: &FnItem) -> Doc<'src> {
+  pub(crate) fn fmt_fn_item(&self, f: &FnItem) -> Content {
     let params = &f.params;
-    Doc::concat([
-      Doc("fn "),
-      Doc(if f.method { "." } else { "" }),
-      Doc(f.name.clone()),
+    Content::smart((
+      (Keyword("fn"), Space),
+      f.method.then_some(Punct(".")),
+      Colored(Color::SPECIAL, f.name.0.clone()),
       self.fmt_generic_params(&f.generics),
-      Doc::paren_comma(params.iter().map(|p| self.fmt_pat(p))),
-      self.fmt_return_ty(f.ret.as_ref()),
+      Delimited::new(Delims::PAREN_COMMA, params.iter().map(|p| self.fmt_pat(p))),
+      self.fmt_arrow_ty(&f.ret),
       match &f.body {
-        Some(b) => Doc::concat([Doc(" "), self.fmt_block(b, true)]),
-        None => Doc(";"),
+        Some(b) => Content::even((Space, self.fmt_block(b, true))),
+        None => Content::even(Punct(";")),
       },
-    ])
+    ))
   }
 
-  pub(crate) fn fmt_stmt_let_fn(&self, d: &LetFnStmt) -> Doc<'src> {
-    Doc::concat([
-      Doc("let fn"),
-      self.fmt_flex(d.flex),
-      Doc(" "),
-      Doc(d.name.clone()),
-      Doc::paren_comma(d.params.iter().map(|p| self.fmt_pat(p))),
-      self.fmt_return_ty(d.ret.as_ref()),
-      Doc(" "),
+  pub(crate) fn fmt_stmt_let_fn(&self, d: &LetFnStmt) -> Content {
+    Content::smart((
+      (Keyword("let"), Space, Keyword("fn"), self.fmt_flex(d.flex), Space),
+      Colored(Color::SPECIAL, d.name.0.clone()),
+      Delimited::new(Delims::PAREN_COMMA, d.params.iter().map(|p| self.fmt_pat(p))),
+      self.fmt_arrow_ty(&d.ret),
+      Space,
       self.fmt_block(&d.body, true),
-    ])
+    ))
   }
 
   pub(crate) fn fmt_expr_fn(
@@ -105,34 +104,33 @@ impl<'src> Formatter<'src> {
     params: &[Pat],
     ty: &Option<Ty>,
     body: &Block,
-  ) -> Doc<'src> {
-    Doc::concat([
-      Doc("fn"),
-      self.fmt_flex(*flex),
-      Doc(" "),
-      Doc::paren_comma(params.iter().map(|p| self.fmt_pat(p))),
-      self.fmt_arrow_ty(ty),
-      Doc(" "),
+  ) -> Content {
+    Content::right((
+      (Keyword("fn"), self.fmt_flex(*flex), Space),
+      Content::smart((
+        Delimited::new(Delims::PAREN_COMMA, params.iter().map(|p| self.fmt_pat(p))),
+        self.fmt_arrow_ty(ty),
+      )),
+      Space,
       self.fmt_block(body, false),
-    ])
+    ))
   }
 
-  pub(crate) fn fmt_expr_call(&self, func: &Expr, args: &[Expr]) -> Doc<'src> {
-    Doc::concat([self.fmt_expr(func), Doc::paren_comma(args.iter().map(|x| self.fmt_expr(x)))])
+  pub(crate) fn fmt_expr_call(&self, func: &Expr, args: &[Expr]) -> Chain {
+    self.chain_expr(func).chain(
+      ChainKind::Postfix,
+      Delimited::new(Delims::PAREN_COMMA, args.iter().map(|x| self.fmt_expr(x)))
+        .allow_final_multi(true)
+        .break_final(args.len() == 1),
+    )
   }
 
-  pub(crate) fn fmt_stmt_return(&self, expr: &Option<Expr>) -> Doc<'src> {
-    match expr {
-      Some(expr) => Doc::concat([Doc("return "), self.fmt_expr(expr), Doc(";")]),
-      None => Doc("return;"),
-    }
-  }
-
-  fn fmt_return_ty(&self, r: Option<&Ty>) -> Doc<'src> {
-    match r {
-      Some(t) => Doc::concat([Doc(" -> "), self.fmt_ty(t)]),
-      None => Doc::EMPTY,
-    }
+  pub(crate) fn fmt_stmt_return(&self, expr: &Option<Expr>) -> Content {
+    Content::even((
+      Keyword("return"),
+      expr.as_ref().map(|expr| (Space, Indent::lazy(self.fmt_expr(expr)))),
+      Punct(";"),
+    ))
   }
 }
 

@@ -12,11 +12,12 @@ use crate::{
       Binding, Def, DefId, DefImplKind, DefPatternKind, DefTypeKind, DefValueKind, MemberKind,
       TraitId, VisId,
     },
+    content::{Color, Colored, Content, Delimited, Delims, Punct},
     diag::Diag,
     tir::{TirExpr, TirExprKind, TirImpl, TirLocal, TirPat, TirPatKind},
     types::{ImplType, Type, TypeKind},
   },
-  tools::fmt::{Formatter, doc::Doc},
+  tools::fmt::Formatter,
 };
 
 impl Parser<'_> {
@@ -43,40 +44,39 @@ impl Parser<'_> {
 }
 
 impl<'src> Formatter<'src> {
-  pub(crate) fn fmt_path(&self, path: &Path) -> Doc<'src> {
-    let mut docs = Vec::<Doc>::new();
-    if path.absolute {
-      docs.push(Doc("#"));
+  pub(crate) fn fmt_path(&self, color: Color, path: &Path) -> Content {
+    let mut namespace = String::new();
+    for seg in &path.segments[..path.segments.len() - 1] {
+      namespace += &seg.0;
+      namespace += "::";
     }
-    let mut first = true;
-    for seg in &path.segments {
-      if !first {
-        docs.push(Doc("::"));
-      }
-      docs.push(Doc(seg.clone()));
-      first = false;
-    }
-    if let Some(generics) = &path.generics {
-      docs.push(self.fmt_generic_args(generics));
-    }
-    Doc::concat_vec(docs)
+    Content::even((
+      path.absolute.then_some(Punct("#")),
+      Colored(Color::VAGUE, namespace),
+      Colored(color, path.segments.last().unwrap().0.clone()),
+      path.generics.as_ref().map(|generics| self.fmt_generic_args(generics)),
+    ))
   }
 
-  pub(crate) fn fmt_expr_path(&self, path: &Path, args: &Option<Vec<Expr>>) -> Doc<'src> {
+  pub(crate) fn fmt_expr_path(&self, path: &Path, args: &Option<Vec<Expr>>) -> Content {
     match args {
-      Some(args) => {
-        Doc::concat([self.fmt_path(path), Doc::paren_comma(args.iter().map(|x| self.fmt_expr(x)))])
-      }
-      None => self.fmt_path(path),
+      Some(args) => Content::smart((
+        self.fmt_path(Color::SPECIAL, path),
+        Delimited::new(Delims::PAREN_COMMA, args.iter().map(|x| self.fmt_expr(x)))
+          .allow_final_multi(true)
+          .break_final(true),
+      )),
+      None => self.fmt_path(Color::WHITE, path),
     }
   }
 
-  pub(crate) fn fmt_pat_path(&self, path: &Path, args: &Option<Vec<Pat>>) -> Doc<'src> {
+  pub(crate) fn fmt_pat_path(&self, path: &Path, args: &Option<Vec<Pat>>) -> Content {
     match args {
-      Some(args) => {
-        Doc::concat([self.fmt_path(path), Doc::paren_comma(args.iter().map(|x| self.fmt_pat(x)))])
-      }
-      None => self.fmt_path(path),
+      Some(args) => Content::smart((
+        self.fmt_path(Color::SPECIAL, path),
+        Delimited::new(Delims::PAREN_COMMA, args.iter().map(|x| self.fmt_pat(x))),
+      )),
+      None => self.fmt_path(Color::WHITE, path),
     }
   }
 }
