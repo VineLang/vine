@@ -40,22 +40,14 @@ pub fn main(&io: &IO) {
     when {
       x < width / 2 {
         when {
-          y < height / 2 {
-            a += 1;
-          }
-          y > height / 2 {
-            b += 1;
-          }
+          y < height / 2 { a += 1; }
+          y > height / 2 { b += 1; }
         }
       }
       x > width / 2 {
         when {
-          y < height / 2 {
-            c += 1;
-          }
-          y > height / 2 {
-            d += 1;
-          }
+          y < height / 2 { c += 1; }
+          y > height / 2 { d += 1; }
         }
       }
     }

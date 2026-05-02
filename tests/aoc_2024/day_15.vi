@@ -70,17 +70,21 @@ pub fn main(&io: &IO) {
 
   io.println("Part 1: {part1}");
 
-  grid = initial_grid.as[List].map(fn* (row: Array[Char]) {
-    let new_row = [];
-    for char in row.as[List].iter() {
-      if char == 'O' {
-        new_row ++= "[]" as List;
-      } else {
-        new_row ++= [char, char];
+  grid = initial_grid
+    .as[List]
+    .map(fn* (row: Array[Char]) {
+      let new_row = [];
+      for char in row.as[List].iter() {
+        if char == 'O' {
+          new_row ++= "[]" as List;
+        } else {
+          new_row ++= [char, char];
+        }
       }
-    }
-    new_row as Array
-  }).as[Array];
+      new_row as Array
+    })
+    .as[Array]
+  ;
 
   let robot = initial * (2, 1);
 

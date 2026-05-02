@@ -19,13 +19,9 @@ pub fn main(&io: &IO) {
 
   let fn resize(width: N32, height: N32) {
     signal.pipe_stream(&Signal::Stop());
-    construct_torus(
-      width,
-      height,
-      fn* (i, _, neighbors) {
-        cell(i == width - 1, signal.tap(), neighbors);
-      },
-    );
+    construct_torus(width, height, fn* (i, _, neighbors) {
+      cell(i == width - 1, signal.tap(), neighbors);
+    });
     signal.pipe_stream(&Signal::Init(&rng));
   }
 
@@ -46,9 +42,7 @@ pub fn main(&io: &IO) {
           resize(w, h);
         }
       }
-      name == "seed" {
-        seed(args.or_use(default_seed));
-      }
+      name == "seed" { seed(args.or_use(default_seed)); }
       name == "step" and args is Some(arg) {
         if N32::parse(arg) is Some(steps) {
           advance(steps);
@@ -145,53 +139,46 @@ pub struct TorusOrthoNeighbors[N, S, W, E]({ n: N, s: S, w: W, e: E });
 
 pub fn construct_torus_ortho[
   N, S, W, E, F*;
-  fn F(N32, N32, TorusOrthoNeighbors[N, S, W, E]), Channel[S, N], Channel[E, W];
+  fn F(N32, N32, TorusOrthoNeighbors[N, S, W, E]), Channel[S, N], Channel[E, W]
 ](width: N32, height: N32, f: F) {
-  construct_ring(
-    height,
-    fn* (j, RingNeighbors[Recv[Stream[N]], Send[Stream[N]]](north, south)) {
-      construct_ring(
-        width,
-        fn* (i, RingNeighbors[W, E](w, e)) {
-          let n = north.recv_stream();
-          let (s, s_) = Channel::pair[S, N];
-          south.send_stream(s_);
-          f(i, j, TorusOrthoNeighbors({ n, s, w, e }));
-        },
-      )
-      north.close_stream();
-      south.close_stream();
-    },
-  )
+  construct_ring(height, fn* (j, RingNeighbors[Recv[Stream[N]], Send[Stream[N]]](north, south)) {
+    construct_ring(width, fn* (i, RingNeighbors[W, E](w, e)) {
+      let n = north.recv_stream();
+      let (s, s_) = Channel::pair[S, N];
+      south.send_stream(s_);
+      f(i, j, TorusOrthoNeighbors({ n, s, w, e }));
+    })
+    north.close_stream();
+    south.close_stream();
+  })
 }
 
 pub struct TorusNeighbors[T]({ nw: T, n: T, ne: T, w: T, e: T, sw: T, s: T, se: T });
 
-pub fn construct_torus[T, F*; fn F(N32, N32, TorusNeighbors[T]), Channel[T, T]](
-  width: N32,
-  height: N32,
-  f: F,
-) {
+pub fn construct_torus[
+  T, F*;
+  fn F(N32, N32, TorusNeighbors[T]), Channel[T, T]
+](width: N32, height: N32, f: F) {
   type N[T] = (Recv[T], T, Recv[T]);
   type S[T] = (Send[T], T, Send[T]);
   type W[T] = (T, T, T);
   type E[T] = (T, T, T);
 
-  construct_torus_ortho(
-    width,
-    height,
-    fn* (i, j, TorusOrthoNeighbors[N[T], S[T], W[T], E[T]]({ n, s, w, e })) {
-      let (w_se, w, sw) = w;
-      let (se, e, e_sw) = e;
-      let (n_w, n, n_e) = n;
-      let (s_nw, s, s_ne) = s;
-      let nw = n_w.recv();
-      let ne = n_e.recv();
-      s_nw.send(w_se);
-      s_ne.send(e_sw);
-      f(i, j, TorusNeighbors({ nw, n, ne, w, e, sw, s, se }));
-    },
-  )
+  construct_torus_ortho(width, height, fn* (
+    i,
+    j,
+    TorusOrthoNeighbors[N[T], S[T], W[T], E[T]]({ n, s, w, e }),
+  ) {
+    let (w_se, w, sw) = w;
+    let (se, e, e_sw) = e;
+    let (n_w, n, n_e) = n;
+    let (s_nw, s, s_ne) = s;
+    let nw = n_w.recv();
+    let ne = n_e.recv();
+    s_nw.send(w_se);
+    s_ne.send(e_sw);
+    f(i, j, TorusNeighbors({ nw, n, ne, w, e, sw, s, se }));
+  })
 }
 
 pub enum? Signal {
@@ -349,7 +336,7 @@ pub mod Channel {
 
   pub impl tuple[
     A, AI, AR, B, BI, BR;
-    Tuple[A, AI, AR], Tuple[B, BI, BR], Channel[AI, BI], Channel[AR, BR];
+    Tuple[A, AI, AR], Tuple[B, BI, BR], Channel[AI, BI], Channel[AR, BR]
   ]: Channel[A, B] {
     const pair: (A, B) = do {
       let (ai, bi) = Channel::pair[AI, BI];

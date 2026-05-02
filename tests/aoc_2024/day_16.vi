@@ -9,12 +9,8 @@ pub fn main(&io: &IO) {
     let row = [];
     for char in line.iter() {
       when {
-        char == 'S' {
-          start = (row.len(), grid.len());
-        }
-        char == 'E' {
-          end = (row.len(), grid.len());
-        }
+        char == 'S' { start = (row.len(), grid.len()); }
+        char == 'E' { end = (row.len(), grid.len()); }
       }
       row.push_back((
         char != '#',

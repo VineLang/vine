@@ -52,7 +52,10 @@ pub mod Bound {
 pub struct* Range[B1, B2](pub (B1, B2));
 
 pub mod Range {
-  pub fn .contains[B1, B2, T; Bound[B1, T], Bound[B2, T]](&Range[B1, B2](start, end), &value: &T) -> Bool {
+  pub fn .contains[B1, B2, T; Bound[B1, T], Bound[B2, T]](
+    &Range[B1, B2](start, end),
+    &value: &T,
+  ) -> Bool {
     start.left_of(&value) and end.right_of(&value)
   }
 
@@ -83,9 +86,9 @@ pub mod Range {
   }
 
   pub impl exclusive_iter[T*; Ord[T], Step[T]]: Iterator[Range[Inclusive[T], Exclusive[T]], T] {
-    fn advance(Range[Inclusive[T], Exclusive[T]](Inclusive[T](start), end)) -> Option[
-      (T, Range[Inclusive[T], Exclusive[T]]);
-    ] {
+    fn advance(
+      Range[Inclusive[T], Exclusive[T]](Inclusive[T](start), end),
+    ) -> Option[(T, Range[Inclusive[T], Exclusive[T]])] {
       if end.right_of(&start) {
         Some(start, Range(Inclusive(start.step()), end))
       } else {
@@ -94,10 +97,12 @@ pub mod Range {
     }
   }
 
-  pub impl inclusive_iter[T*; Ord[T], Step[T]]: Iterate[
-    Range[Inclusive[T], Inclusive[T]], InclusiveIter[T], T;
-  ] {
-    fn iter(Range[Inclusive[T], Inclusive[T]](Inclusive(start), Inclusive(end))) -> InclusiveIter[T] {
+  pub impl inclusive_iter[T*; Ord[T], Step[T]]:
+    Iterate[Range[Inclusive[T], Inclusive[T]], InclusiveIter[T], T]
+  {
+    fn iter(
+      Range[Inclusive[T], Inclusive[T]](Inclusive(start), Inclusive(end)),
+    ) -> InclusiveIter[T] {
       InclusiveIter(Some(start, end))
     }
   }

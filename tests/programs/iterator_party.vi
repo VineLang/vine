@@ -6,21 +6,27 @@ use #root::data::{Iterator, Map, Set};
 pub fn main(_: &IO) {
   debug::log("--- concat, empty, one, from_next ---");
   let list = [1, 2, 3];
-  let iter = Iterator::one(0) ++ Iterator::empty ++ Iterator::from_next(fn* () { list.pop_front() });
+  let iter = Iterator::one(0)
+    ++ Iterator::empty
+    ++ Iterator::from_next(fn* () { list.pop_front() })
+  ;
   for x in iter {
     debug::log("{x}");
   }
 
   debug::log("--- map, filter, flat_map, enumerate, for_each ---");
   let acc = 0;
-  (0..10).map(fn* (x: N32) { x * x }).filter(fn* (&x: &N32) { x % 2 != 0 }).flat_map(fn* (x: N32) {
-    List::new(x, x).iter()
-  }).map(fn* (x: N32) {
-    acc += x;
-    acc
-  }).enumerate().for_each(fn* ((i: N32, x: N32)) {
-    debug::log("{i}: {x}");
-  });
+  (0..10)
+    .map(fn* (x: N32) { x * x })
+    .filter(fn* (&x: &N32) { x % 2 != 0 })
+    .flat_map(fn* (x: N32) { List::new(x, x).iter() })
+    .map(fn* (x: N32) {
+      acc += x;
+      acc
+    })
+    .enumerate()
+    .for_each(fn* ((i: N32, x: N32)) { debug::log("{i}: {x}"); })
+  ;
 
   debug::log("--- windows ---");
   for (x, y) in [1, 2, 3, 4, 5].iter().windows() {
@@ -71,22 +77,27 @@ pub fn main(_: &IO) {
 
   debug::log("--- filter, all, count, any, reduce ---");
   debug::log("{
-    (2..46).filter(fn* (&n: &N32) {
-      debug::log("{n}?");
-      (2..n).all(fn* (m: N32) {
-        debug::log("{m}");
-        n % m != 0
+    (2..46)
+      .filter(fn* (&n: &N32) {
+        debug::log("{n}?");
+        (2..n).all(fn* (m: N32) {
+          debug::log("{m}");
+          n % m != 0
+        })
       })
-    }).count()
+      .count()
   }");
   debug::log("{
-    (2..46).filter(fn* (&n: &N32) {
-      debug::log("{n}?");
-      !(2..n).any(fn* (m: N32) {
-        debug::log("{m}");
-        n % m == 0
+    (2..46)
+      .filter(fn* (&n: &N32) {
+        debug::log("{n}?");
+        !(2..n).any(fn* (m: N32) {
+          debug::log("{m}");
+          n % m == 0
+        })
       })
-    }).reduce(fn* (a: N32, b: N32) { a + b }).show()
+      .reduce(fn* (a: N32, b: N32) { a + b })
+      .show()
   }");
 
   debug::log("--- inspect, nth, last, collect ---");
@@ -113,25 +124,33 @@ pub fn main(_: &IO) {
     [6],
   ];
   debug::log("{
-    (0..11).map(fn* (i: N32) {
-      nums.iter_ref().filter_map(fn* (&l: &List[N32]) { l.at(i) }).forked().collect[List]()
-    }).collect[List]().show()
+    (0..11)
+      .map(fn* (i: N32) {
+        nums.iter_ref().filter_map(fn* (&l: &List[N32]) { l.at(i) }).forked().collect[List]()
+      })
+      .collect[List]()
+      .show()
   }");
   debug::log("{
-    (0..11).map(fn* (i: N32) {
-      nums.iter_ref().map_while(fn* (&l: &List[N32]) { l.at(i) }).forked().collect[List]()
-    }).collect[List]().show()
+    (0..11)
+      .map(fn* (i: N32) {
+        nums.iter_ref().map_while(fn* (&l: &List[N32]) { l.at(i) }).forked().collect[List]()
+      })
+      .collect[List]()
+      .show()
   }");
   nums.reverse();
   debug::log("{
-    (0..11).map(fn* (i: N32) {
-      nums.iter_ref().find(fn* (&&l: &&List[N32]) { l.len() > i }).as_fork()
-    }).collect[List]().show()
+    (0..11)
+      .map(fn* (i: N32) { nums.iter_ref().find(fn* (&&l: &&List[N32]) { l.len() > i }).as_fork() })
+      .collect[List]()
+      .show()
   }")
   debug::log("{
-    (0..11).map(fn* (i: N32) {
-      nums.iter_ref().find_map(fn* (&l: &List[N32]) { l.at(i) }).as_fork()
-    }).collect[List]().show()
+    (0..11)
+      .map(fn* (i: N32) { nums.iter_ref().find_map(fn* (&l: &List[N32]) { l.at(i) }).as_fork() })
+      .collect[List]()
+      .show()
   }")
 
   debug::log("--- chunks 3 ---");

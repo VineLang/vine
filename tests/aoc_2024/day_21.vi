@@ -51,7 +51,12 @@ pub fn main(&io: &IO) {
   io.println("Part 2: {sum}");
 }
 
-fn control_string[F*; fn F(Char, Char, Bool) -> String](cur: Char, string: String, seed: N32, f: F) -> String {
+fn control_string[F*; fn F(Char, Char, Bool) -> String](
+  cur: Char,
+  string: String,
+  seed: N32,
+  f: F,
+) -> String {
   let out = "";
   for next in string.iter() {
     out ++= f(cur, next, seed & 1 != 0);

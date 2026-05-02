@@ -14,9 +14,7 @@ pub fn main(&io: &IO) {
         safe_count += 1;
         dampened_safe_count += 1;
       }
-      problem_dampener(report) {
-        dampened_safe_count += 1;
-      }
+      problem_dampener(report) { dampened_safe_count += 1; }
     }
   }
 

@@ -10,7 +10,9 @@ const center: (F64, F64) = (-0.8[F64], 0.0[F64]);
 pub fn main(&io: &IO) {
   for j in 0..height {
     for i in 0..width {
-      let pos = (i as F64 + 0.5[F64], j as F64 + 0.5[F64]) - (width as F64, height as F64) / 2.0[F64];
+      let pos = (i as F64 + 0.5[F64], j as F64 + 0.5[F64])
+        - (width as F64, height as F64) / 2.0[F64]
+      ;
       let (x, y) = center + pos * scale / width as F64 * (1.0[F64], 2.0[F64]);
       io.print_char(if mandelbrot(x, y) {
         '#'

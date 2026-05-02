@@ -101,10 +101,10 @@ pub mod List {
     self.at(i).as_fork()
   }
 
-  pub fn .slice[T?, B1?, B2?; Bound[B1, N32], Bound[B2, N32]](
-    self: List[T],
-    Range[B1, B2](start, end),
-  ) -> List[T] {
+  pub fn .slice[
+    T?, B1?, B2?;
+    Bound[B1, N32], Bound[B2, N32]
+  ](self: List[T], Range[B1, B2](start, end)) -> List[T] {
     // Underflow does not matter, still correct
     let end_index = self.len() - 1;
     let i = 0;
@@ -216,9 +216,7 @@ pub mod List {
   /// If `i` is greater than the length of the list, the element will be added
   /// to the end.
   pub fn .insert[T](&list: &List[T], i: N32, el: T) {
-    assert i < list.len() else {
-      list.push_back(el);
-    }
+    assert i < list.len() else { list.push_back(el); }
     let &List(len, front, _) = &list;
     let cursor = &front;
     for _ in 0..i {
@@ -507,9 +505,7 @@ pub mod List {
             (a_iter, b_iter) = (_a_iter, _b_iter);
             match a.cmp(&b) {
               Ord::Lt() { Ord::Lt() }
-              Ord::Eq() {
-                continue;
-              }
+              Ord::Eq() { continue; }
               Ord::Gt() { Ord::Gt() }
             }
           }

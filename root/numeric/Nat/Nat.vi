@@ -179,9 +179,7 @@ pub mod Nat {
 
     let nums = a!.reversed();
 
-    assert nums.pop_front() is Some(leading_num) else {
-      return (0[Nat], 0);
-    }
+    assert nums.pop_front() is Some(leading_num) else { return (0[Nat], 0); }
     let q = [];
     let (qi, rem) = leading_num.div_rem(d);
     if qi != 0 {

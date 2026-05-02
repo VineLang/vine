@@ -33,9 +33,7 @@ pub fn main(&io: &IO) {
   let &Regions(array) = &regions;
   for i in 0..array.len() {
     match array.get(i).assume() {
-      Region::Root(a, p) {
-        price += a * (a * 4 - p * 2);
-      }
+      Region::Root(a, p) { price += a * (a * 4 - p * 2); }
       _ {}
     }
   }
@@ -121,9 +119,7 @@ mod Regions {
   pub fn .union_found(&Regions(array), i: N32, j: N32) -> N32 {
     if i == j {
       match array.at(i).assume() {
-        &Region::Root(_, p) {
-          p += 1;
-        }
+        &Region::Root(_, p) { p += 1; }
         _ { debug::error("unreachable") }
       }
       i

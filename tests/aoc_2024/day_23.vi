@@ -69,9 +69,11 @@ pub fn main(&io: &IO) {
   }
 
   io.println("Part 2: {
-    best.map(fn* (x: N32) {
-      let chars = ['a' + x / 26, 'a' + x % 26];
-      String(chars)
-    }).join(",")
+    best
+      .map(fn* (x: N32) {
+        let chars = ['a' + x / 26, 'a' + x % 26];
+        String(chars)
+      })
+      .join(",")
   }");
 }

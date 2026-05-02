@@ -79,12 +79,7 @@ pub mod Array {
       Array::empty
     } else {
       let node;
-      Array::for_each(
-        Array(len, ~node),
-        fn* (~t) {
-          t = f();
-        },
-      );
+      Array::for_each(Array(len, ~node), fn* (~t) { t = f(); });
       Array(len, node)
     }
   }
@@ -92,13 +87,10 @@ pub mod Array {
   /// Iterate over the values of the array in order.
   pub fn .for_each[T, F*; fn F(T)](self: Array[T], f: F) {
     let f = debug::with_state(f);
-    self.fold_front(
-      f,
-      fn* (f: debug::WithState[F], value) {
-        f(value);
-        f
-      },
-    );
+    self.fold_front(f, fn* (f: debug::WithState[F], value) {
+      f(value);
+      f
+    });
   }
 
   /// Fold over the array, starting from the front.
@@ -345,10 +337,10 @@ pub mod Array {
   /// left // Array(["abc", "qwe"])
   /// right // Array(["de", "rty"])
   /// ```
-  pub fn .unzip_with[T, F*, U, V; fn F(T) -> (U, V)](Array[T](len, node), f: F) -> (
-    Array[U],
-    Array[V],
-  ) {
+  pub fn .unzip_with[
+    T, F*, U, V;
+    fn F(T) -> (U, V)
+  ](Array[T](len, node), f: F) -> (Array[U], Array[V]) {
     if len == 0 {
       safe node.null;
       (Array::empty, Array::empty)
@@ -503,10 +495,10 @@ mod Node {
     }
   }
 
-  pub fn unzip_with[T, U, V, F+; fn F(T) -> (U, V)](len: N32, x: Node[T], f: F) -> (
-    Node[U],
-    Node[V],
-  ) {
+  pub fn unzip_with[
+    T, U, V, F+;
+    fn F(T) -> (U, V)
+  ](len: N32, x: Node[T], f: F) -> (Node[U], Node[V]) {
     let f = fn+ (~u, ~v) {
       let loop t;
       (u, v) = f(t);

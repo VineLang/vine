@@ -16,15 +16,13 @@ pub mod parse[
   Eq[Mantissa],
   Shl[Mantissa, N32, Mantissa],
   Shr[Mantissa, N32, Mantissa],
-  BitAnd[Mantissa, Mantissa, Mantissa];
+  BitAnd[Mantissa, Mantissa, Mantissa]
 ] {
   // TODO: implement Eisel-Lemire algorithm for fast parsing of most cases
   pub fn parse[...](str: String) -> Option[F] {
     let prefix = match str!.pop_front() {
       Some(char) { char }
-      None() {
-        return None();
-      }
+      None() { return None(); }
     };
     let is_negative = when {
       prefix == '-' { true }
@@ -64,9 +62,7 @@ pub mod parse[
           if char != 'e' and char != 'E' {
             return None();
           }
-          assert I32::parse(str) is Some(exp) else {
-            return None();
-          }
+          assert I32::parse(str) is Some(exp) else { return None(); }
           exp10 += exp;
         }
 
@@ -132,9 +128,7 @@ pub mod parse[
 
           // Round mantissa
           match (r << 1).cmp(&den) {
-            Ord::Gt() {
-              mantissa += 1;
-            }
+            Ord::Gt() { mantissa += 1; }
             Ord::Eq() {
               if mantissa as N32 & 1 == 1 {
                 mantissa += 1;
@@ -169,9 +163,7 @@ pub mod parse[
 
         // round to nearest, ties-to-even
         match (r << 1).cmp(&den) {
-          Ord::Gt() {
-            mantissa += 1;
-          }
+          Ord::Gt() { mantissa += 1; }
           Ord::Eq() {
             if mantissa as N32 & 1 == 1 {
               mantissa += 1;

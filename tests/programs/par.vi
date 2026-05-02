@@ -36,10 +36,11 @@ mod Channel {
     out = value;
   }
 
-  pub fn .choose[T, P, Q, F; Session[P, Q], fn F(Q) -> T](Channel[~T, ()](~out, ()), choice: F) -> P {
-    Session::fork[P, Q](fn (q: Q) {
-      out = choice(q);
-    })
+  pub fn .choose[
+    T, P, Q, F;
+    Session[P, Q], fn F(Q) -> T
+  ](Channel[~T, ()](~out, ()), choice: F) -> P {
+    Session::fork[P, Q](fn (q: Q) { out = choice(q); })
   }
 }
 
@@ -167,11 +168,10 @@ pub fn main(&io: &IO) {
   let p2 = Pcg32::seeded("Bob");
   let p3 = Pcg32::seeded("Charlie");
   for _ in 0..10 {
-    let winner = start_playing(&io).send((
-      random_player(&p1),
-      random_player(&p2),
-      random_player(&p3),
-    )).recv1();
+    let winner = start_playing(&io)
+      .send((random_player(&p1), random_player(&p2), random_player(&p3)))
+      .recv1()
+    ;
     io.println(match winner {
       Winner::First() { "Alice wins!\n" }
       Winner::Second() { "Bob wins!\n" }

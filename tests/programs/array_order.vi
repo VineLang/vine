@@ -5,16 +5,11 @@ use #root::data::Array;
 
 pub fn main(&io: &IO) {
   let i = 0;
-  let a = Array::from_fn(
-    100,
-    fn* () {
-      let n = i;
-      i += 1;
-      n
-    },
-  );
-  io.println("{(a.get(42).assume())}");
-  a.for_each(fn* (n: N32) {
-    io.println("{n}");
+  let a = Array::from_fn(100, fn* () {
+    let n = i;
+    i += 1;
+    n
   });
+  io.println("{(a.get(42).assume())}");
+  a.for_each(fn* (n: N32) { io.println("{n}"); });
 }
