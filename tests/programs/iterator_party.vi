@@ -6,25 +6,19 @@ use #root::data::{Iterator, Map, Set};
 pub fn main(_: &IO) {
   debug::log("--- concat, empty, one, from_next ---");
   let list = [1, 2, 3];
-  let iter_ref = Iterator::one(0) ++ Iterator::empty ++ Iterator::from_next(fn* () {
-    list.pop_front()
-  });
-  for x in iter_ref {
+  let iter = Iterator::one(0) ++ Iterator::empty ++ Iterator::from_next(fn* () { list.pop_front() });
+  for x in iter {
     debug::log("{x}");
   }
 
   debug::log("--- map, filter, flat_map, enumerate, for_each ---");
-  let iter_ref = 0..10;
-  let iter_ref = iter_ref.map(fn* (x: N32) { x * x });
-  let iter_ref = iter_ref.filter(fn* (&x: &N32) { x % 2 != 0 });
-  let iter_ref = iter_ref.flat_map(fn* (x: N32) { List::new(x, x).iter() });
   let acc = 0;
-  let iter_ref = iter_ref.map(fn* (x: N32) {
+  (0..10).map(fn* (x: N32) { x * x }).filter(fn* (&x: &N32) { x % 2 != 0 }).flat_map(fn* (x: N32) {
+    List::new(x, x).iter()
+  }).map(fn* (x: N32) {
     acc += x;
     acc
-  });
-  let iter_ref = iter_ref.enumerate();
-  iter_ref.for_each(fn* ((i: N32, x: N32)) {
+  }).enumerate().for_each(fn* ((i: N32, x: N32)) {
     debug::log("{i}: {x}");
   });
 
@@ -40,21 +34,21 @@ pub fn main(_: &IO) {
   }
 
   debug::log("--- take, inspect ---");
-  let iter_ref = (0..100).inspect(fn* (&x: &N32) { debug::log("{x}") });
-  for x in iter_ref.take(10) {
+  let iter = (0..100).inspect(fn* (&x: &N32) { debug::log("{x}") });
+  for x in iter.take(10) {
     debug::log("{x}");
   }
   debug::log("--- take_while ---");
-  for x in iter_ref.take_while(fn* (&x: &N32) { x < 10 }) {
+  for x in iter.take_while(fn* (&x: &N32) { x < 10 }) {
     debug::log("{x}");
   }
 
   debug::log("--- skip, skip_while ---");
-  let iter_ref = (0..20).skip(10).skip_while(fn* (&x: &N32) {
+  let iter = (0..20).skip(10).skip_while(fn* (&x: &N32) {
     debug::log("{x}");
     x < 15
   });
-  for x in iter_ref {
+  for x in iter {
     debug::log("{x}");
   }
 
@@ -96,10 +90,10 @@ pub fn main(_: &IO) {
   }");
 
   debug::log("--- inspect, nth, last, collect ---");
-  let iter_ref = (0..10).inspect(fn* (&n: &N32) { debug::log("{n}") });
-  debug::log("{iter_ref.nth(3).show()}");
-  debug::log("{iter_ref.last().show()}");
-  debug::log("{iter_ref.collect[List]().show()}");
+  let iter = (0..10).inspect(fn* (&n: &N32) { debug::log("{n}") });
+  debug::log("{iter.nth(3).show()}");
+  debug::log("{iter.last().show()}");
+  debug::log("{iter.collect[List]().show()}");
   debug::log("{[0, 1, 2, 3, 4, 1, 3].iter().collect[Set[N32]]().show()}");
   debug::log("{
     [0, 1, 2, 1].iter().zip(['a', 'b', 'c', 'd'].iter()).collect[Map[N32, Char]]().show()
@@ -141,17 +135,17 @@ pub fn main(_: &IO) {
   }")
 
   debug::log("--- chunks 3 ---");
-  for x in iter_ref.chunks(3) {
+  for x in iter.chunks(3) {
     debug::log("{x.show()}");
   }
 
   debug::log("--- chunks 1 ---");
-  for x in iter_ref.chunks(1) {
+  for x in iter.chunks(1) {
     debug::log("{x.show()}");
   }
 
   debug::log("--- chunks 0 ---");
-  for x in iter_ref.chunks(0) {
+  for x in iter.chunks(0) {
     debug::log("{x.show()}");
   }
 

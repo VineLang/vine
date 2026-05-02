@@ -34,11 +34,13 @@ pub fn main(&io: &IO) {
         continue;
       }
       _ {
-        io.println("You got it " ++ if guesses == 1 {
-          "immediately?!"
-        } else {
-          "in {guesses} guesses!"
-        });
+        io.println("You got it {
+          if guesses == 1 {
+            "immediately?!"
+          } else {
+            "in {guesses} guesses!"
+          }
+        }");
       }
     }
   }
