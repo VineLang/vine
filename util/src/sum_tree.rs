@@ -10,7 +10,9 @@ use crate::{idx::IdxVec, new_idx};
 /// need not be commutative or invertible.
 #[derive(Debug)]
 pub struct SumTree<T> {
-  sums: IdxVec<Subtree, T>,
+  /// An in-order representation of a binary tree, with array values at the
+  /// leaf nodes, and sums of all contained leaves at each branch node.
+  sums: IdxVec<Node, T>,
 }
 
 impl<T: Default + Add<T, Output = T> + Clone> SumTree<T> {
@@ -21,7 +23,7 @@ impl<T: Default + Add<T, Output = T> + Clone> SumTree<T> {
         _ = sums.push(T::default());
       }
       _ = sums.push(value);
-      let mut cur = Subtree::leaf(i);
+      let mut cur = Node::leaf(i);
       for _ in 0..i.trailing_ones() {
         let (left, parent, right) = cur.family();
         sums[parent] = sums[left].clone() + sums[right].clone();
@@ -29,19 +31,6 @@ impl<T: Default + Add<T, Output = T> + Clone> SumTree<T> {
       }
     }
     SumTree { sums }
-  }
-
-  pub fn update(&mut self, i: usize, value: T) {
-    let mut cur = Subtree::leaf(i);
-    self.sums[cur] = value;
-    loop {
-      let (left, parent, right) = cur.family();
-      if right >= self.sums.next_index() {
-        break;
-      }
-      self.sums[parent] = self.sums[left].clone() + self.sums[right].clone();
-      cur = parent;
-    }
   }
 
   pub fn sum(&self, Range { start, end }: Range<usize>) -> T {
@@ -52,18 +41,18 @@ impl<T: Default + Add<T, Output = T> + Clone> SumTree<T> {
     let end = end - 1;
 
     if start == end {
-      return self.sums[Subtree::leaf(start)].clone();
+      return self.sums[Node::leaf(start)].clone();
     }
 
     let mut prefix = T::default();
-    let mut subtree = Subtree::leaf(start);
+    let mut subtree = Node::leaf(start);
     while subtree.end() < end {
       prefix = prefix + self.sums[subtree].clone();
       subtree = subtree.next();
     }
 
     let mut suffix = T::default();
-    let mut subtree = Subtree::leaf(end);
+    let mut subtree = Node::leaf(end);
     while start < subtree.start() {
       suffix = self.sums[subtree].clone() + suffix;
       subtree = subtree.prev();
@@ -71,44 +60,66 @@ impl<T: Default + Add<T, Output = T> + Clone> SumTree<T> {
 
     prefix + suffix
   }
+
+  pub fn update(&mut self, i: usize, value: T) {
+    let mut cur = Node::leaf(i);
+    self.sums[cur] = value;
+    loop {
+      let (left, parent, right) = cur.family();
+      if right >= self.sums.next_index() {
+        break;
+      }
+      self.sums[parent] = self.sums[left].clone() + self.sums[right].clone();
+      cur = parent;
+    }
+  }
 }
 
-new_idx!(Subtree);
+// An index into the in-order representation of a binary tree.
+new_idx!(Node);
 
-impl Subtree {
-  fn leaf(i: usize) -> Subtree {
-    Subtree(i << 1)
+impl Node {
+  fn leaf(i: usize) -> Node {
+    Node(i << 1)
   }
 
   fn degree(self) -> u32 {
     self.0.trailing_ones()
   }
 
+  /// The index of the first leaf contained in this subtree.
   fn start(self) -> usize {
     (self.0 - ((1 << self.degree()) - 1)) >> 1
   }
 
+  /// The index of the last leaf contained in this subtree.
   fn end(self) -> usize {
     (self.0 + ((1 << self.degree()) - 1)) >> 1
   }
 
-  fn next(mut self) -> Subtree {
+  /// The root node of the largest subtree immediately to the right of this
+  /// subtree.
+  fn next(mut self) -> Node {
     self.0 += 1 << self.degree();
     self.0 += 1 << (self.degree() - 1);
     self
   }
 
-  fn prev(mut self) -> Subtree {
+  /// The root node of the largest subtree immediately to the left of this
+  /// subtree.
+  fn prev(mut self) -> Node {
     self.0 -= 1 << self.degree();
     self.0 -= 1 << (self.degree() - 1);
     self
   }
 
-  fn family(self) -> (Subtree, Subtree, Subtree) {
+  /// Returns `(left, parent, right)`, where `left` and `right` are the children
+  /// of `parent`, and `parent` is the parent of this node.
+  fn family(self) -> (Node, Node, Node) {
     (
-      Subtree(self.0 & !(2 << self.degree())),
-      Subtree(self.0 & !(2 << self.degree()) | (1 << self.degree())),
-      Subtree(self.0 | (2 << self.degree())),
+      Node(self.0 & !(2 << self.degree())),
+      Node(self.0 & !(2 << self.degree()) | (1 << self.degree())),
+      Node(self.0 | (2 << self.degree())),
     )
   }
 }

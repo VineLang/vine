@@ -19,6 +19,11 @@ impl<'a> Writer<'a> {
     Writer { max_width, state: State::Line, indent: 0, output }
   }
 
+  /// Require that a space exist at the current position. This method is
+  /// idempotent, and is a no-op when called immediately before or after `line`
+  /// or `blank`. It can thus be called without worrying that multiple spaces
+  /// will be emitted, or that extraneous leading or trailing spaces will be
+  /// emitted.
   pub fn space(&mut self) {
     match self.state {
       State::Text | State::Space => self.state = State::Space,
@@ -26,6 +31,10 @@ impl<'a> Writer<'a> {
     }
   }
 
+  /// Require that a newline exist at the current position. This method is
+  /// idempotent, and is a no-op when called immediately before or after
+  /// `blank`. It can thus be called without worrying that multiple newlines
+  /// will be emitted, when a blank line wasn't desired.
   pub fn line(&mut self) {
     match self.state {
       State::Text | State::Space => {
@@ -36,6 +45,9 @@ impl<'a> Writer<'a> {
     }
   }
 
+  /// Require that a blank line exist at the current position. This method is
+  /// idempotent. It can thus be called without worrying that multiple blank
+  /// lines will be emitted.
   pub fn blank(&mut self) {
     match self.state {
       State::Text | State::Space => {
@@ -51,22 +63,8 @@ impl<'a> Writer<'a> {
     }
   }
 
-  fn pre_write(&mut self) {
-    match self.state {
-      State::Text => {}
-      State::Space => {
-        self.output.write(Color::WHITE, " ");
-        self.state = State::Text;
-      }
-      State::Line | State::Blank => {
-        for _ in 0..self.indent {
-          self.output.write(Color::WHITE, "  ");
-        }
-        self.state = State::Text;
-      }
-    }
-  }
-
+  /// The current line width; this is the `max_width` minus the current indent
+  /// width.
   pub fn width(&self) -> Length {
     self.max_width - Length(self.indent * 2)
   }
@@ -89,8 +87,25 @@ impl<'a> Writer<'a> {
     output
   }
 
+  /// Flushes any pending whitespace before printing non-whitespace characters.
+  fn pre_write(&mut self) {
+    match self.state {
+      State::Text => {}
+      State::Space => {
+        self.output.write(Color::NORMAL, " ");
+        self.state = State::Text;
+      }
+      State::Line | State::Blank => {
+        for _ in 0..self.indent {
+          self.output.write(Color::NORMAL, "  ");
+        }
+        self.state = State::Text;
+      }
+    }
+  }
+
   pub fn write(&mut self, str: &str) {
-    self.write_color(Color::WHITE, str);
+    self.write_color(Color::NORMAL, str);
   }
 
   pub fn write_color(&mut self, color: Color, str: &str) {
@@ -101,7 +116,7 @@ impl<'a> Writer<'a> {
   }
 
   pub fn write_char(&mut self, char: char) {
-    self.write_color_char(Color::WHITE, char);
+    self.write_color_char(Color::NORMAL, char);
   }
 
   pub fn write_color_char(&mut self, color: Color, char: char) {
@@ -134,7 +149,7 @@ impl Output for String {
 pub struct Color(pub u8, pub u8, pub u8);
 
 impl Color {
-  pub const WHITE: Color = Color(0xbd, 0xc3, 0xc7);
+  pub const NORMAL: Color = Color(0xbd, 0xc3, 0xc7);
   pub const STRING: Color = Color(0x6e, 0xbf, 0x9c);
   pub const COMMENT: Color = Color(0x6d, 0x72, 0x78);
   pub const KEYWORD: Color = Color(0x67, 0xc6, 0x87);

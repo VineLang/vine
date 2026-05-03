@@ -4,8 +4,8 @@ use std::ops::{Add, Sub};
 pub struct Length(pub u16);
 
 impl Length {
-  fn any(self) -> bool {
-    self.0 != 0
+  fn empty(self) -> bool {
+    self.0 == 0
   }
 }
 
@@ -23,6 +23,8 @@ impl Sub for Length {
   }
 }
 
+/// The shape of a single-line segment of text. This consists of the length of
+/// the text, as well as whether there is a `Space` on either end.
 #[derive(Default, Debug, Clone, Copy)]
 pub struct Segment(bool, Length, bool);
 
@@ -43,17 +45,21 @@ impl Add<Segment> for Segment {
     let Segment(a, b, c) = self;
     let Segment(x, y, z) = rhs;
     Segment(
-      a || !b.any() && x,
-      b + Length((b.any() && (c || x) && y.any()) as u16) + y,
-      c && !y.any() || z,
+      a || b.empty() && x,
+      b + Length((!b.empty() && (c || x) && !y.empty()) as u16) + y,
+      c && y.empty() || z,
     )
   }
 }
 
+/// The shape of a single- or multi- line piece of text.
 #[derive(Debug, Clone, Copy)]
 pub enum Shape {
   Single(Segment),
-  Multi(Segment, Segment),
+  /// For multi-line text, all that matters is the shape of the _leading_ text
+  /// (before the first newline) and the _trailing_ text (after the last
+  /// newline).
+  Multi(/* leading */ Segment, /* trailing */ Segment),
 }
 
 impl Default for Shape {
@@ -118,9 +124,12 @@ impl Add for Shape {
   }
 }
 
+/// A range of shapes that an element can take on.
 #[derive(Default, Debug, Clone, Copy)]
 pub struct Shapes {
+  /// The smallest possible shape, if this element is fully broken.
   pub min: Shape,
+  /// The largest possible shape, if this element has unlimited room.
   pub max: Shape,
 }
 
@@ -149,6 +158,7 @@ impl Add<Shapes> for Shape {
 }
 
 impl Shapes {
+  /// An opaque measurement of how worthwhile it is to break this element.
   pub fn quality(self) -> impl Ord {
     self.max.weight().0 as i32 - self.min.weight().0 as i32
   }
@@ -160,6 +170,7 @@ impl From<Shape> for Shapes {
   }
 }
 
+/// The shape of text surrounding an element.
 #[derive(Debug, Clone, Copy)]
 pub struct Surround {
   pub before: Segment,

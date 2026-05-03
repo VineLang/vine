@@ -2,6 +2,7 @@ use crate::structures::content::{Color, Colored, IntoElement};
 
 use super::{Element, Shape, Shapes, Surround, Writer};
 
+/// A delimited sequence of elements.
 pub struct Delimited {
   delims: &'static Delims,
   children: Box<[Box<dyn Element>]>,
@@ -27,18 +28,24 @@ impl Delimited {
     }
   }
 
+  /// Indent the children when multi-line. Defaults to `true`.
   pub fn indent(self, indent: bool) -> Self {
     Delimited { indent, ..self }
   }
 
+  /// Force this to be multi-line. Defaults to `false`.
   pub fn force_multi(self, force_multi: bool) -> Self {
     Delimited { force_multi, ..self }
   }
 
+  /// Allow the last child to be multi-line without making the whole element
+  /// multi-line. Defaults to `false`.
   pub fn allow_final_multi(self, allow_final_multi: bool) -> Self {
     Delimited { allow_final_multi, ..self }
   }
 
+  /// Break the last child before making the whole element multi-line. Only
+  /// relevant when `allow_final_multi` is `true`. Defaults to `false`.
   pub fn break_final(self, break_final: bool) -> Self {
     Delimited { break_final, ..self }
   }
@@ -60,45 +67,22 @@ pub struct Delims {
   pub color: Color,
 }
 
+const VAGUE: Color = Color::VAGUE;
 impl Delims {
-  pub const TUPLE: &Delims = &Delims {
-    empty: "()",
-    single: ("(", ", ", ",)"),
-    multi: ("(", "", ",", ")"),
-    color: Color::VAGUE,
-  };
-  pub const BRACE: &Delims = &Delims {
-    empty: "{}",
-    single: ("{ ", " ", " }"),
-    multi: ("{", "", "", "}"),
-    color: Color::VAGUE,
-  };
-  pub const PAREN_COMMA: &Delims = &Delims {
-    empty: "()",
-    single: ("(", ", ", ")"),
-    multi: ("(", "", ",", ")"),
-    color: Color::VAGUE,
-  };
-  pub const BRACE_COMMA: &Delims = &Delims {
-    empty: "{}",
-    single: ("{ ", ", ", " }"),
-    multi: ("{", "", ",", "}"),
-    color: Color::VAGUE,
-  };
-  pub const BRACE_COMMA_UNSPACED: &Delims = &Delims {
-    empty: "{}",
-    single: ("{", ", ", "}"),
-    multi: ("{", "", ",", "}"),
-    color: Color::VAGUE,
-  };
-  pub const BRACKET_COMMA: &Delims = &Delims {
-    empty: "[]",
-    single: ("[", ", ", "]"),
-    multi: ("[", "", ",", "]"),
-    color: Color::VAGUE,
-  };
+  pub const TUPLE: &Delims =
+    &Delims { empty: "()", single: ("(", ", ", ",)"), multi: ("(", "", ",", ")"), color: VAGUE };
+  pub const BRACE: &Delims =
+    &Delims { empty: "{}", single: ("{ ", " ", " }"), multi: ("{", "", "", "}"), color: VAGUE };
+  pub const BRACE_COMMA: &Delims =
+    &Delims { empty: "{}", single: ("{ ", ", ", " }"), multi: ("{", "", ",", "}"), color: VAGUE };
+  pub const BRACE_COMMA_UNSPACED: &Delims =
+    &Delims { empty: "{}", single: ("{", ", ", "}"), multi: ("{", "", ",", "}"), color: VAGUE };
+  pub const PAREN_COMMA: &Delims =
+    &Delims { empty: "()", single: ("(", ", ", ")"), multi: ("(", "", ",", ")"), color: VAGUE };
+  pub const BRACKET_COMMA: &Delims =
+    &Delims { empty: "[]", single: ("[", ", ", "]"), multi: ("[", "", ",", "]"), color: VAGUE };
   pub const NONE: &Delims =
-    &Delims { empty: "", single: ("", "", ""), multi: ("", "", "", ""), color: Color::WHITE };
+    &Delims { empty: "", single: ("", "", ""), multi: ("", "", "", ""), color: Color::NORMAL };
 }
 
 impl IntoElement for Delimited {
@@ -119,7 +103,7 @@ impl IntoElement for Delimited {
       || (!self.allow_final_multi && final_shapes.max.is_multi())
     {
       Box::new(base)
-    } else if self.break_final {
+    } else if self.allow_final_multi && self.break_final {
       Box::new(DelimitedBreakFinal { base, initial_shape, final_shapes })
     } else {
       Box::new(DelimitedStandard {
@@ -130,6 +114,8 @@ impl IntoElement for Delimited {
   }
 }
 
+/// The most basic form of a delimited element, supporting only a multi-line
+/// layout.
 struct DelimitedBase {
   delims: &'static Delims,
   children: Box<[Box<dyn Element>]>,
@@ -157,8 +143,10 @@ impl Element for DelimitedBase {
   }
 }
 
+/// A typical delimited element which can either be multi-line or single-line.
 struct DelimitedStandard {
   base: DelimitedBase,
+  /// The shape of this element when single-line.
   shape: Shape,
 }
 
@@ -186,9 +174,12 @@ impl Element for DelimitedStandard {
   }
 }
 
+/// A delimited element with `break_final` enabled.
 struct DelimitedBreakFinal {
   base: DelimitedBase,
+  /// The single-line shape of everything before the last child.
   initial_shape: Shape,
+  /// The shapes of the last child.
   final_shapes: Shapes,
 }
 

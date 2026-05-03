@@ -82,7 +82,7 @@ impl<'src> Formatter<'src> {
   ) -> Content {
     Content::even((
       (Keyword("if"), Space),
-      (Keyword("const"), Space, self.fmt_path(Color::WHITE, cond), Space),
+      (Keyword("const"), Space, self.fmt_path(Color::NORMAL, cond), Space),
       self._fmt_if_branches(
         self.fmt_block(then, force_multi),
         else_.as_ref().map(|else_| self.fmt_block(else_, force_multi)),
@@ -93,7 +93,7 @@ impl<'src> Formatter<'src> {
   pub(crate) fn fmt_ty_if_const(&self, cond: &Path, then: &Ty, else_: &Option<Ty>) -> Content {
     Content::even((
       (Keyword("if"), Space),
-      (Keyword("const"), Space, self.fmt_path(Color::WHITE, cond), Space),
+      (Keyword("const"), Space, self.fmt_path(Color::NORMAL, cond), Space),
       self._fmt_if_branches(
         Content::even((Punct("{"), Space, Indent::eager(self.fmt_ty(then)), Space, Punct("}"))),
         else_.as_ref().map(|else_| {

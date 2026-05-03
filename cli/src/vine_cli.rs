@@ -641,7 +641,7 @@ impl VineShowCommand {
           return;
         }
         for _ in self.x..self.width {
-          self.stdout.write(Color::WHITE, " ");
+          self.stdout.write(Color::NORMAL, " ");
         }
         if self.x <= self.width {
           self.stdout.write(Color::COMMENT, "╎");

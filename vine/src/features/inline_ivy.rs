@@ -102,7 +102,7 @@ impl<'src> Formatter<'src> {
           exprs.iter().map(|e| self.fmt_ivy_expr(table, e)),
         ),
       )),
-      IvyExpr::Wire(wire) => Content::even(Colored(Color::WHITE, wire.clone())),
+      IvyExpr::Wire(wire) => Content::even(Colored(Color::NORMAL, wire.clone())),
       IvyExpr::Free(None) => Content::even(Colored(Color::KEYWORD, "^")),
       IvyExpr::Free(Some(n)) => Content::even(Colored(Color::KEYWORD, format!("^{n}"))),
       IvyExpr::Interpolation(expr) => {

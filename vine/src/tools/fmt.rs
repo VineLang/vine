@@ -158,7 +158,7 @@ impl<'src> Formatter<'src> {
       ImplKind::Error(_) => unreachable!(),
       ImplKind::Hole => Content::even(Punct("_")),
       ImplKind::Safe(_, impl_) => Content::even((Keyword("safe"), Space, self.fmt_impl(impl_))),
-      ImplKind::Path(path) => self.fmt_path(Color::WHITE, path),
+      ImplKind::Path(path) => self.fmt_path(Color::NORMAL, path),
       ImplKind::Fn(path) => {
         Content::even((Keyword("fn"), Space, self.fmt_path(Color::SPECIAL, path)))
       }
@@ -358,7 +358,7 @@ impl Chain {
         self.head,
         Delimited::new(Delims::NONE, self.chains)
           .allow_final_multi(self.kind == Some(ChainKind::Postfix))
-          .break_final(self.kind == Some(ChainKind::Postfix) && len == 1),
+          .break_final(len == 1),
       ))
     }
   }

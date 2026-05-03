@@ -66,7 +66,7 @@ impl<'src> Formatter<'src> {
           .allow_final_multi(true)
           .break_final(true),
       )),
-      None => self.fmt_path(Color::WHITE, path),
+      None => self.fmt_path(Color::NORMAL, path),
     }
   }
 
@@ -76,7 +76,7 @@ impl<'src> Formatter<'src> {
         self.fmt_path(Color::SPECIAL, path),
         Delimited::new(Delims::PAREN_COMMA, args.iter().map(|x| self.fmt_pat(x))),
       )),
-      None => self.fmt_path(Color::WHITE, path),
+      None => self.fmt_path(Color::NORMAL, path),
     }
   }
 }

@@ -11,31 +11,43 @@ pub use writer::*;
 
 use crate::structures::ast::Ident;
 
+/// A rich representation of text, incorporating colors and dynamic
+/// reformatting.
+///
+/// `Content` consists of a sequence of `Element`s.
 pub struct Content {
   children: Box<[(Shape, Box<dyn Element>, Shape)]>,
   shapes: Shapes,
 }
 
 pub enum BreakOrder {
+  /// All breakable elements will break simultaneously.
   Even,
+  /// Elements on the left will be broken first.
   Left,
+  /// Elements on the right will be broken first.
   Right,
+  /// The 'best' elements to break will be broken first.
   Smart,
 }
 
 impl Content {
+  /// All breakable elements will break simultaneously.
   pub fn even(content: impl IntoContent) -> Self {
     Content::new(BreakOrder::Even, content)
   }
 
+  /// Elements on the left will be broken first.
   pub fn left(content: impl IntoContent) -> Self {
     Content::new(BreakOrder::Left, content)
   }
 
+  /// Elements on the right will be broken first.
   pub fn right(content: impl IntoContent) -> Self {
     Content::new(BreakOrder::Right, content)
   }
 
+  /// The 'best' elements to break will be broken first.
   pub fn smart(content: impl IntoContent) -> Self {
     Content::new(BreakOrder::Smart, content)
   }
@@ -102,7 +114,14 @@ impl Content {
 }
 
 pub trait Element: 'static {
+  /// Calculate the minimum and maximum shapes of this element.
   fn measure(&mut self) -> Shapes;
+
+  /// Format this element, given the passed `surround`, writing into the
+  /// `writer`. What is written must conform to the shapes reported by
+  /// `measure`; particularly, it must be no larger than `measure().max`, and,
+  /// in combination with the `surround`, it may only overflow the writer's
+  /// `width` if `measure().min` would as well.
   fn format(&mut self, writer: &mut Writer, surround: Surround);
 }
 
@@ -242,6 +261,8 @@ impl Element for Colored<String> {
   }
 }
 
+/// Calls [`Writer::space`]. Multiple adjacent spaces are equivalent to a single
+/// space, and a space adjacent to a line/blank is a no-op.
 pub struct Space;
 
 impl Element for Space {
@@ -254,6 +275,8 @@ impl Element for Space {
   }
 }
 
+/// Calls [`Writer::line`]. Multiple adjacent lines are equivalent to a single
+/// line, and a line adjacent to a blank.
 pub struct Line;
 
 impl Element for Line {
@@ -266,6 +289,8 @@ impl Element for Line {
   }
 }
 
+/// Calls [`Writer::line`]. Multiple adjacent blanks are equivalent to a single
+/// blank.
 pub struct Blank;
 
 impl Element for Blank {
@@ -278,6 +303,7 @@ impl Element for Blank {
   }
 }
 
+/// Indents its child according to the `IndentMode`.
 pub struct Indent {
   child: Box<dyn Element>,
   shapes: Shapes,
@@ -285,20 +311,26 @@ pub struct Indent {
 }
 
 pub enum IndentMode {
+  /// Unconditionally indent the child.
   Always,
+  /// Indent the child if it wouldn't fit after breaking.
   Lazy,
+  /// Indent the child if it wouldn't fit on a single line.
   Eager,
 }
 
 impl Indent {
+  /// Unconditionally indent the child.
   pub fn always(child: impl IntoElement) -> Self {
     Indent::new(IndentMode::Always, child)
   }
 
+  /// Indent the child if it wouldn't fit after breaking.
   pub fn lazy(child: impl IntoElement) -> Self {
     Indent::new(IndentMode::Lazy, child)
   }
 
+  /// Indent the child if it wouldn't fit on a single line.
   pub fn eager(child: impl IntoElement) -> Self {
     Indent::new(IndentMode::Eager, child)
   }
@@ -337,6 +369,7 @@ impl Element for Indent {
   }
 }
 
+/// Highlight as a keyword.
 pub struct Keyword(pub &'static str);
 
 impl IntoElement for Keyword {
@@ -345,6 +378,7 @@ impl IntoElement for Keyword {
   }
 }
 
+/// Highlight as punctuation.
 pub struct Punct(pub &'static str);
 
 impl IntoElement for Punct {
@@ -353,6 +387,7 @@ impl IntoElement for Punct {
   }
 }
 
+/// Highlight as an operator.
 pub struct Operator(pub &'static str);
 
 impl IntoElement for Operator {
@@ -367,6 +402,7 @@ impl IntoElement for Ident {
   }
 }
 
+/// Prints each child on a separate line.
 pub struct Lines(Box<[Box<dyn Element>]>);
 
 impl Lines {
@@ -389,6 +425,7 @@ impl Element for Lines {
   }
 }
 
+/// Forces its child to break as much as possible.
 pub struct Compress(Box<dyn Element>);
 
 impl Compress {
