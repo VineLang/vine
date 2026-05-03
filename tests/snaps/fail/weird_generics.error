@@ -26,6 +26,10 @@ error: duplicate type argument `T`
     @ weird_generics.vi:16:20
  16 |   let _: X[T = (), T = ()]; // error
 
+error: all positional arguments must come before named arguments
+    @ weird_generics.vi:20:10
+ 20 |   let _: Y[U = Bool, N32] = Y(0, false); // error
+
 error: duplicate type argument `T`
     @ weird_generics.vi:22:16
  22 |   let _: Y[(), T = ()]; // error

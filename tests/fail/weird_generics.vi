@@ -17,7 +17,7 @@ pub fn main(&_: &IO) {
   let _: Y[N32, Bool] = Y(0, false); // ok
   let _: Y[T = N32, U = Bool] = Y(0, false); // ok
   let _: Y[N32, U = Bool] = Y(0, false); // ok
-  let _: Y[U = Bool, N32] = Y(0, false); // ok
+  let _: Y[U = Bool, N32] = Y(0, false); // error
   let _: Y[U = Bool, T = N32] = Y(0, false); // ok
   let _: Y[(), T = ()]; // error
 }

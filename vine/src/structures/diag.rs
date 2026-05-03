@@ -150,6 +150,8 @@ diags! {
     ["`{path}` expects {expected} {kind} argument{}; was passed {got}", plural(*expected, "s", "")]
   NoSuchTypeParam { path: String, name: Ident }
     ["`{path}` has no type parameter named `{name}`"]
+  PositionalAfterNamed
+    ["all positional arguments must come before named arguments"]
   DuplicateTypeArg { name: Ident }
     ["duplicate type argument `{name}`"]
   MissingTypeArg { name: Ident }

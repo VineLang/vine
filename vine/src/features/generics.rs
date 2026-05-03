@@ -388,8 +388,10 @@ impl Resolver<'_> {
     let type_param_count = self.sigs.type_params[generics_id].params.len();
     let mut type_args = vec![None; type_param_count];
     let mut positional = Counter(0);
+    let mut named = false;
     for arg in args {
       let idx = if let Some(name) = &arg.name {
+        named = true;
         if let Some(&idx) = self.sigs.type_params[generics_id].lookup.get(name) {
           idx
         } else {
@@ -401,6 +403,9 @@ impl Resolver<'_> {
           continue;
         }
       } else {
+        if named {
+          self.diags.error(Diag::PositionalAfterNamed { span });
+        }
         positional.next()
       };
       let Some(ty) = type_args.get_mut(idx) else { continue };
