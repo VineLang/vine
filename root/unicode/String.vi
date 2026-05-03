@@ -105,7 +105,7 @@ pub mod String {
     if self.len() < prefix.len() {
       return false;
     }
-    for (&a, &b) in (&self, &prefix) {
+    for (&a, &b) in self.iter_ref().zip_shortest(prefix.iter_ref()) {
       if a != b {
         return false;
       }

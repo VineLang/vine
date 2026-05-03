@@ -265,7 +265,7 @@ pub mod Iterator[I, T; Iterator[I, T]] {
     }
   }
 
-  pub fn .zip[... I?, T?, J?, U; Iterator[J, U]](i: I, j: J) -> Zip[(I, J)] {
+  pub fn .zip[... J, U; Iterator[J, U]](i: I, j: J) -> Zip[(I, J)] {
     Zip(i, j)
   }
 
@@ -280,18 +280,47 @@ pub mod Iterator[I, T; Iterator[I, T]] {
 
     pub impl iter_tuple[
       IS, I, IR, TS, T, TR;
+      Tuple[IS, I, IR], Iterator[I, T], Iterator[Zip[IR], TR], Tuple[TS, T, TR];
+    ]: Iterator[Zip[IS], TS] {
+      fn advance(Zip[IS](iters)) -> Option[(TS, Zip[IS])] {
+        let (i, ir) = iters as (I, IR);
+        match (i.advance(), Zip(ir).advance()) {
+          (Some(t, i), Some(tr, Zip(ir))) { Some((t, tr) as TS, Zip((i, ir) as IS)) }
+          (None(), None()) { None() }
+          (Some(x), None()) { debug::error_with("zipped iterators have different lengths", x) }
+          (None(), Some(x)) { debug::error_with("zipped iterators have different lengths", x) }
+        }
+      }
+    }
+  }
+
+  pub fn .zip_shortest[... I?, T?, J?, U; Iterator[J, U]](i: I, j: J) -> ZipShortest[(I, J)] {
+    ZipShortest(i, j)
+  }
+
+  pub struct* ZipShortest[Is](Is);
+
+  pub mod ZipShortest[Is] {
+    pub impl iter_singleton[I, T; Iterator[I, T]]: Iterator[ZipShortest[(I,)], (T,)] {
+      fn advance(ZipShortest[(I,)]((iter,))) -> Option[((T,), ZipShortest[(I,)])] {
+        safe transmute[Option[(T, I)], Option[((T,), ZipShortest[(I,)])]](iter.advance())
+      }
+    }
+
+    pub impl iter_tuple[
+      IS, I, IR, TS, T, TR;
       Tuple[IS, I, IR],
       Iterator[I, T],
-      Iterator[Zip[IR], TR],
+      Iterator[ZipShortest[IR], TR],
       Tuple[TS, T, TR],
       Drop[I],
       Drop[IR],
       Drop[T];
-    ]: Iterator[Zip[IS], TS] {
-      fn advance(Zip[IS](iters)) -> Option[(TS, Zip[IS])] {
+    ]: Iterator[ZipShortest[IS], TS] {
+      fn advance(ZipShortest[IS](iters)) -> Option[(TS, ZipShortest[IS])] {
         let (i, ir) = iters as (I, IR);
-        if i.advance() is Some(t, i) and Zip(ir).advance() is Some(tr, Zip(ir)) {
-          Some((t, tr) as TS, Zip((i, ir) as IS))
+        if i.advance() is Some(t, i) and ZipShortest(ir).advance() is Some(tr, ZipShortest(ir)) {
+          Some((t, tr) as TS, ZipShortest((i, ir) as IS))
         } else {
           None()
         }
