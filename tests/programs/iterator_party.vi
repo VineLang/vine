@@ -61,7 +61,7 @@ pub fn main(_: &IO) {
   debug::log("--- zip, inspect ---");
   let a = (0..5).inspect(fn* (&x: &N32) { debug::log("x: {x}") });
   let b = (0..5).inspect(fn* (&y: &N32) { debug::log("y: {y}") });
-  for t in a.zip_shortest(b) {
+  for t in (a, b) {
     debug::log("{t.show()}");
   }
 
