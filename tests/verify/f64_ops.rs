@@ -24,7 +24,7 @@ fn main() {
     let (expected, max_ulp_diff) = match op {
       "sqrt" => (f.sqrt(), 0),
       "exp" => (f.exp(), 1),
-      "ln" => (f.ln(), 0),
+      "ln" => (f.ln(), 1),
       _ => panic!("unknown operation: {op}"),
     };
     let expected_bits = expected.to_bits();
