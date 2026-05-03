@@ -71,11 +71,7 @@ pub mod Show {
             max_width,
             indent,
           );
-          let str = if multiline {
-            "\{{str}}"
-          } else {
-            "\{ {str} }"
-          };
+          let str = if multiline { "\{{str}}" } else { "\{ {str} }" };
           (width, str)
         }
       }

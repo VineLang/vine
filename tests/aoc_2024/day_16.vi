@@ -96,11 +96,7 @@ pub fn main(&io: &IO) {
 }
 
 fn delta(dir: N32) -> (N32, N32) {
-  let x = if dir & 2 == 0 {
-    1
-  } else {
-    -1 as N32
-  };
+  let x = if dir & 2 == 0 { 1 } else { -1 as N32 };
   if dir & 1 == 0 {
     (x, 0)
   } else {

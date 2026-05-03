@@ -64,11 +64,7 @@ pub fn .dbg_msg[T; Show[T]](value: T, msg: String) -> T {
 }
 
 pub fn with_state[F](f: F) -> WithState[F] {
-  WithState(if const debug::enabled {
-    (debug_state().assume(), f)
-  } else {
-    f
-  })
+  WithState(if const debug::enabled { (debug_state().assume(), f) } else { f })
 }
 
 pub struct* WithState[F](if const debug::enabled { (&DebugState, F) } else { F });

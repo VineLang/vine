@@ -35,11 +35,7 @@ pub fn main(&io: &IO) {
       }
       _ {
         io.println("You got it {
-          if guesses == 1 {
-            "immediately?!"
-          } else {
-            "in {guesses} guesses!"
-          }
+          if guesses == 1 { "immediately?!" } else { "in {guesses} guesses!" }
         }");
       }
     }

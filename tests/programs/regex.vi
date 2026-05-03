@@ -123,11 +123,7 @@ pub mod Regex {
         Union(a, b) { "({a}|{b})" }
         Concat(a, b, _, _) { "({a}{b})" }
         Repeat(x, n) {
-          let char = if n {
-            "*"
-          } else {
-            "+"
-          };
+          let char = if n { "*" } else { "+" };
           "({x}{char})"
         }
       }
@@ -204,11 +200,7 @@ pub fn main(&io: &IO) {
     io.println("/ {re}");
     for _ in 0..black_box(str_count) {
       let str = rng.gen_string(black_box(str_size));
-      let code = if re.check(str) {
-        'T'
-      } else {
-        'F'
-      };
+      let code = if re.check(str) { 'T' } else { 'F' };
       io.println("{code} {str}");
     }
   }

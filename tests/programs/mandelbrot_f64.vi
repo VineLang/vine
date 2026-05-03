@@ -14,11 +14,7 @@ pub fn main(&io: &IO) {
         - (width as F64, height as F64) / 2.0[F64]
       ;
       let (x, y) = center + pos * scale / width as F64 * (1.0[F64], 2.0[F64]);
-      io.print_char(if mandelbrot(x, y) {
-        '#'
-      } else {
-        ' '
-      });
+      io.print_char(if mandelbrot(x, y) { '#' } else { ' ' });
     }
     io.print_char('\n');
   }

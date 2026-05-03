@@ -90,11 +90,7 @@ pub fn main(&io: &IO) {
 
   for char in instructions.iter() {
     if char == '<' or char == '>' {
-      let dir = if char == '<' {
-        (0 - 1, 0)
-      } else {
-        (1, 0)
-      };
+      let dir = if char == '<' { (0 - 1, 0) } else { (1, 0) };
       let ~success;
       let pos = robot;
       if ~success {
@@ -121,11 +117,7 @@ pub fn main(&io: &IO) {
         continue;
       }
     } else {
-      let dir_y = if char == '^' {
-        -1 as N32
-      } else {
-        1
-      };
+      let dir_y = if char == '^' { -1 as N32 } else { 1 };
       let (robot_x, robot_y) = robot;
       let front = [(robot_x, '.')];
       let pos_y = robot_y;

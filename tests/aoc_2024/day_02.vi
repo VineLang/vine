@@ -27,11 +27,7 @@ fn is_safe(report: List[N32]) -> Bool {
   let order = None[Bool]();
   for level in report.iter() {
     if last is Some(last) {
-      let diff = if last > level {
-        last - level
-      } else {
-        level - last
-      };
+      let diff = if last > level { last - level } else { level - last };
       if !(1 <= diff <= 3) {
         break false;
       }

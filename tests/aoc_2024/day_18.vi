@@ -26,14 +26,7 @@ pub fn main(&io: &IO) {
     io.println(grid
       .as[List]
       .map(fn* (row: Array[N32]) {
-        row.fold_front("", fn* (s: String, n: N32) {
-          s
-            ++ if n < c {
-              "#"
-            } else {
-              "."
-            }
-        })
+        row.fold_front("", fn* (s: String, n: N32) { s ++ if n < c { "#" } else { "." } })
       })
       .join("\n")
     )

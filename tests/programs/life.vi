@@ -88,21 +88,13 @@ pub fn cell(
           neighbors += s.exchange_stream(alive) as N32;
           neighbors += se.exchange_stream(alive) as N32;
 
-          alive = if alive {
-            2 <= neighbors <= 3
-          } else {
-            neighbors == 3
-          };
+          alive = if alive { 2 <= neighbors <= 3 } else { neighbors == 3 };
         }
 
         continue;
       }
       &Signal::Display(&io) {
-        io.print(if alive {
-          "[]"
-        } else {
-          "  "
-        });
+        io.print(if alive { "[]" } else { "  " });
 
         if line_end {
           io.print_char('\n');

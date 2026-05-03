@@ -46,11 +46,7 @@ pub mod File {
       ${io} = vi:ext#2[root:io:file:read_byte](${self} ^ ${~io} ${~self})
     };
     let byte = (result as Result[N32, Error]).try;
-    Ok(if byte == N32::maximum {
-      None()
-    } else {
-      Some(byte)
-    })
+    Ok(if byte == N32::maximum { None() } else { Some(byte) })
   }
 
   /// Reads all remaining data in the file into a `String`.
@@ -72,11 +68,7 @@ pub mod File {
       ${io} = vi:ext#2[root:io:file:read_char](${self} ^ ${~io} ${~self})
     };
     let char = (result as Result[Char, Error]).try;
-    Ok(if char == N32::maximum as Char {
-      None()
-    } else {
-      Some(char)
-    })
+    Ok(if char == N32::maximum as Char { None() } else { Some(char) })
   }
 
   /// Writes the list of bytes into the file.

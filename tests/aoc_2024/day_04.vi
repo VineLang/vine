@@ -23,11 +23,7 @@ pub fn main(&io: &IO) {
           se.send('X');
         }
         char == 'M' or char == 'A' {
-          let recv = if char == 'M' {
-            'X'
-          } else {
-            'M'
-          };
+          let recv = if char == 'M' { 'X' } else { 'M' };
           relay(nw, se, recv, char);
           relay(n, s, recv, char);
           relay(ne, sw, recv, char);
@@ -84,16 +80,8 @@ mod Channel {
 }
 
 fn relay(Channel[Char](ai, ~ao), Channel[Char](bi, ~bo), recv: Char, send: Char) {
-  bo = if ai == recv {
-    send
-  } else {
-    '_'
-  };
-  ao = if bi == recv {
-    send
-  } else {
-    '_'
-  };
+  bo = if ai == recv { send } else { '_' };
+  ao = if bi == recv { send } else { '_' };
 }
 
 fn check(Channel[Char](i, ~o), recv: Char) -> N32 {

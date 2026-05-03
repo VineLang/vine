@@ -51,19 +51,11 @@ pub fn apply_exponent(frac: F64, exp: I32) -> F64 {
   exp += ((x >> num_mantissa_bits) as N32 & exp_mask) as I32 - max_exponent;
   if exp < -1075 {
     // underflow
-    return if frac < 0.0[F64] {
-      -0.0[F64]
-    } else {
-      0.0[F64]
-    };
+    return if frac < 0.0[F64] { -0.0[F64] } else { 0.0[F64] };
   }
   if exp > +1023 {
     // overflow
-    return if frac < 0.0[F64] {
-      F64::neg_inf
-    } else {
-      F64::inf
-    };
+    return if frac < 0.0[F64] { F64::neg_inf } else { F64::inf };
   }
   let m = 1.0[F64];
   if exp < -1022 {

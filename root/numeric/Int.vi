@@ -108,16 +108,8 @@ pub mod Int {
     let d_sign = d < +0;
     let d = d.abs() as N32;
     let (q, r) = a_mag.div_rem_n32(d);
-    let r = if a_sign {
-      -r
-    } else {
-      r as I32
-    };
-    let q = if q.is_zero() {
-      0[Int]
-    } else {
-      Int(a_sign != d_sign, q)
-    };
+    let r = if a_sign { -r } else { r as I32 };
+    let q = if q.is_zero() { 0[Int] } else { Int(a_sign != d_sign, q) };
     (q, r)
   }
 

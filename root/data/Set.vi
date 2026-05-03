@@ -413,11 +413,7 @@ fn merge_balanced[T](Set[T](len_left, left), Set[T](len_right, right)) -> Nullab
     _ {
       let left = Set(len_left, left);
       let right = Set(len_right, right);
-      let value = if len_left > len_right {
-        left._remove_max()
-      } else {
-        right._remove_min()
-      };
+      let value = if len_left > len_right { left._remove_max() } else { right._remove_min() };
       safe Nullable::data(left, value, right)
     }
   }

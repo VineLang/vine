@@ -10,12 +10,6 @@ pub fn main(&io: &IO) {
 }
 
 fn pretty_div(n: N32, d: N32) -> String {
-  let result = n
-    / if d == 0 {
-      return "division by zero :O";
-    } else {
-      d
-    }
-  ;
+  let result = n / if d == 0 { return "division by zero :O"; } else { d };
   "|_ {n} / {d}  _| = {result}"
 }

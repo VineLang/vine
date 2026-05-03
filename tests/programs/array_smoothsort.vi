@@ -97,11 +97,9 @@ pub fn smooth_sort[T; Ord[T]](&data: &Array[T]) {
       let first = first_child(i, size);
       let second = second_child(i);
 
-      let (larger_child, child_size) = if data.at(first).assume() < data.at(second).assume() {
-        (second, size - 2)
-      } else {
-        (first, size - 1)
-      };
+      let (larger_child, child_size) = if
+        data.at(first).assume() < data.at(second).assume()
+      { (second, size - 2) } else { (first, size - 1) };
 
       if data.at(larger_child).assume() < data.at(i).assume() {
         // we're done

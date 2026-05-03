@@ -18,11 +18,7 @@ pub fn main(&io: &IO) {
     for i in 0..black_box(width) {
       let pos = (i as F32 + 0.5, j as F32 + 0.5) - (width as F32, height as F32) / 2.0;
       let (x, y) = center + pos * scale / width as F32 * (1.0, 2.0);
-      io.print_char(if mandelbrot(x, y) {
-        '#'
-      } else {
-        ' '
-      });
+      io.print_char(if mandelbrot(x, y) { '#' } else { ' ' });
     }
     io.print_char('\n');
   }
