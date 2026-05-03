@@ -138,8 +138,9 @@ impl<'src> Formatter<'src> {
       StmtKind::Assert(a) => self.fmt_stmt_assert(a),
       StmtKind::Let(l) => self.fmt_stmt_let(l),
       StmtKind::LetFn(d) => self.fmt_stmt_let_fn(d),
-      StmtKind::Expr(expr, false) => self.fmt_expr(expr),
-      StmtKind::Expr(expr, true) => Content::even((self.fmt_expr(expr), Punct(";"))),
+      StmtKind::Expr(expr, semi) => {
+        Content::even((self._chain_expr(expr, true).finish(), semi.then_some(Punct(";"))))
+      }
       StmtKind::Item(item) => self.fmt_item(item),
       StmtKind::Return(expr) => self.fmt_stmt_return(expr),
       StmtKind::Break(label, expr) => self.fmt_stmt_break(label.clone(), expr),
@@ -183,6 +184,10 @@ impl<'src> Formatter<'src> {
   }
 
   pub(crate) fn chain_expr(&self, expr: &Expr) -> Chain {
+    self._chain_expr(expr, false)
+  }
+
+  pub(crate) fn _chain_expr(&self, expr: &Expr, is_stmt: bool) -> Chain {
     match &*expr.kind {
       ExprKind::Error(_) => unreachable!(),
       ExprKind::Paren(p) => {
@@ -198,8 +203,12 @@ impl<'src> Formatter<'src> {
         Chain::new(self.fmt_expr_assign(*inverted, space, value))
       }
       ExprKind::Match(expr, ty, arms) => Chain::new(self.fmt_expr_match(expr, ty, arms)),
-      ExprKind::If(cond, ty, then, else_) => Chain::new(self.fmt_expr_if(cond, ty, then, else_)),
-      ExprKind::IfConst(cond, then, else_) => Chain::new(self.fmt_expr_if_const(cond, then, else_)),
+      ExprKind::If(cond, ty, then, else_) => {
+        Chain::new(self.fmt_expr_if(cond, ty, then, else_, is_stmt))
+      }
+      ExprKind::IfConst(cond, then, else_) => {
+        Chain::new(self.fmt_expr_if_const(cond, then, else_, is_stmt))
+      }
       ExprKind::When(label, ty, arms, leg) => {
         Chain::new(self.fmt_expr_when(label.clone(), ty, arms, leg))
       }

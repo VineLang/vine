@@ -188,4 +188,8 @@ impl Surround {
       after: (after.into() + Shape::Single(self.after)).leading(),
     }
   }
+
+  pub fn max(width: Length) -> Self {
+    Surround { before: Segment(false, width, false), after: Segment(false, width, false) }
+  }
 }

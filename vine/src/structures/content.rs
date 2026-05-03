@@ -388,3 +388,21 @@ impl Element for Lines {
     }
   }
 }
+
+pub struct Compress(Box<dyn Element>);
+
+impl Compress {
+  pub fn new<E: IntoElement>(element: E) -> Self {
+    Compress(element.into_element())
+  }
+}
+
+impl Element for Compress {
+  fn measure(&mut self) -> Shapes {
+    Shapes::from(self.0.measure().min)
+  }
+
+  fn format(&mut self, writer: &mut Writer, _: Surround) {
+    self.0.format(writer, Surround::max(writer.width()));
+  }
+}

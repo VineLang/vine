@@ -8,7 +8,7 @@ use crate::{
   structures::{
     ast::{Block, Expr, ExprKind, Path, Span, Ty, TyKind},
     chart::{Binding, ConstId, DefValueKind},
-    content::{Color, Content, Indent, Keyword, Punct, Space},
+    content::{Color, Compress, Content, Indent, IntoElement, Keyword, Punct, Space},
     diag::Diag,
     tir::{TirExpr, TirExprKind, TirImpl},
     types::{Type, TypeCtx, TypeKind, Types},
@@ -58,6 +58,7 @@ impl<'src> Formatter<'src> {
     ty: &Option<Ty>,
     then: &Block,
     else_: &Option<Block>,
+    force_multi: bool,
   ) -> Content {
     Content::smart((
       Keyword("if"),
@@ -65,8 +66,10 @@ impl<'src> Formatter<'src> {
       Indent::eager(self.fmt_expr(cond)),
       self.fmt_arrow_ty(ty),
       Space,
-      self.fmt_block(then, true),
-      else_.as_ref().map(|else_| (Space, Keyword("else"), Space, self.fmt_block(else_, true))),
+      self._fmt_if_branches(
+        self.fmt_block(then, force_multi),
+        else_.as_ref().map(|else_| self.fmt_block(else_, force_multi)),
+      ),
     ))
   }
 
@@ -75,12 +78,15 @@ impl<'src> Formatter<'src> {
     cond: &Path,
     then: &Block,
     else_: &Option<Block>,
+    force_multi: bool,
   ) -> Content {
     Content::even((
       (Keyword("if"), Space),
       (Keyword("const"), Space, self.fmt_path(Color::WHITE, cond), Space),
-      self.fmt_block(then, true),
-      else_.as_ref().map(|else_| (Space, Keyword("else"), Space, self.fmt_block(else_, true))),
+      self._fmt_if_branches(
+        self.fmt_block(then, force_multi),
+        else_.as_ref().map(|else_| self.fmt_block(else_, force_multi)),
+      ),
     ))
   }
 
@@ -88,14 +94,28 @@ impl<'src> Formatter<'src> {
     Content::even((
       (Keyword("if"), Space),
       (Keyword("const"), Space, self.fmt_path(Color::WHITE, cond), Space),
-      (Punct("{"), Space, Indent::eager(self.fmt_ty(then)), Space, Punct("}")),
-      else_.as_ref().map(|else_| {
-        (
-          (Space, Keyword("else"), Space),
-          (Punct("{"), Space, Indent::eager(self.fmt_ty(else_)), Space, Punct("}")),
-        )
-      }),
+      self._fmt_if_branches(
+        Content::even((Punct("{"), Space, Indent::eager(self.fmt_ty(then)), Space, Punct("}"))),
+        else_.as_ref().map(|else_| {
+          Content::even((Punct("{"), Space, Indent::eager(self.fmt_ty(else_)), Space, Punct("}")))
+        }),
+      ),
     ))
+  }
+
+  fn _fmt_if_branches(&self, then: Content, else_: Option<Content>) -> Content {
+    match else_ {
+      None => then,
+      Some(else_) => {
+        let mut then = then.into_element();
+        let mut else_ = else_.into_element();
+        if then.measure().max.is_multi() || else_.measure().max.is_multi() {
+          then = Compress::new(then).into_element();
+          else_ = Compress::new(else_).into_element();
+        }
+        Content::even((then, Space, Keyword("else"), Space, else_))
+      }
+    }
   }
 }
 
