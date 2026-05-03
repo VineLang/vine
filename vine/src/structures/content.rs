@@ -403,6 +403,6 @@ impl Element for Compress {
   }
 
   fn format(&mut self, writer: &mut Writer, _: Surround) {
-    self.0.format(writer, Surround::max(writer.width()));
+    self.0.format(writer, Surround::MAX);
   }
 }

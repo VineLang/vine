@@ -3,7 +3,7 @@ use crate::structures::content::Length;
 pub struct Writer<'a> {
   pub max_width: Length,
   state: State,
-  indent: u32,
+  indent: u16,
   output: &'a mut dyn Output,
 }
 
@@ -81,11 +81,11 @@ impl<'a> Writer<'a> {
   }
 
   pub fn indent_if<T>(&mut self, indent: bool, f: impl FnOnce(&mut Self) -> T) -> T {
-    self.indent += indent as u32;
+    self.indent += indent as u16;
     self.line();
     let output = f(self);
     self.line();
-    self.indent -= indent as u32;
+    self.indent -= indent as u16;
     output
   }
 

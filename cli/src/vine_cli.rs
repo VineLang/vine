@@ -501,7 +501,7 @@ impl VineReplCommand {
 pub struct VineFmtCommand {
   files: Option<Vec<PathBuf>>,
   #[arg(long, default_value_t = DEFAULT_MAX_WIDTH)]
-  max_width: u32,
+  max_width: u16,
 }
 
 impl VineFmtCommand {
@@ -584,7 +584,7 @@ impl VineShowCommand {
 
     return Ok(());
 
-    fn tput(var: &str) -> u32 {
+    fn tput(var: &str) -> u16 {
       let output = Command::new("tput").arg(var).stderr(Stdio::inherit()).output().unwrap();
       String::from_utf8(output.stdout).unwrap().trim().parse().unwrap()
     }
@@ -615,14 +615,14 @@ impl VineShowCommand {
 
     struct Windowed {
       stdout: Stdout,
-      width: u32,
-      height: u32,
-      x: u32,
-      y: u32,
+      width: u16,
+      height: u16,
+      x: u16,
+      y: u16,
     }
 
     impl Windowed {
-      fn new(width: u32, height: u32) -> Self {
+      fn new(width: u16, height: u16) -> Self {
         Windowed { stdout: Stdout::new(), width, height, x: 0, y: 0 }
       }
 

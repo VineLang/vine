@@ -1,7 +1,7 @@
 use std::ops::{Add, Sub};
 
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub struct Length(pub u32);
+pub struct Length(pub u16);
 
 impl Length {
   fn any(self) -> bool {
@@ -12,7 +12,7 @@ impl Length {
 impl Add for Length {
   type Output = Length;
   fn add(self, rhs: Self) -> Self::Output {
-    Length(self.0 + rhs.0)
+    Length(self.0.saturating_add(rhs.0))
   }
 }
 
@@ -30,6 +30,7 @@ impl Segment {
   pub const EMPTY: Segment = Segment(false, Length(0), false);
   pub const SPACE: Segment = Segment(true, Length(0), true);
   pub const CHAR: Segment = Segment(false, Length(1), false);
+  pub const MAX: Segment = Segment(false, Length(u16::MAX), false);
 
   pub fn length(self) -> Length {
     self.1
@@ -43,7 +44,7 @@ impl Add<Segment> for Segment {
     let Segment(x, y, z) = rhs;
     Segment(
       a || !b.any() && x,
-      b + Length((b.any() && (c || x) && y.any()) as u32) + y,
+      b + Length((b.any() && (c || x) && y.any()) as u16) + y,
       c && !y.any() || z,
     )
   }
@@ -68,7 +69,7 @@ impl Shape {
   pub const LINE: Shape = Shape::Multi(Segment::EMPTY, Segment::EMPTY);
 
   pub fn of(str: &str) -> Self {
-    Shape::Single(Segment(false, Length(str.chars().count() as u32), false))
+    Shape::Single(Segment(false, Length(str.chars().count() as u16), false))
   }
 
   pub fn is_multi(&self) -> bool {
@@ -173,6 +174,7 @@ impl From<()> for Shape {
 
 impl Surround {
   pub const EMPTY: Surround = Surround { before: Segment::EMPTY, after: Segment::EMPTY };
+  pub const MAX: Surround = Surround { before: Segment::MAX, after: Segment::MAX };
 
   pub fn permits(self, shape: Shape, width: Length) -> bool {
     (Shape::Single(self.before) + shape + Shape::Single(self.after)).max() <= width
@@ -187,9 +189,5 @@ impl Surround {
       before: (Shape::Single(self.before) + before.into()).trailing(),
       after: (after.into() + Shape::Single(self.after)).leading(),
     }
-  }
-
-  pub fn max(width: Length) -> Self {
-    Surround { before: Segment(false, width, false), after: Segment(false, width, false) }
   }
 }

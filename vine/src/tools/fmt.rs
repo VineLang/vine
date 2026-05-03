@@ -17,9 +17,9 @@ pub struct Formatter<'src> {
   src: &'src str,
 }
 
-pub const DEFAULT_MAX_WIDTH: u32 = 100;
+pub const DEFAULT_MAX_WIDTH: u16 = 100;
 impl<'src> Formatter<'src> {
-  pub fn fmt(src: &str, max_width: u32) -> Result<String, Diag> {
+  pub fn fmt(src: &str, max_width: u16) -> Result<String, Diag> {
     let mut output = String::new();
     Self::_fmt(src)?.format(&mut Writer::new(Length(max_width), &mut output), Surround::EMPTY);
     Ok(output)
