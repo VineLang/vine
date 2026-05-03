@@ -99,10 +99,10 @@ pub fn main(_: &IO) {
   let iter_ref = (0..10).inspect(fn* (&n: &N32) { debug::log("{n}") });
   debug::log("{iter_ref.nth(3).show()}");
   debug::log("{iter_ref.last().show()}");
-  debug::log("{iter_ref.collect[List, _, _]().show()}");
-  debug::log("{[0, 1, 2, 3, 4, 1, 3].iter().collect[Set[N32], _, _]().show()}");
+  debug::log("{iter_ref.collect[List]().show()}");
+  debug::log("{[0, 1, 2, 3, 4, 1, 3].iter().collect[Set[N32]]().show()}");
   debug::log("{
-    [0, 1, 2, 1].iter().zip(['a', 'b', 'c', 'd'].iter()).collect[Map[N32, Char], _, _]().show()
+    [0, 1, 2, 1].iter().zip(['a', 'b', 'c', 'd'].iter()).collect[Map[N32, Char]]().show()
   }");
 
   debug::log("--- fold ---");
@@ -120,24 +120,24 @@ pub fn main(_: &IO) {
   ];
   debug::log("{
     (0..11).map(fn* (i: N32) {
-      nums.iter_ref().filter_map(fn* (&l: &List[N32]) { l.at(i) }).forked().collect[List, _, _]()
-    }).collect[List, _, _]().show()
+      nums.iter_ref().filter_map(fn* (&l: &List[N32]) { l.at(i) }).forked().collect[List]()
+    }).collect[List]().show()
   }");
   debug::log("{
     (0..11).map(fn* (i: N32) {
-      nums.iter_ref().map_while(fn* (&l: &List[N32]) { l.at(i) }).forked().collect[List, _, _]()
-    }).collect[List, _, _]().show()
+      nums.iter_ref().map_while(fn* (&l: &List[N32]) { l.at(i) }).forked().collect[List]()
+    }).collect[List]().show()
   }");
   nums.reverse();
   debug::log("{
     (0..11).map(fn* (i: N32) {
       nums.iter_ref().find(fn* (&&l: &&List[N32]) { l.len() > i }).as_fork()
-    }).collect[List, _, _]().show()
+    }).collect[List]().show()
   }")
   debug::log("{
     (0..11).map(fn* (i: N32) {
       nums.iter_ref().find_map(fn* (&l: &List[N32]) { l.at(i) }).as_fork()
-    }).collect[List, _, _]().show()
+    }).collect[List]().show()
   }")
 
   debug::log("--- chunks 3 ---");

@@ -8,7 +8,7 @@ const iterations: N32 = 4600;
 const seed: String = "dubiously charged umbrella";
 
 pub fn main(&io: &IO) {
-  let map = Map::empty[N32, _];
+  let map = Map::empty[N32];
 
   let rng = Pcg32::seeded(seed);
   for _ in 0..iterations {

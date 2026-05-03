@@ -189,7 +189,7 @@ pub enum AttrKind {
 }
 
 pub type GenericParams = Generics<TypeParam, ImplParam>;
-pub type GenericArgs = Generics<Ty, Impl>;
+pub type GenericArgs = Generics<TypeArg, Impl>;
 
 #[derive(Debug, Clone)]
 pub struct Generics<T, I> {
@@ -217,6 +217,13 @@ pub struct ImplParam {
   pub span: Span,
   pub name: Option<Ident>,
   pub trait_: Trait,
+}
+
+#[derive(Debug, Clone)]
+pub struct TypeArg {
+  pub span: Span,
+  pub name: Option<Ident>,
+  pub ty: Ty,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

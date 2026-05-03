@@ -1,0 +1,36 @@
+error: missing type argument `T`
+   @ weird_generics.vi:5:14
+ 5 | pub type A = X; // error
+
+error: missing type argument `T`
+   @ weird_generics.vi:7:14
+ 7 | pub type C = Y; // error error
+
+error: missing type argument `U`
+   @ weird_generics.vi:7:14
+ 7 | pub type C = Y; // error error
+
+error: missing type argument `T`
+   @ weird_generics.vi:8:14
+ 8 | pub type D = Y[U = ()]; // error
+
+error: `#weird_generics::X` expects 1 type argument; was passed 2
+    @ weird_generics.vi:13:10
+ 13 |   let _: X[(), ()]; // error
+
+error: `#weird_generics::X` has no type parameter named `Tee`
+    @ weird_generics.vi:15:12
+ 15 |   let _: X[Tee = ()]; // error
+
+error: duplicate type argument `T`
+    @ weird_generics.vi:16:20
+ 16 |   let _: X[T = (), T = ()]; // error
+
+error: all positional arguments must come before named arguments
+    @ weird_generics.vi:20:10
+ 20 |   let _: Y[U = Bool, N32] = Y(0, false); // error
+
+error: duplicate type argument `T`
+    @ weird_generics.vi:22:16
+ 22 |   let _: Y[(), T = ()]; // error
+

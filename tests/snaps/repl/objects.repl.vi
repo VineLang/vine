@@ -81,7 +81,7 @@ let c: N32 = 3;
 let b: N32 = 2;
 let a: N32 = 3;
 > do { let { p } = x }
-error: expected type `{ p: ?487 }`; found `{ a: N32, b: N32, c: N32 }`
+error: expected type `{ p: ?496 }`; found `{ a: N32, b: N32, c: N32 }`
    @ input:1:18
  1 | do { let { p } = x }
 

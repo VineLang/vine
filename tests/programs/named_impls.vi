@@ -1,0 +1,20 @@
+
+trait[] Value[T] {
+  const value: T;
+}
+
+impl zero: Value[N32] {
+  const value: N32 = 0;
+}
+
+impl one: Value[N32] {
+  const value: N32 = 1;
+}
+
+impl pair[T; a: Value[T], b: Value[T]]: Value[(T, T)] {
+  const value: (T, T) = (Value::value[; a], Value::value[; b]);
+}
+
+pub fn main(&io: &IO) {
+  io.println("{Value::value[; pair[; zero, one]].show()}");
+}

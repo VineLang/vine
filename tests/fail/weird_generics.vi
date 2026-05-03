@@ -1,0 +1,23 @@
+
+struct? X[T](T);
+struct? Y[T, U](T, U);
+
+pub type A = X; // error
+pub type B = X[()]; // ok
+pub type C = Y; // error error
+pub type D = Y[U = ()]; // error
+pub type E = Y[U = (), T = ()]; // ok
+
+pub fn main(&_: &IO) {
+  let _: X[N32] = X(0); // ok
+  let _: X[(), ()]; // error
+  let _: X[T = N32] = X(0); // ok
+  let _: X[Tee = ()]; // error
+  let _: X[T = (), T = ()]; // error
+  let _: Y[N32, Bool] = Y(0, false); // ok
+  let _: Y[T = N32, U = Bool] = Y(0, false); // ok
+  let _: Y[N32, U = Bool] = Y(0, false); // ok
+  let _: Y[U = Bool, N32] = Y(0, false); // error
+  let _: Y[U = Bool, T = N32] = Y(0, false); // ok
+  let _: Y[(), T = ()]; // error
+}

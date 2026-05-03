@@ -5,8 +5,8 @@ pub fn main(&io: &IO) {
   let input = io.full_input();
 
   let antennas = Map::empty[Char, List[(N32, N32)]];
-  let antinodes1 = Map::empty[(N32, N32), _];
-  let antinodes2 = Map::empty[(N32, N32), _];
+  let antinodes1 = Map::empty[(N32, N32)];
+  let antinodes2 = Map::empty[(N32, N32)];
 
   let grid = input.split_trim("\n");
 

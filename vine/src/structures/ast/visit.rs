@@ -372,7 +372,9 @@ pub trait VisitMut<'a> {
   }
 
   fn _visit_generic_args(&mut self, generics: &'a mut GenericArgs) {
-    self.visit(&mut generics.types);
+    for arg in &mut generics.types {
+      self.visit(&mut arg.ty);
+    }
     self.visit(&mut generics.impls);
   }
 

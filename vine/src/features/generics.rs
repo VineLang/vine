@@ -1,15 +1,16 @@
 use std::mem::take;
 
-use vine_util::{idx::RangeExt, parser::Parse};
+use vine_util::{idx::Counter, parser::Parse};
 
 use crate::{
   components::{charter::Charter, lexer::Token, parser::Parser, resolver::Resolver},
   structures::{
     ast::{
-      GenericArgs, GenericParams, Generics, ImplParam, Path, Span, Trait, TraitKind, TypeParam,
+      GenericArgs, GenericParams, Generics, ImplKind, ImplParam, Path, Span, TraitKind, TyKind,
+      TypeArg, TypeParam,
     },
     chart::{DefId, GenericsDef, GenericsId, GenericsKind},
-    diag::{Diag, ErrorGuaranteed},
+    diag::Diag,
     signatures::ImplParams,
     tir::TirImpl,
     types::{ImplType, Type, TypeKind},
@@ -32,23 +33,38 @@ impl Parser<'_> {
 
   fn parse_impl_param(&mut self) -> Result<ImplParam, Diag> {
     let span = self.start_span();
-    let (name, trait_) = if self.check(Token::Ident) {
-      let path = self.parse_path()?;
-      if path.as_ident().is_some() && self.eat(Token::Colon)? {
-        let trait_ = self.parse_trait()?;
-        (path.as_ident(), trait_)
-      } else {
-        (None, Trait { span: path.span, kind: Box::new(TraitKind::Path(path)) })
-      }
+    let trait_ = self.parse_trait()?;
+    if let TraitKind::Path(path) = &*trait_.kind
+      && let Some(name) = path.as_ident()
+      && self.eat(Token::Colon)?
+    {
+      let trait_ = self.parse_trait()?;
+      let span = self.end_span(span);
+      Ok(ImplParam { span, name: Some(name), trait_ })
     } else {
-      (None, self.parse_trait()?)
-    };
-    let span = self.end_span(span);
-    Ok(ImplParam { span, name, trait_ })
+      let span = self.end_span(span);
+      Ok(ImplParam { span, name: None, trait_ })
+    }
   }
 
   pub(crate) fn parse_generic_args(&mut self) -> Result<GenericArgs, Diag> {
-    self.parse_generics(false, Self::parse_ty, Self::parse_impl)
+    self.parse_generics(false, Self::parse_type_arg, Self::parse_impl)
+  }
+
+  fn parse_type_arg(&mut self) -> Result<TypeArg, Diag> {
+    let span = self.start_span();
+    let ty = self.parse_ty()?;
+    if let TyKind::Path(path) = &*ty.kind
+      && let Some(name) = path.as_ident()
+      && self.eat(Token::Eq)?
+    {
+      let ty = self.parse_ty()?;
+      let span = self.end_span(span);
+      Ok(TypeArg { span, name: Some(name), ty })
+    } else {
+      let span = self.end_span(span);
+      Ok(TypeArg { span, name: None, ty })
+    }
   }
 
   fn parse_generics<T, I>(
@@ -91,15 +107,40 @@ impl Parser<'_> {
 
 impl<'src> Formatter<'src> {
   pub(crate) fn fmt_generic_params(&self, generics: &GenericParams) -> Doc<'src> {
-    self.fmt_generics(generics, |p| self.fmt_type_param(p), |p| self.fmt_impl_param(p))
+    self.fmt_generics(
+      generics.inherit,
+      &generics.types,
+      &generics.impls,
+      |p| self.fmt_type_param(p),
+      |p| self.fmt_impl_param(p),
+    )
   }
 
   pub(crate) fn fmt_generic_args(&self, generics: &GenericArgs) -> Doc<'src> {
-    self.fmt_generics(generics, |t| self.fmt_ty(t), |p| self.fmt_impl(p))
+    let mut types = &*generics.types;
+    let mut impls = &*generics.impls;
+    while types.last().is_some_and(|t| t.name.is_none() && matches!(*t.ty.kind, TyKind::Hole)) {
+      types = &types[..types.len() - 1];
+    }
+    while impls.last().is_some_and(|i| matches!(*i.kind, ImplKind::Hole)) {
+      impls = &impls[..impls.len() - 1];
+    }
+    self.fmt_generics(false, types, impls, |t| self.fmt_type_arg(t), |p| self.fmt_impl(p))
   }
 
   pub(crate) fn fmt_type_param(&self, param: &TypeParam) -> Doc<'src> {
     Doc::concat([Doc(param.name.clone()), self.fmt_flex(param.flex)])
+  }
+
+  pub(crate) fn fmt_type_arg(&self, arg: &TypeArg) -> Doc<'src> {
+    Doc::concat([
+      if let Some(name) = &arg.name {
+        Doc::concat([Doc(name.clone()), Doc(" = ")])
+      } else {
+        Doc::EMPTY
+      },
+      self.fmt_ty(&arg.ty),
+    ])
   }
 
   fn fmt_impl_param(&self, param: &ImplParam) -> Doc<'src> {
@@ -111,24 +152,26 @@ impl<'src> Formatter<'src> {
 
   pub(crate) fn fmt_generics<T, I>(
     &self,
-    generics: &Generics<T, I>,
+    inherit: bool,
+    types: &[T],
+    impls: &[I],
     fmt_t: impl Fn(&T) -> Doc<'src>,
     fmt_i: impl Fn(&I) -> Doc<'src>,
   ) -> Doc<'src> {
-    let include_types = !generics.types.is_empty() || !generics.impls.is_empty();
-    let include_impls = !generics.impls.is_empty();
+    let include_types = !types.is_empty() || !impls.is_empty();
+    let include_impls = !impls.is_empty();
     let sections = [
-      include_types.then(|| self.fmt_generics_section(&generics.types, fmt_t)),
-      include_impls.then(|| self.fmt_generics_section(&generics.impls, fmt_i)),
+      include_types.then(|| self.fmt_generics_section(types, fmt_t)),
+      include_impls.then(|| self.fmt_generics_section(impls, fmt_i)),
     ];
     let has_sections = sections.iter().any(|x| x.is_some());
-    if !generics.inherit && !has_sections {
+    if !inherit && !has_sections {
       Doc::EMPTY
     } else {
       Doc::concat([
         Doc("["),
         Doc::group([
-          if generics.inherit {
+          if inherit {
             Doc::concat([Doc("..."), if has_sections { Doc::soft_line(" ") } else { Doc::EMPTY }])
           } else {
             Doc::EMPTY
@@ -290,74 +333,116 @@ impl Resolver<'_> {
     args: Option<&GenericArgs>,
     generics_id: GenericsId,
     inference: bool,
-    inferred_type_params: Option<Vec<Type>>,
+    inferred_type_args: Option<Vec<Type>>,
   ) -> (Vec<Type>, Vec<TirImpl>) {
     let _args = GenericArgs::empty(span);
     let args = args.unwrap_or(&_args);
     let params = &self.chart.generics[generics_id];
-    let mut check_count = |got, expected, kind| {
-      if got != expected {
-        self.diags.error(Diag::BadGenericCount {
-          span,
-          path: self.chart.defs[params.def].path.clone(),
-          expected,
-          got,
-          kind,
-        });
+
+    let type_args = self.resolve_type_args(span, &args.types, generics_id, inference);
+    if let Some(inferred) = inferred_type_args {
+      for (inferred, &passed) in inferred.into_iter().zip(type_args.iter()) {
+        _ = self.types.unify(inferred, passed);
       }
-    };
-    let type_param_count = self.sigs.type_params[generics_id].params.len();
+    }
+
     let impl_param_count =
       // Things with no inference cannot have implementation parameters; skip
       // checking the signature as this may not have been resolved yet.
       if !inference { 0 } else { self.sigs.impl_params[generics_id].types.inner.len() };
-    if !inference || !args.types.is_empty() {
-      check_count(args.types.len(), type_param_count, "type");
+    if args.impls.len() > impl_param_count {
+      self.diags.error(Diag::BadGenericCount {
+        span,
+        path: self.chart.defs[params.def].path.clone(),
+        expected: impl_param_count,
+        got: args.impls.len(),
+        kind: "impl",
+      });
     }
-    if !args.impls.is_empty() {
-      check_count(args.impls.len(), impl_param_count, "impl");
-    }
-    let has_impl_params = impl_param_count != 0;
-    let type_params = if let Some(mut inferred) = inferred_type_params {
-      for (inferred, ty) in inferred.iter_mut().zip(args.types.iter()) {
-        let ty = self.resolve_ty(ty, inference);
-        _ = self.types.unify(*inferred, ty);
-        *inferred = ty;
-      }
-      inferred
-    } else {
-      (0..type_param_count)
-        .iter()
-        .map(|i| {
-          args.types.get(i).map(|t| self.resolve_ty(t, inference)).unwrap_or_else(|| {
-            if inference {
-              self.types.new_var(args.span)
-            } else {
-              self.types.error(ErrorGuaranteed::new_unchecked())
-            }
-          })
-        })
-        .collect::<Vec<_>>()
-    };
-    let impl_params = if has_impl_params {
+    let impl_args = if impl_param_count != 0 {
       let impl_params_types =
-        self.types.import(&self.sigs.impl_params[generics_id].types, Some(&type_params));
-      if args.impls.is_empty() {
-        impl_params_types.into_iter().map(|ty| self.find_impl(args.span, &ty, false)).collect()
-      } else {
-        impl_params_types
-          .into_iter()
-          .enumerate()
-          .map(|(i, ty)| match args.impls.get(i) {
-            Some(impl_) => self.resolve_impl_type(impl_, &ty),
-            None => TirImpl::Error(ErrorGuaranteed::new_unchecked()),
-          })
-          .collect()
-      }
+        self.types.import(&self.sigs.impl_params[generics_id].types, Some(&type_args));
+      impl_params_types
+        .into_iter()
+        .enumerate()
+        .map(|(i, ty)| match args.impls.get(i) {
+          Some(impl_) => self.resolve_impl_type(impl_, &ty),
+          None => self.find_impl(args.span, &ty, false),
+        })
+        .collect()
     } else {
       Vec::new()
     };
-    (type_params, impl_params)
+
+    (type_args, impl_args)
+  }
+
+  fn resolve_type_args(
+    &mut self,
+    span: Span,
+    args: &[TypeArg],
+    generics_id: GenericsId,
+    inference: bool,
+  ) -> Vec<Type> {
+    let path = || self.chart.defs[self.chart.generics[generics_id].def].path.clone();
+    let type_param_count = self.sigs.type_params[generics_id].params.len();
+    let mut type_args = vec![None; type_param_count];
+    let mut positional = Counter(0);
+    let mut named = false;
+    for arg in args {
+      let idx = if let Some(name) = &arg.name {
+        named = true;
+        if let Some(&idx) = self.sigs.type_params[generics_id].lookup.get(name) {
+          idx
+        } else {
+          self.diags.error(Diag::NoSuchTypeParam {
+            span: arg.span,
+            path: path(),
+            name: name.clone(),
+          });
+          continue;
+        }
+      } else {
+        if named {
+          self.diags.error(Diag::PositionalAfterNamed { span });
+        }
+        positional.next()
+      };
+      let Some(ty) = type_args.get_mut(idx) else { continue };
+      if ty.is_some() {
+        self.diags.error(Diag::DuplicateTypeArg {
+          span: arg.span,
+          name: self.sigs.type_params[generics_id].params[idx].clone(),
+        });
+      } else {
+        *ty = Some(self.resolve_ty(&arg.ty, inference));
+      }
+    }
+    if positional.count() > type_param_count {
+      self.diags.error(Diag::BadGenericCount {
+        span,
+        path: path(),
+        expected: type_param_count,
+        got: positional.count(),
+        kind: "type",
+      });
+    }
+    type_args
+      .into_iter()
+      .enumerate()
+      .map(|(idx, ty)| {
+        ty.unwrap_or_else(|| {
+          if inference {
+            self.types.new_var(span)
+          } else {
+            self.types.error(self.diags.error(Diag::MissingTypeArg {
+              span,
+              name: self.sigs.type_params[generics_id].params[idx].clone(),
+            }))
+          }
+        })
+      })
+      .collect::<Vec<_>>()
   }
 
   pub(crate) fn show_generics(&self, generics: GenericsId, impl_params: bool) -> String {
