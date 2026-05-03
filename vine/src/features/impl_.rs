@@ -490,6 +490,7 @@ impl Resolver<'_> {
         Become::Resolving => fallback,
         _ => None,
       },
+      TirImpl::Param(_) => fallback,
       _ => None,
     }
   }

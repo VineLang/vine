@@ -1,0 +1,55 @@
+
+use #root::ops::{Cast, Concat, arithmetic::{Mul, Pow}};
+
+#[impl(Show)]
+enum* List[T] {
+  Nil(),
+  Cons(T, List[T]),
+}
+
+use List::{Cons, Nil};
+
+mod List {
+  pub impl [T]: Concat[List[T], List[T], List[T]] {
+    fn concat(x: List[T], y: List[T]) -> List[T] {
+      match x {
+        Cons(t, x) { Cons(t, x ++ y) }
+        Nil() { y }
+      }
+    }
+  }
+
+  pub impl [A*, B]: Mul[A, List[B], List[(A, B)]] {
+    fn mul(a: A, y: List[B]) -> List[(A, B)] {
+      match y {
+        Cons(b, y) { Cons((a, b), a * y) }
+        Nil() { Nil() }
+      }
+    }
+  }
+
+  pub impl [A*, B*]: Pow[List[A], List[B], List[(A, B)]] {
+    fn pow(x: List[A], y: List[B]) -> List[(A, B)] {
+      match x {
+        Cons(a, x) { a * y ++ x ** y }
+        Nil() { Nil() }
+      }
+    }
+  }
+
+  pub impl [T?; Show[T]]: Cast[List[T], String] {
+    fn cast(x: List[T]) -> String {
+      match x {
+        Cons(t, x) { "{t.show()};{x}" }
+        Nil() { "" }
+      }
+    }
+  }
+}
+
+pub fn main(&io: &IO) {
+  let x = Cons(1, Cons(2, Cons(3, Nil())));
+  let y = Cons(4, Cons(5, Cons(6, Nil())));
+  io.println("{x} ++ {y} = {x ++ y}");
+  io.println("{x} ** {y} = {x ** y}");
+}
