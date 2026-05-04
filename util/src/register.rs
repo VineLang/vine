@@ -1,5 +1,12 @@
-pub trait Register<R>: Sized {
-  fn register(self, registry: &mut R);
+pub trait Registry {
+  type Mut<'a>
+  where
+    Self: 'a;
+  fn fork<'a>(ref_: &'a mut Self::Mut<'_>) -> Self::Mut<'a>;
+}
+
+pub trait Register<R: Registry>: Sized {
+  fn register(self, registry: R::Mut<'_>);
 }
 
 macro_rules! impl_tuple {
@@ -9,10 +16,10 @@ macro_rules! impl_tuple {
   };
   ($($T:ident)* |) => {
     #[allow(warnings)]
-    impl<R, $($T: Register<R>,)*> Register<R> for ($($T,)*) {
-      fn register(self, registry: &mut R) {
+    impl<R: Registry, $($T: Register<R>,)*> Register<R> for ($($T,)*) {
+      fn register(self, mut registry: R::Mut<'_>) {
         let ($($T,)*) = self;
-        $($T.register(registry);)*
+        $($T.register(R::fork(&mut registry));)*
       }
     }
   };
