@@ -1,9 +1,9 @@
 use std::marker::PhantomData;
 
-use crate::register::Register;
+use crate::register::{Register, Registry};
 
-pub trait Define<I, O, W> {
-  fn define(&mut self, name: &'static str, f: impl 'static + Send + Sync + Fn(I) -> O);
+pub trait Define<I, O, W>: Registry {
+  fn define(self_: Self::Mut<'_>, name: &'static str, f: impl 'static + Send + Sync + Fn(I) -> O);
 }
 
 #[allow(nonstandard_style)]
@@ -13,11 +13,11 @@ fn Fn<R: Define<I, O, W>, I, O, W>(
 ) -> impl Register<R> {
   struct Def<F, I, O, W>(&'static str, F, PhantomData<(I, O, W)>);
 
-  impl<F: 'static + Send + Sync + Fn(I) -> O, I, O, R: Define<I, O, W>, W> Register<R>
+  impl<R: Define<I, O, W>, F: 'static + Send + Sync + Fn(I) -> O, I, O, W> Register<R>
     for Def<F, I, O, W>
   {
-    fn register(self, registry: &mut R) {
-      registry.define(self.0, self.1);
+    fn register(self, registry: R::Mut<'_>) {
+      R::define(registry, self.0, self.1);
     }
   }
 

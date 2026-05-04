@@ -454,19 +454,7 @@ impl VineReplCommand {
     let mut host = Host::new(&mut ivm);
 
     use ivm::host::ext::common;
-    host.register(
-      table,
-      (
-        common::fundamental(),
-        common::arithmetic(),
-        common::io_meta(),
-        common::io_stdio(),
-        common::io_args(&self.args),
-        common::io_error(),
-        common::io_file(),
-        repl::extrinsics(),
-      ),
-    );
+    host.register(table, (common::all(&self.args, io::stdin, io::stdout), repl::extrinsics()));
 
     let mut runtime = host.init(&mut heap);
 

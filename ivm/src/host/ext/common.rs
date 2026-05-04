@@ -12,8 +12,8 @@ use crate::{
   host::{
     Host,
     ext::{
-      ExtFn, ExtInput, ExtInputs, ExtOutput, ExtOutputs, ExtTyBoxed, ExtTyRegister, HostTable,
-      Invalid, Live, error,
+      ExtFn, ExtInput, ExtInputs, ExtOutput, ExtOutputs, ExtTyBoxed, ExtTyRegister, Invalid, Live,
+      error,
     },
   },
   runtime::{
@@ -27,7 +27,23 @@ use crate::{
   },
 };
 
-pub fn fundamental<'ivm, 'r>() -> impl Register<HostTable<'ivm, 'r>> {
+pub fn all<'ivm, R: Read, W: Write>(
+  args: &'ivm [String],
+  stdin: impl Copy + Fn() -> R + Send + Sync + 'ivm,
+  stdout: impl Copy + Fn() -> W + Send + Sync + 'ivm,
+) -> impl Register<Host<'ivm>> {
+  (
+    fundamental(),
+    arithmetic(),
+    io_meta(),
+    io_stdio_with(stdin, stdout),
+    io_args(args),
+    io_error(),
+    io_file(),
+  )
+}
+
+pub fn fundamental<'ivm>() -> impl Register<Host<'ivm>> {
   (
     ExtFn("ivm:pair", |(a, b): (ExtVal<'ivm>, ExtVal<'ivm>)| Pair(a, b)),
     ExtFn("ivm:unpair", |Pair(a, b)| (a, b)),
@@ -66,7 +82,7 @@ pub fn fundamental<'ivm, 'r>() -> impl Register<HostTable<'ivm, 'r>> {
   )
 }
 
-pub fn arithmetic<'ivm: 'r, 'r>() -> impl Register<HostTable<'ivm, 'r>> {
+pub fn arithmetic<'ivm>() -> impl Register<Host<'ivm>> {
   use vine_util::arithmetic::{Define, arithmetic};
 
   struct Arithmetic<T>(PhantomData<T>);
@@ -79,17 +95,21 @@ pub fn arithmetic<'ivm: 'r, 'r>() -> impl Register<HostTable<'ivm, 'r>> {
     O: ExtOutputs<'ivm, ON, OW>,
     const ON: usize,
     OW,
-  > Define<I, O, Arithmetic<([IW; IN], [OW; ON])>> for HostTable<'ivm, '_>
+  > Define<I, O, Arithmetic<([IW; IN], [OW; ON])>> for Host<'ivm>
   {
-    fn define(&mut self, name: &'static str, f: impl 'static + Send + Sync + Fn(I) -> O) {
-      self.host.register_ext_fn(self.table, name, f);
+    fn define(
+      (host, table): (&mut Host<'ivm>, &mut Table),
+      name: &'static str,
+      f: impl 'static + Send + Sync + Fn(I) -> O,
+    ) {
+      host.register_ext_fn(table, name, f);
     }
   }
 
   arithmetic(Invalid)
 }
 
-pub fn io_meta<'ivm, 'r>() -> impl Register<HostTable<'ivm, 'r>> {
+pub fn io_meta<'ivm>() -> impl Register<Host<'ivm>> {
   (
     ExtFn("vi:io:split", |IO| (IO, IO)),
     ExtFn("vi:io:merge", |(IO, IO)| IO),
@@ -97,14 +117,14 @@ pub fn io_meta<'ivm, 'r>() -> impl Register<HostTable<'ivm, 'r>> {
   )
 }
 
-pub fn io_stdio<'ivm, 'r>() -> impl Register<HostTable<'ivm, 'r>> {
+pub fn io_stdio<'ivm>() -> impl Register<Host<'ivm>> {
   io_stdio_with(io::stdin, io::stdout)
 }
 
-pub fn io_stdio_with<'ivm, 'r, R: Read, W: Write>(
+pub fn io_stdio_with<'ivm, R: Read, W: Write>(
   stdin: impl Copy + Fn() -> R + Send + Sync + 'ivm,
   stdout: impl Copy + Fn() -> W + Send + Sync + 'ivm,
-) -> impl Register<HostTable<'ivm, 'r>> {
+) -> impl Register<Host<'ivm>> {
   (
     ExtFn("root:io:print_char", move |(IO, n): (IO, u32)| -> IO {
       write!(stdout(), "{}", char::try_from(n).unwrap()).unwrap();
@@ -134,11 +154,11 @@ pub fn io_stdio_with<'ivm, 'r, R: Read, W: Write>(
   )
 }
 
-pub fn io_args<'ivm, 'r>(args: &'ivm [String]) -> impl Register<HostTable<'ivm, 'r>> {
+pub fn io_args<'ivm>(args: &'ivm [String]) -> impl Register<Host<'ivm>> {
   ExtFn("root:io:args", |IO| (List(args.iter().map(|str| List(str.chars()))), IO))
 }
 
-pub fn io_file<'ivm, 'r>() -> impl Register<HostTable<'ivm, 'r>> {
+pub fn io_file<'ivm>() -> impl Register<Host<'ivm>> {
   (
     ExtFn("root:io:file:open", |(_, path): (IO, String)| {
       (OpenOptions::new().read(true).append(true).open(path), IO)
@@ -169,7 +189,7 @@ pub fn io_file<'ivm, 'r>() -> impl Register<HostTable<'ivm, 'r>> {
   )
 }
 
-pub fn io_error<'ivm, 'r>() -> impl Register<HostTable<'ivm, 'r>> {
+pub fn io_error<'ivm>() -> impl Register<Host<'ivm>> {
   (
     ExtFn("root:io:error:code", |error: Boxed<io::Error>| {
       let code = match error.kind() {

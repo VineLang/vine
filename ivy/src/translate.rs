@@ -1,6 +1,10 @@
 use std::{collections::HashMap, mem::take, rc::Rc};
 
-use vine_util::{idx::Counter, new_idx, register::Register};
+use vine_util::{
+  idx::Counter,
+  new_idx,
+  register::{Register, Registry},
+};
 
 use crate::{
   name::{NameId, PathId, Table},
@@ -95,6 +99,15 @@ impl<'a> Translator<'a> {
   }
 }
 
+impl Registry for Translator<'_> {
+  type Mut<'a>
+    = &'a mut Self
+  where
+    Self: 'a;
+  fn fork<'a>(ref_: &'a mut Self::Mut<'_>) -> Self::Mut<'a> {
+    ref_
+  }
+}
 pub struct Translate<I: IntoIterator<Item = PathId>, F: Fn(FlatNode, &mut Table, &mut FlatNet)>(
   pub I,
   pub F,
