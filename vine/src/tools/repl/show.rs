@@ -5,7 +5,10 @@ use std::{
 };
 
 use ivm::{
-  host::ext::{ExtFn, ExtTyBoxed, HostTable},
+  host::{
+    Host,
+    ext::{ExtFn, ExtTyBoxed},
+  },
   runtime::{
     Runtime,
     ext::Boxed,
@@ -120,7 +123,7 @@ impl<'ivm> ExtTyBoxed<'ivm> for Slot {
   type With<'x> = Slot;
 }
 
-pub fn extrinsics<'ivm, 'r>() -> impl Register<HostTable<'ivm, 'r>> {
+pub fn extrinsics<'ivm>() -> impl Register<Host<'ivm>> {
   ExtFn("vi:repl:show", |(slot, str): (Slot, String)| {
     *slot.0.lock().unwrap() = Some(str);
   })

@@ -5,7 +5,7 @@ use std::{
 };
 
 use ivy::name::{NameId, Table};
-use vine_util::register::Register;
+use vine_util::register::{Register, Registry};
 
 pub mod common;
 
@@ -22,18 +22,19 @@ use crate::{
   },
 };
 
-pub struct HostTable<'ivm, 'r> {
-  host: &'r mut Host<'ivm>,
-  table: &'r mut Table,
+impl<'ivm> Registry for Host<'ivm> {
+  type Mut<'r>
+    = (&'r mut Host<'ivm>, &'r mut Table)
+  where
+    Self: 'r;
+  fn fork<'a>((host, table): &'a mut Self::Mut<'_>) -> Self::Mut<'a> {
+    (host, table)
+  }
 }
 
 impl<'ivm> Host<'ivm> {
-  pub fn register<'r>(
-    &'r mut self,
-    table: &'r mut Table,
-    value: impl Register<HostTable<'ivm, 'r>>,
-  ) {
-    value.register(&mut HostTable { host: self, table });
+  pub fn register<'r>(&'r mut self, table: &'r mut Table, value: impl Register<Host<'ivm>>) {
+    value.register((self, table));
   }
 
   pub fn get_ext_ty<T: ExtTyRegister<'ivm>>(&self) -> Option<ExtTy<'ivm, T>> {
@@ -136,21 +137,21 @@ impl<'ivm> Host<'ivm> {
 }
 
 #[allow(nonstandard_style)]
-pub fn ExtFn<'ivm, 'r, const I: usize, const O: usize, W, F: ExtFn<'ivm, I, O, W>>(
+pub fn ExtFn<'ivm, const I: usize, const O: usize, W, F: ExtFn<'ivm, I, O, W>>(
   path: &str,
   f: F,
-) -> impl Register<HostTable<'ivm, 'r>> {
+) -> impl Register<Host<'ivm>> {
   pub struct _ExtFn<'p, const I: usize, const O: usize, W, F> {
     path: &'p str,
     f: F,
     phantom: PhantomData<([(); I], [(); O], W)>,
   }
 
-  impl<'r, 'p, 'ivm, const I: usize, const O: usize, W, F: ExtFn<'ivm, I, O, W>>
-    Register<HostTable<'ivm, 'r>> for _ExtFn<'p, I, O, W, F>
+  impl<'p, 'ivm, const I: usize, const O: usize, W, F: ExtFn<'ivm, I, O, W>> Register<Host<'ivm>>
+    for _ExtFn<'p, I, O, W, F>
   {
-    fn register(self, registry: &mut HostTable<'ivm, 'r>) {
-      registry.host.register_ext_fn(registry.table, self.path, self.f);
+    fn register(self, (host, table): (&mut Host<'ivm>, &mut Table)) {
+      host.register_ext_fn(table, self.path, self.f);
     }
   }
 
