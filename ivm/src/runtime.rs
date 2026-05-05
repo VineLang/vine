@@ -11,6 +11,7 @@ pub mod flags;
 pub mod graft;
 pub mod heap;
 pub mod port;
+pub mod runner;
 pub mod stats;
 pub mod wire;
 pub mod word;
@@ -60,22 +61,27 @@ impl<'ivm, 'ext> Runtime<'ivm, 'ext> {
   }
 
   /// Normalize all nets in this IVM.
-  pub fn normalize(&mut self) {
-    let start = Instant::now();
+  pub fn normalize(&mut self, mut hooks: impl Hooks) {
+    let start = hooks.now();
     loop {
+      hooks.tick(&start, &mut self.stats);
+
       self.do_fast();
+
       if let Some((a, b)) = self.active_slow.pop() {
-        self.interact(a, b)
+        self.interact(a, b);
       } else {
         break;
       }
     }
-    self.stats.time_clock += start.elapsed();
+
+    hooks.end(&start, &mut self.stats);
   }
 
+  /// Reduce all "fast" active pairs, returning the number of interactions.
   pub(crate) fn do_fast(&mut self) {
     while let Some((a, b)) = self.active_fast.pop() {
-      self.interact(a, b)
+      self.interact(a, b);
     }
   }
 
@@ -83,10 +89,12 @@ impl<'ivm, 'ext> Runtime<'ivm, 'ext> {
   ///
   /// This is useful to get the depth (longest critical path) of the computation
   /// to understand the parallelism of the program.
-  pub fn normalize_breadth_first(&mut self) {
-    let start = Instant::now();
+  pub fn normalize_breadth_first(&mut self, mut hooks: impl Hooks) {
+    let start = hooks.now();
     let mut work = vec![];
     loop {
+      hooks.tick(&start, &mut self.stats);
+
       mem::swap(&mut work, &mut self.active_fast);
       work.append(&mut self.active_slow);
       if work.is_empty() {
@@ -97,6 +105,29 @@ impl<'ivm, 'ext> Runtime<'ivm, 'ext> {
       }
       self.stats.depth += 1;
     }
-    self.stats.time_clock += start.elapsed();
+
+    hooks.end(&start, &mut self.stats);
+  }
+}
+
+pub trait Hooks {
+  type Instant;
+
+  fn now(&mut self) -> Self::Instant;
+  fn tick(&mut self, _start: &Self::Instant, _stats: &mut Stats);
+  fn end(&mut self, _start: &Self::Instant, _stats: &mut Stats);
+}
+
+impl Hooks for () {
+  type Instant = Instant;
+
+  fn now(&mut self) -> Self::Instant {
+    Instant::now()
+  }
+
+  fn tick(&mut self, _start: &Self::Instant, _stats: &mut Stats) {}
+
+  fn end(&mut self, start: &Self::Instant, stats: &mut Stats) {
+    stats.time_clock += start.elapsed();
   }
 }
