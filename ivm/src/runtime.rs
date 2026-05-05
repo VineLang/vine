@@ -11,7 +11,6 @@ pub mod flags;
 pub mod graft;
 pub mod heap;
 pub mod port;
-pub mod runner;
 pub mod stats;
 pub mod wire;
 pub mod word;
