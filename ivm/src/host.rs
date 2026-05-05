@@ -14,6 +14,7 @@ use crate::{
 };
 
 pub mod ext;
+pub mod runner;
 
 pub struct IVM<'ivm> {
   heaps: Arena<Heap>,
