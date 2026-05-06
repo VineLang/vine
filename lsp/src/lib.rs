@@ -1,10 +1,8 @@
 use std::{
   collections::{BTreeMap, HashMap},
-  env::current_dir,
   fs,
   path::{Path, PathBuf},
   sync::Arc,
-  time::Instant,
 };
 
 use futures::{StreamExt, stream::FuturesUnordered};
@@ -51,10 +49,8 @@ impl<H: Hooks> Backend<H> {
       }
     }
 
-    let start = Instant::now();
     self.hooks.pre_check(lsp.compiler.checkpoint());
     _ = lsp.compiler.check(());
-    eprintln!("compiled in {:?}", start.elapsed());
 
     let mut diags_by_file = HashMap::<FileId, (Vec<&Diag>, Vec<&Diag>)>::new();
     for diag in &lsp.compiler.diags.errors {
@@ -235,10 +231,18 @@ impl Lsp {
     (defs.len() == 1).then(|| (span, *defs.iter().next().unwrap()))
   }
 
+  #[cfg(not(target_arch = "wasm32"))]
   fn file_to_uri(&self, file: FileId) -> Url {
+    use std::env::current_dir;
+
     let mut path = current_dir().unwrap();
     path.push(&self.file_paths[file]);
     Url::from_file_path(&path).unwrap()
+  }
+
+  #[cfg(target_arch = "wasm32")]
+  fn file_to_uri(&self, file: FileId) -> Url {
+    Url::parse(&format!("file://{}", self.file_paths[file].display())).unwrap()
   }
 
   fn uri_to_file_id(&self, uri: Url) -> Option<FileId> {
@@ -445,6 +449,7 @@ pub trait Hooks: Send + Sync + 'static {
 }
 
 #[allow(clippy::absolute_paths)]
+#[cfg(not(target_arch = "wasm32"))]
 #[tokio::main]
 pub async fn lsp_stdio<H: Hooks>(
   compiler: Compiler,
