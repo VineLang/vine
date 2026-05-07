@@ -63,6 +63,7 @@ impl<'src> Formatter<'src> {
       Some(args) => Content::smart((
         self.fmt_path(Color::SPECIAL, path),
         Delimited::new(Delims::PAREN_COMMA, args.iter().map(|x| self.fmt_expr(x)))
+          .omit_unary_separators(true)
           .allow_final_multi(true)
           .break_final(true),
       )),
@@ -74,7 +75,8 @@ impl<'src> Formatter<'src> {
     match args {
       Some(args) => Content::smart((
         self.fmt_path(Color::SPECIAL, path),
-        Delimited::new(Delims::PAREN_COMMA, args.iter().map(|x| self.fmt_pat(x))),
+        Delimited::new(Delims::PAREN_COMMA, args.iter().map(|x| self.fmt_pat(x)))
+          .omit_unary_separators(true),
       )),
       None => self.fmt_path(Color::NORMAL, path),
     }

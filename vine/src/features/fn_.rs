@@ -78,7 +78,8 @@ impl<'src> Formatter<'src> {
       f.method.then_some(Punct(".")),
       Colored(Color::SPECIAL, f.name.0.clone()),
       self.fmt_generic_params(&f.generics),
-      Delimited::new(Delims::PAREN_COMMA, params.iter().map(|p| self.fmt_pat(p))),
+      Delimited::new(Delims::PAREN_COMMA, params.iter().map(|p| self.fmt_pat(p)))
+        .omit_unary_separators(true),
       self.fmt_arrow_ty(&f.ret),
       match &f.body {
         Some(b) => Content::even((Space, self.fmt_block(b, true))),
@@ -91,7 +92,8 @@ impl<'src> Formatter<'src> {
     Content::smart((
       (Keyword("let"), Space, Keyword("fn"), self.fmt_flex(d.flex), Space),
       Colored(Color::SPECIAL, d.name.0.clone()),
-      Delimited::new(Delims::PAREN_COMMA, d.params.iter().map(|p| self.fmt_pat(p))),
+      Delimited::new(Delims::PAREN_COMMA, d.params.iter().map(|p| self.fmt_pat(p)))
+        .omit_unary_separators(true),
       self.fmt_arrow_ty(&d.ret),
       Space,
       self.fmt_block(&d.body, true),
@@ -108,7 +110,8 @@ impl<'src> Formatter<'src> {
     Content::right((
       (Keyword("fn"), self.fmt_flex(*flex), Space),
       Rigid::new(Content::smart((
-        Delimited::new(Delims::PAREN_COMMA, params.iter().map(|p| self.fmt_pat(p))),
+        Delimited::new(Delims::PAREN_COMMA, params.iter().map(|p| self.fmt_pat(p)))
+          .omit_unary_separators(true),
         self.fmt_arrow_ty(ty),
       ))),
       Space,
@@ -120,6 +123,7 @@ impl<'src> Formatter<'src> {
     self.chain_expr(func).chain(
       ChainKind::Postfix,
       Delimited::new(Delims::PAREN_COMMA, args.iter().map(|x| self.fmt_expr(x)))
+        .omit_unary_separators(true)
         .allow_final_multi(true)
         .break_final(args.len() == 1),
     )

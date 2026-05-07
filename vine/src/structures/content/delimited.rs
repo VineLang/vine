@@ -10,6 +10,7 @@ pub struct Delimited {
   force_multi: bool,
   allow_final_multi: bool,
   break_final: bool,
+  omit_unary_separators: bool,
 }
 
 impl Delimited {
@@ -25,6 +26,7 @@ impl Delimited {
       force_multi: false,
       allow_final_multi: false,
       break_final: false,
+      omit_unary_separators: false,
     }
   }
 
@@ -48,6 +50,10 @@ impl Delimited {
   /// relevant when `allow_final_multi` is `true`. Defaults to `false`.
   pub fn break_final(self, break_final: bool) -> Self {
     Delimited { break_final, ..self }
+  }
+
+  pub fn omit_unary_separators(self, omit_unary_separators: bool) -> Self {
+    Delimited { omit_unary_separators, ..self }
   }
 }
 
@@ -100,7 +106,13 @@ impl IntoElement for Delimited {
     let allow_final_multi = self.allow_final_multi
       && !final_shapes.min.leading().length().empty()
       && !final_shapes.min.trailing().length().empty();
-    let base = DelimitedBase { delims: self.delims, children: self.children, indent: self.indent };
+    let omit_separators = self.omit_unary_separators && self.children.len() == 1;
+    let base = DelimitedBase {
+      delims: self.delims,
+      children: self.children,
+      indent: self.indent,
+      omit_separators,
+    };
     if self.force_multi
       || initial_shape.is_multi()
       || (!allow_final_multi && final_shapes.max.is_multi())
@@ -123,6 +135,7 @@ struct DelimitedBase {
   delims: &'static Delims,
   children: Box<[Box<dyn Element>]>,
   indent: bool,
+  omit_separators: bool,
 }
 
 impl Element for DelimitedBase {
@@ -136,9 +149,13 @@ impl Element for DelimitedBase {
     writer.write_color(self.delims.color, open);
     writer.indent_if(self.indent, |writer| {
       for child in &mut self.children {
-        writer.write_color(self.delims.color, prefix);
-        child.format(writer, Surround::new(Shape::of(prefix), Shape::of(suffix)));
-        writer.write_color(self.delims.color, suffix);
+        if self.omit_separators {
+          child.format(writer, Surround::EMPTY);
+        } else {
+          writer.write_color(self.delims.color, prefix);
+          child.format(writer, Surround::new(Shape::of(prefix), Shape::of(suffix)));
+          writer.write_color(self.delims.color, suffix);
+        }
         writer.line();
       }
     });

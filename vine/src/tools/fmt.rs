@@ -173,7 +173,8 @@ impl<'src> Formatter<'src> {
         Keyword("fn"),
         Space,
         self.fmt_ty(receiver),
-        Delimited::new(Delims::PAREN_COMMA, args.iter().map(|a| self.fmt_ty(a))),
+        Delimited::new(Delims::PAREN_COMMA, args.iter().map(|a| self.fmt_ty(a)))
+          .omit_unary_separators(true),
         self.fmt_arrow_ty(ret),
       )),
     }

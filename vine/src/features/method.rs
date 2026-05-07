@@ -26,6 +26,7 @@ impl<'src> Formatter<'src> {
         Colored(Color::SPECIAL, name.0.clone()),
         self.fmt_generic_args(generics),
         Delimited::new(Delims::PAREN_COMMA, args.iter().map(|x| self.fmt_expr(x)))
+          .omit_unary_separators(true)
           .allow_final_multi(true)
           .break_final(args.len() == 1),
       )),

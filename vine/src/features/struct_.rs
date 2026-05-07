@@ -67,7 +67,10 @@ impl<'src> Formatter<'src> {
       (Keyword("struct"), self.fmt_flex(s.flex), Space),
       (Colored(Color::SPECIAL, s.name.0.clone()), self.fmt_generic_params(&s.generics)),
       if matches!(s.data_vis, Vis::Private) {
-        Content::even(Delimited::new(Delims::PAREN_COMMA, tys.iter().map(|t| self.fmt_ty(t))))
+        Content::even(
+          Delimited::new(Delims::PAREN_COMMA, tys.iter().map(|t| self.fmt_ty(t)))
+            .omit_unary_separators(true),
+        )
       } else {
         Content::even((
           Punct("("),
