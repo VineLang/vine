@@ -7,12 +7,13 @@ use crate::{
   },
   structures::{
     ast::{ExprKind, Span, Ty},
+    content::{Color, Content, Indent, Punct},
     diag::Diag,
     tir::{TirExpr, TirExprKind},
     types::{Inverted, Type, TypeKind},
     vir::{Port, PortKind},
   },
-  tools::fmt::{Formatter, doc::Doc},
+  tools::fmt::Formatter,
 };
 
 impl Parser<'_> {
@@ -40,12 +41,22 @@ impl Parser<'_> {
 }
 
 impl<'src> Formatter<'src> {
-  pub(crate) fn fmt_expr_nat(&self, lit_span: Span, ty: &Ty) -> Doc<'src> {
-    Doc::concat([self.fmt_verbatim(lit_span), Doc("["), self.fmt_ty(ty), Doc("]")])
+  pub(crate) fn fmt_expr_nat(&self, lit_span: Span, ty: &Ty) -> Content {
+    Content::even((
+      self.fmt_verbatim(Color::KEYWORD, lit_span),
+      Punct("["),
+      Indent::eager(self.fmt_ty(ty)),
+      Punct("]"),
+    ))
   }
 
-  pub(crate) fn fmt_expr_float(&self, lit_span: Span, ty: &Ty) -> Doc<'src> {
-    Doc::concat([self.fmt_verbatim(lit_span), Doc("["), self.fmt_ty(ty), Doc("]")])
+  pub(crate) fn fmt_expr_float(&self, lit_span: Span, ty: &Ty) -> Content {
+    Content::even((
+      self.fmt_verbatim(Color::KEYWORD, lit_span),
+      Punct("["),
+      Indent::eager(self.fmt_ty(ty)),
+      Punct("]"),
+    ))
   }
 }
 

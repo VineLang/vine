@@ -2,10 +2,11 @@ use crate::{
   components::resolver::Resolver,
   structures::{
     ast::{Pat, Span, Ty},
+    content::{Content, Punct, Space},
     diag::Diag,
     tir::TirPat,
   },
-  tools::fmt::{Formatter, doc::Doc},
+  tools::fmt::Formatter,
 };
 
 impl Resolver<'_> {
@@ -21,7 +22,7 @@ impl Resolver<'_> {
 }
 
 impl<'src> Formatter<'src> {
-  pub(crate) fn fmt_pat_annotation(&self, pat: &Pat, ty: &Ty) -> Doc<'src> {
-    Doc::concat([self.fmt_pat(pat), Doc(": "), self.fmt_ty(ty)])
+  pub(crate) fn fmt_pat_annotation(&self, pat: &Pat, ty: &Ty) -> Content {
+    Content::smart((self.fmt_pat(pat), Punct(":"), Space, self.fmt_ty(ty)))
   }
 }

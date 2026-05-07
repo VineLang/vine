@@ -21,7 +21,7 @@ use vine::{
     checkpoint::Checkpoint,
     diag::Diag,
   },
-  tools::fmt::Formatter,
+  tools::fmt::{DEFAULT_MAX_WIDTH, Formatter},
 };
 use vine_util::idx::IdxVec;
 
@@ -399,7 +399,7 @@ impl LanguageServer for Backend {
       }
     };
 
-    let Ok(formatted) = Formatter::fmt(&src) else {
+    let Ok(formatted) = Formatter::fmt(&src, DEFAULT_MAX_WIDTH) else {
       return Ok(None);
     };
     if formatted == src {

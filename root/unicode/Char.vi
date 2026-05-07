@@ -47,9 +47,15 @@ pub mod Char {
       char == ' ' or '\x09' <= char <= '\x0d' { true }
       char < '\u{0085}' { false }
       _ {
-        (char == '\u{0085}' or char == '\u{00A0}' or char == '\u{1680}' or '\u{2000}' <= char <= '\u{200a}') or (
-          char == '\u{2028}' or char == '\u{2029}' or char == '\u{202f}' or char == '\u{205f}' or char == '\u{3000}'
-        )
+        char == '\u{0085}'
+          or char == '\u{00A0}'
+          or char == '\u{1680}'
+          or '\u{2000}' <= char <= '\u{200a}'
+          or char == '\u{2028}'
+          or char == '\u{2029}'
+          or char == '\u{202f}'
+          or char == '\u{205f}'
+          or char == '\u{3000}'
       }
     }
   }

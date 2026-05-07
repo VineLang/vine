@@ -2,55 +2,63 @@ use crate::{
   components::{distiller::Distiller, resolver::Resolver},
   structures::{
     ast::{BinaryOp, ComparisonOp, Expr, Sign, Span},
+    content::{Content, Indent, Operator, Punct, Space},
     diag::Diag,
     resolutions::FnRelId,
     tir::{TirExpr, TirExprKind},
     types::{Type, TypeKind},
     vir::{Port, PortKind, Stage, Step},
   },
-  tools::fmt::{Formatter, doc::Doc},
+  tools::fmt::{Chain, ChainKind, Formatter},
 };
 
 impl<'src> Formatter<'src> {
-  pub(crate) fn fmt_expr_assign(&self, inverted: bool, space: &Expr, value: &Expr) -> Doc<'src> {
-    Doc::concat([
+  pub(crate) fn fmt_expr_assign(&self, inverted: bool, space: &Expr, value: &Expr) -> Content {
+    Content::smart((
       self.fmt_expr(space),
-      Doc(if inverted { " ~= " } else { " = " }),
-      self.fmt_expr(value),
-    ])
+      Space,
+      inverted.then_some(Punct("~")),
+      Punct("="),
+      Space,
+      Indent::lazy(self.fmt_expr(value)),
+    ))
   }
 
-  pub(crate) fn fmt_expr_sign(&self, sign: Sign, expr: &Expr) -> Doc<'src> {
-    Doc::concat([
-      Doc(match sign {
+  pub(crate) fn fmt_expr_sign(&self, sign: Sign, expr: &Expr) -> Content {
+    Content::even((
+      Operator(match sign {
         Sign::Pos => "+",
         Sign::Neg => "-",
       }),
       self.fmt_expr(expr),
-    ])
-  }
-
-  pub(crate) fn fmt_expr_binary_op(&self, op: &BinaryOp, lhs: &Expr, rhs: &Expr) -> Doc<'src> {
-    Doc::concat([self.fmt_expr(lhs), Doc(" "), Doc(op.as_str()), Doc(" "), self.fmt_expr(rhs)])
-  }
-
-  pub(crate) fn fmt_expr_binary_op_assign(
-    &self,
-    op: &BinaryOp,
-    lhs: &Expr,
-    rhs: &Expr,
-  ) -> Doc<'src> {
-    Doc::concat([self.fmt_expr(lhs), Doc(" "), Doc(op.as_str()), Doc("= "), self.fmt_expr(rhs)])
-  }
-
-  pub(crate) fn fmt_expr_comparison_op(
-    &self,
-    init: &Expr,
-    cmps: &[(ComparisonOp, Expr)],
-  ) -> Doc<'src> {
-    Doc::concat([self.fmt_expr(init)].into_iter().chain(
-      cmps.iter().flat_map(|(op, x)| [Doc(" "), Doc(op.as_str()), Doc(" "), self.fmt_expr(x)]),
     ))
+  }
+
+  pub(crate) fn fmt_expr_binary_op(&self, op: &BinaryOp, lhs: &Expr, rhs: &Expr) -> Chain {
+    self.chain_expr(lhs).chain(
+      ChainKind::BinaryOp(*op),
+      Content::even((Space, Operator(op.as_str()), Space, self.fmt_expr(rhs))),
+    )
+  }
+
+  pub(crate) fn fmt_expr_binary_op_assign(&self, op: &BinaryOp, lhs: &Expr, rhs: &Expr) -> Content {
+    Content::smart((
+      self.fmt_expr(lhs),
+      Space,
+      Operator(op.as_str()),
+      Operator("="),
+      Space,
+      Indent::lazy(self.fmt_expr(rhs)),
+    ))
+  }
+
+  pub(crate) fn fmt_expr_comparison_op(&self, init: &Expr, cmps: &[(ComparisonOp, Expr)]) -> Chain {
+    self.chain_expr(init).chains(
+      ChainKind::Comparison,
+      cmps
+        .iter()
+        .map(|(op, x)| Content::even((Space, Operator(op.as_str()), Space, self.fmt_expr(x)))),
+    )
   }
 }
 

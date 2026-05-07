@@ -10,7 +10,7 @@ pub impl to_string[
   Cast[Nat, Mantissa],
   Cast[Mantissa, Nat],
   BitOr[Mantissa, Mantissa, Mantissa],
-  Shl[Mantissa, N32, Mantissa];
+  Shl[Mantissa, N32, Mantissa]
 ]: Cast[F, String] {
   fn cast(f: F) -> String {
     if f.is_nan() {

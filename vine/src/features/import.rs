@@ -15,10 +15,11 @@ use crate::{
   structures::{
     ast::{Ident, ItemKind, Span, UseItem, UseTree},
     chart::{Binding, DefId, ImportDef, ImportId, ImportParent, MemberKind, VisId},
+    content::{Color, Colored, Content, Delimited, Delims, Keyword, Punct, Space},
     diag::{Diag, ErrorGuaranteed},
     signatures::ImportState,
   },
-  tools::fmt::{Formatter, doc::Doc},
+  tools::fmt::Formatter,
 };
 
 impl Parser<'_> {
@@ -91,47 +92,53 @@ impl Parser<'_> {
 }
 
 impl<'src> Formatter<'src> {
-  pub(crate) fn fmt_use_item(&self, u: &UseItem) -> Doc<'src> {
+  pub(crate) fn fmt_use_item(&self, u: &UseItem) -> Content {
     let mut trees = Vec::new();
     for (name, tree) in &u.absolute {
-      trees.push(Doc::concat([Doc("#"), self.fmt_use_tree(name.clone(), tree)]));
+      trees.push(Content::even((Punct("#"), self.fmt_use_tree(name.clone(), tree))));
     }
     for (name, tree) in &u.relative {
       trees.push(self.fmt_use_tree(name.clone(), tree));
     }
-    Doc::concat([
-      Doc("use "),
-      if trees.len() == 1 { trees.pop().unwrap() } else { Doc::brace_comma(trees.into_iter()) },
-      Doc(";"),
-    ])
+    Content::even((
+      Keyword("use"),
+      Space,
+      if trees.len() == 1 {
+        trees.pop().unwrap()
+      } else {
+        Content::even(Delimited::new(Delims::BRACE_COMMA_UNSPACED, trees))
+      },
+      Punct(";"),
+    ))
   }
 
-  pub(crate) fn fmt_use_tree(&self, name: Ident, tree: &UseTree) -> Doc<'src> {
-    let aliases =
-      tree.implicit.then(|| Doc::concat([Doc(name.clone()), Doc(" as _")])).into_iter().chain(
-        tree.aliases.iter().map(|alias| {
-          if alias == &name {
-            Doc(alias.clone())
-          } else {
-            Doc::concat([Doc(name.clone()), Doc(" as "), Doc(alias.clone())])
-          }
-        }),
-      );
+  pub(crate) fn fmt_use_tree(&self, name: Ident, tree: &UseTree) -> Content {
+    let mut aliases = tree
+      .implicit
+      .then(|| Content::even((name.clone(), Space, Keyword("as"), Space, Punct("_"))))
+      .into_iter()
+      .chain(tree.aliases.iter().map(|alias| {
+        if alias == &name {
+          Content::even(alias.clone())
+        } else {
+          Content::even((name.clone(), Space, Keyword("as"), Space, alias.clone()))
+        }
+      }));
     let aliases_len = tree.implicit as usize + tree.aliases.len();
     let mut children =
       tree.children.iter().map(|(name, child)| self.fmt_use_tree(name.clone(), child));
     if aliases_len == 1 && children.len() == 0 {
-      Doc::concat(aliases)
+      aliases.next().unwrap()
     } else {
-      Doc::concat([
-        Doc(name.clone()),
-        Doc("::"),
+      Content::even((
+        Colored(Color::VAGUE, name.0.clone()),
+        Punct("::"),
         if aliases_len == 0 && children.len() == 1 {
           children.next().unwrap()
         } else {
-          Doc::brace_comma(aliases.chain(children).collect::<Vec<_>>().into_iter())
+          Content::even(Delimited::new(Delims::BRACE_COMMA_UNSPACED, aliases.chain(children)))
         },
-      ])
+      ))
     }
   }
 }

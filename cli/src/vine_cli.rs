@@ -3,10 +3,11 @@ use std::{
   env,
   ffi::OsStr,
   fmt, fs,
-  io::{self, IsTerminal, Read, Write, stderr, stdin, stdout},
+  io::{self, IsTerminal, Read, StdoutLock, Write, stderr, stdin, stdout},
   path::{Path, PathBuf},
-  process::exit,
+  process::{Command, Stdio, exit},
   sync::mpsc,
+  thread,
   time::{Duration, Instant},
 };
 
@@ -33,10 +34,14 @@ use vine::{
   backend::{BackendConfig, Target, backend, vi_to_ivm},
   compiler::Compiler,
   components::loader::{FileId, Loader, RealFS},
-  structures::{ast::Ident, resolutions::FragmentId},
+  structures::{
+    ast::Ident,
+    content::{Color, Element, Length, Output, Surround, Writer},
+    resolutions::FragmentId,
+  },
   tools::{
     doc::document,
-    fmt::Formatter,
+    fmt::{DEFAULT_MAX_WIDTH, Formatter},
     repl::{self, Repl},
   },
 };
@@ -55,6 +60,7 @@ pub enum VineCommand {
   /// Run tests in a Vine program
   Test(VineTestCommand),
   Fmt(VineFmtCommand),
+  Show(VineShowCommand),
   Repl(VineReplCommand),
   Lsp(VineLspCommand),
 
@@ -74,6 +80,7 @@ impl VineCommand {
       VineCommand::Test(test) => test.execute(),
       VineCommand::Repl(repl) => repl.execute(),
       VineCommand::Fmt(fmt) => fmt.execute(),
+      VineCommand::Show(show) => show.execute(),
       VineCommand::Lsp(lsp) => lsp.execute(),
       VineCommand::Completion(completion) => completion.execute(),
       VineCommand::Doc(doc) => doc.execute(),
@@ -493,16 +500,18 @@ impl VineReplCommand {
 #[derive(Debug, Args)]
 pub struct VineFmtCommand {
   files: Option<Vec<PathBuf>>,
+  #[arg(long, default_value_t = DEFAULT_MAX_WIDTH)]
+  max_width: u16,
 }
 
 impl VineFmtCommand {
   pub fn execute(self) -> Result<()> {
     let mut success = true;
-    if let Some(files) = self.files {
+    if let Some(files) = &self.files {
       for path in files {
-        let src = fs::read_to_string(&path)?;
-        if let Some(out) = Self::fmt(path.display(), &src) {
-          fs::write(&path, out)?;
+        let src = fs::read_to_string(path)?;
+        if let Some(out) = self.fmt(path.display(), &src) {
+          fs::write(path, out)?;
         } else {
           success = false;
         }
@@ -510,7 +519,7 @@ impl VineFmtCommand {
     } else {
       let mut src = String::new();
       stdin().read_to_string(&mut src)?;
-      if let Some(out) = Self::fmt("input", &src) {
+      if let Some(out) = self.fmt("input", &src) {
         print!("{out}");
       } else {
         success = false;
@@ -522,12 +531,140 @@ impl VineFmtCommand {
     Ok(())
   }
 
-  fn fmt(path: impl fmt::Display, src: &str) -> Option<String> {
-    match Formatter::fmt(src) {
+  fn fmt(&self, path: impl fmt::Display, src: &str) -> Option<String> {
+    match Formatter::fmt(src, self.max_width) {
       Ok(out) => Some(out),
       Err(diag) => {
         eprintln!("error formatting {path}:\n{diag}");
         None
+      }
+    }
+  }
+}
+
+#[derive(Debug, Args)]
+pub struct VineShowCommand {
+  file: PathBuf,
+  #[arg(long, hide = true)]
+  watch: bool,
+}
+
+impl VineShowCommand {
+  pub fn execute(self) -> Result<()> {
+    let path = &self.file;
+    let src = fs::read_to_string(path)?;
+    let mut content = match Formatter::_fmt(&src) {
+      Ok(content) => content,
+      Err(diag) => {
+        eprintln!("parse error:\n{diag}");
+        exit(1);
+      }
+    };
+
+    if self.watch {
+      let mut last_size = (0, 0);
+      loop {
+        thread::sleep(Duration::from_millis(10));
+        let (width, height) = (tput("cols") - 1, tput("lines"));
+        if last_size == (width, height) {
+          continue;
+        }
+        last_size = (width, height);
+
+        print!("\x1b[3J\x1b[H\x1b[2J\x1b[?7l");
+        content.format(
+          &mut Writer::new(Length(width), &mut Windowed::new(width, height)),
+          Surround::EMPTY,
+        );
+      }
+    } else {
+      let width = tput("cols");
+      content.format(&mut Writer::new(Length(width), &mut Stdout::new()), Surround::EMPTY);
+    }
+
+    return Ok(());
+
+    fn tput(var: &str) -> u16 {
+      let output = Command::new("tput").arg(var).stderr(Stdio::inherit()).output().unwrap();
+      String::from_utf8(output.stdout).unwrap().trim().parse().unwrap()
+    }
+
+    struct Stdout {
+      stdout: StdoutLock<'static>,
+    }
+
+    impl Stdout {
+      fn new() -> Self {
+        Stdout { stdout: stdout().lock() }
+      }
+    }
+
+    impl Output for Stdout {
+      fn line(&mut self) {
+        writeln!(self.stdout).unwrap();
+      }
+
+      fn write_char(&mut self, Color(r, g, b): Color, char: char) {
+        write!(self.stdout, "\x1b[38;2;{r};{g};{b}m{char}").unwrap();
+      }
+
+      fn write(&mut self, Color(r, g, b): Color, str: &str) {
+        write!(self.stdout, "\x1b[38;2;{r};{g};{b}m{str}").unwrap();
+      }
+    }
+
+    struct Windowed {
+      stdout: Stdout,
+      width: u16,
+      height: u16,
+      x: u16,
+      y: u16,
+    }
+
+    impl Windowed {
+      fn new(width: u16, height: u16) -> Self {
+        Windowed { stdout: Stdout::new(), width, height, x: 0, y: 0 }
+      }
+
+      fn write_char(&mut self, char: char) {
+        self.x += 1;
+        if self.y >= self.height || self.x > self.width {
+          return;
+        }
+        write!(self.stdout.stdout, "{}", char).unwrap();
+      }
+    }
+
+    impl Output for Windowed {
+      fn line(&mut self) {
+        if self.y >= self.height {
+          return;
+        }
+        for _ in self.x..self.width {
+          self.stdout.write(Color::NORMAL, " ");
+        }
+        if self.x <= self.width {
+          self.stdout.write(Color::COMMENT, "╎");
+        } else {
+          self.stdout.write(Color::ERROR, "×");
+        }
+        self.x = 0;
+        self.y += 1;
+        if self.y < self.height {
+          self.stdout.line();
+        }
+      }
+
+      fn write_char(&mut self, color: Color, char: char) {
+        self.stdout.write(color, "");
+        self.write_char(char);
+      }
+
+      fn write(&mut self, color: Color, str: &str) {
+        self.stdout.write(color, "");
+        for char in str.chars() {
+          self.write_char(char);
+        }
       }
     }
   }

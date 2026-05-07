@@ -35,33 +35,21 @@ pub fn main(&io: &IO) {
       }
     }
     when {
-      opcode == 0 {
-        a >>= combo();
-      }
-      opcode == 1 {
-        b ^= operand;
-      }
-      opcode == 2 {
-        b = combo() & 7;
-      }
+      opcode == 0 { a >>= combo(); }
+      opcode == 1 { b ^= operand; }
+      opcode == 2 { b = combo() & 7; }
       opcode == 3 {
         if a != 0 {
           ip = operand - 2;
         }
       }
-      opcode == 4 {
-        b ^= c;
-      }
+      opcode == 4 { b ^= c; }
       opcode == 5 {
         let n = combo() & 7;
         output ++= [n];
       }
-      opcode == 6 {
-        b = a >> combo();
-      }
-      opcode == 7 {
-        c = a >> combo();
-      }
+      opcode == 6 { b = a >> combo(); }
+      opcode == 7 { c = a >> combo(); }
     }
     ip += 2;
   }

@@ -29,12 +29,8 @@ pub fn main(&io: &IO) {
           char == ',' { Input() }
           char == '.' { Output() }
           char == '[' { Loop(parse()) }
-          char == ']' {
-            break;
-          }
-          _ {
-            continue;
-          }
+          char == ']' { break; }
+          _ { continue; }
         },
       ];
     }

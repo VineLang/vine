@@ -2,6 +2,7 @@ pub mod annotations;
 pub mod ast;
 pub mod chart;
 pub mod checkpoint;
+pub mod content;
 pub mod diag;
 pub mod resolutions;
 pub mod signatures;

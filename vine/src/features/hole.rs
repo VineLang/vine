@@ -5,12 +5,13 @@ use crate::{
   structures::{
     ast::{ExprKind, Span, Ty},
     chart::{ConstId, TraitConstId},
+    content::{Content, Indent, Punct},
     diag::Diag,
     tir::{TirExpr, TirExprKind, TirPat, TirPatKind},
     types::{ImplType, Type},
     vir::{Port, Stage},
   },
-  tools::fmt::{Formatter, doc::Doc},
+  tools::fmt::Formatter,
 };
 
 impl<'src> Parser<'src> {
@@ -98,14 +99,10 @@ impl Distiller<'_> {
 }
 
 impl<'src> Formatter<'src> {
-  pub(crate) fn fmt_expr_hole(&self, ty: &Option<Ty>) -> Doc<'src> {
-    Doc::concat([
-      Doc("_"),
-      if let Some(ty) = ty {
-        Doc::concat([Doc("["), self.fmt_ty(ty), Doc("]")])
-      } else {
-        Doc::EMPTY
-      },
-    ])
+  pub(crate) fn fmt_expr_hole(&self, ty: &Option<Ty>) -> Content {
+    Content::even((
+      Punct("_"),
+      ty.as_ref().map(|ty| (Punct("["), Indent::eager(self.fmt_ty(ty)), Punct("]"))),
+    ))
   }
 }

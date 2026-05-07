@@ -3,17 +3,18 @@ use crate::{
   structures::{
     ast::{Expr, Span},
     chart::VariantId,
+    content::{Content, Keyword, Punct},
     diag::Diag,
     tir::{TirExpr, TirExprKind, TirLocal, TirPat, TirPatKind},
     types::{Type, TypeKind},
     vir::{Port, Stage, Step},
   },
-  tools::fmt::{Formatter, doc::Doc},
+  tools::fmt::{Chain, ChainKind, Formatter},
 };
 
 impl<'src> Formatter<'src> {
-  pub(crate) fn fmt_expr_try(&self, expr: &Expr) -> Doc<'src> {
-    Doc::concat([self.fmt_expr(expr), Doc(".try")])
+  pub(crate) fn fmt_expr_try(&self, expr: &Expr) -> Chain {
+    self.chain_expr(expr).chain(ChainKind::Postfix, Content::even((Punct("."), Keyword("try"))))
   }
 }
 

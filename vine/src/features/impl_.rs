@@ -17,13 +17,14 @@ use crate::{
       GenericsId, GenericsKind, ImplDef, ImplDefKind, ImplId, ImplSubitem, ImplSubitemKind,
       TraitConstId, TraitFnId, TraitId, VisId,
     },
+    content::{Content, Indent, Keyword, Punct, Space},
     diag::{Diag, ErrorGuaranteed},
     resolutions::{Become, ResolvedImpl, ResolvedImplKind},
     signatures::ImplSig,
     tir::TirImpl,
     types::{ImplType, Type, TypeCtx, TypeKind},
   },
-  tools::fmt::{Formatter, doc::Doc},
+  tools::fmt::Formatter,
 };
 
 impl Parser<'_> {
@@ -50,25 +51,29 @@ impl Parser<'_> {
 }
 
 impl<'src> Formatter<'src> {
-  pub(crate) fn fmt_impl_item(&self, i: &ImplItem) -> Doc<'src> {
-    Doc::concat([
-      Doc("impl "),
-      if let Some(name) = i.name.clone() { Doc(name) } else { Doc::EMPTY },
+  pub(crate) fn fmt_impl_item(&self, i: &ImplItem) -> Content {
+    Content::smart((
+      Keyword("impl"),
+      Space,
+      i.name.clone(),
       self.fmt_generic_params(&i.generics),
-      Doc(": "),
-      if i.safe { Doc("safe ") } else { Doc::EMPTY },
-      self.fmt_trait(&i.trait_),
+      Punct(":"),
+      Space,
+      Indent::eager(Content::even((
+        i.safe.then_some((Keyword("safe"), Space)),
+        self.fmt_trait(&i.trait_),
+      ))),
       match &i.kind {
-        ImplItemKind::Direct(span, items) => Doc::concat([
-          Doc(" "),
-          self.fmt_block_like(*span, items.iter().map(|i| (i.span, self.fmt_item(i)))),
-        ]),
+        ImplItemKind::Direct(span, items) => Content::even((
+          Space,
+          self.fmt_block_like(*span, true, items.iter().map(|i| (i.span, self.fmt_item(i)))),
+        )),
         ImplItemKind::Indirect(Some(impl_)) => {
-          Doc::concat([Doc(" = "), self.fmt_impl(impl_), Doc(";")])
+          Content::even((Space, Punct("="), Space, Indent::lazy(self.fmt_impl(impl_)), Punct(";")))
         }
-        ImplItemKind::Indirect(None) => Doc(";"),
+        ImplItemKind::Indirect(None) => Content::even(Punct(";")),
       },
-    ])
+    ))
   }
 }
 

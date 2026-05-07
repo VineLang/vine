@@ -70,33 +70,17 @@ type Mask = ((N32, N32), (N32, N32));
 
 fn get_bit(mask: Mask, n: N32) -> Bool {
   let (a, b) = mask;
-  let half = if n & 64 == 0 {
-    a
-  } else {
-    b
-  };
+  let half = if n & 64 == 0 { a } else { b };
   let (a, b) = half;
-  let word = if n & 32 == 0 {
-    a
-  } else {
-    b
-  };
+  let word = if n & 32 == 0 { a } else { b };
   word & (1 << n) != 0
 }
 
 fn set_bit(&mask: &Mask, n: N32, bit: Bool) {
   let &(a, b) = &mask;
-  let half = if n & 64 == 0 {
-    &a
-  } else {
-    &b
-  };
+  let half = if n & 64 == 0 { &a } else { &b };
   let &(a, b) = half;
-  let &word = if n & 32 == 0 {
-    &a
-  } else {
-    &b
-  };
+  let &word = if n & 32 == 0 { &a } else { &b };
   if bit {
     word |= (1 << n);
   } else {

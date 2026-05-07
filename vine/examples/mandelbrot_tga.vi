@@ -8,7 +8,8 @@ const scale: F32 = 2.6;
 const center: (F32, F32) = (-0.8, 0.0);
 
 pub fn main(&io: &IO) {
-  io.print_bytes([0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, width, width >> 8, height, height >> 8, 8, 32]);
+  io.print_bytes([0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+  io.print_bytes([width, width >> 8, height, height >> 8, 8, 32]);
   for j in 0..height {
     for i in 0..width {
       let pos = (i as F32 + 0.5, j as F32 + 0.5) - (width as F32, height as F32) / 2.0;

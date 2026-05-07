@@ -8,12 +8,13 @@ use crate::{
   structures::{
     ast::{Block, Expr, ExprKind, Path, Span, Ty, TyKind},
     chart::{Binding, ConstId, DefValueKind},
+    content::{Color, Compress, Content, Indent, IntoElement, Keyword, Punct, Space},
     diag::Diag,
     tir::{TirExpr, TirExprKind, TirImpl},
     types::{Type, TypeCtx, TypeKind, Types},
     vir::{Port, Stage},
   },
-  tools::fmt::{Formatter, doc::Doc},
+  tools::fmt::Formatter,
 };
 
 impl Parser<'_> {
@@ -57,18 +58,19 @@ impl<'src> Formatter<'src> {
     ty: &Option<Ty>,
     then: &Block,
     else_: &Option<Block>,
-  ) -> Doc<'src> {
-    Doc::concat([
-      Doc("if "),
-      self.fmt_expr(cond),
+    force_multi: bool,
+  ) -> Content {
+    Content::right((
+      Keyword("if"),
+      Space,
+      Indent::eager(self.fmt_expr(cond)),
       self.fmt_arrow_ty(ty),
-      Doc(" "),
-      self.fmt_block(then, true),
-      match else_ {
-        Some(else_) => Doc::concat([Doc(" else "), self.fmt_block(else_, true)]),
-        None => Doc(""),
-      },
-    ])
+      Space,
+      self._fmt_if_branches(
+        self.fmt_block(then, force_multi),
+        else_.as_ref().map(|else_| self.fmt_block(else_, force_multi)),
+      ),
+    ))
   }
 
   pub(crate) fn fmt_expr_if_const(
@@ -76,31 +78,44 @@ impl<'src> Formatter<'src> {
     cond: &Path,
     then: &Block,
     else_: &Option<Block>,
-  ) -> Doc<'src> {
-    Doc::concat([
-      Doc("if const "),
-      self.fmt_path(cond),
-      Doc(" "),
-      self.fmt_block(then, true),
-      match else_ {
-        Some(else_) => Doc::concat([Doc(" else "), self.fmt_block(else_, true)]),
-        None => Doc(""),
-      },
-    ])
+    force_multi: bool,
+  ) -> Content {
+    Content::right((
+      (Keyword("if"), Space),
+      (Keyword("const"), Space, self.fmt_path(Color::NORMAL, cond), Space),
+      self._fmt_if_branches(
+        self.fmt_block(then, force_multi),
+        else_.as_ref().map(|else_| self.fmt_block(else_, force_multi)),
+      ),
+    ))
   }
 
-  pub(crate) fn fmt_ty_if_const(&self, cond: &Path, then: &Ty, else_: &Option<Ty>) -> Doc<'src> {
-    Doc::concat([
-      Doc("if const "),
-      self.fmt_path(cond),
-      Doc(" { "),
-      self.fmt_ty(then),
-      Doc(" }"),
-      match else_ {
-        Some(else_) => Doc::concat([Doc(" else { "), self.fmt_ty(else_), Doc(" }")]),
-        None => Doc(""),
-      },
-    ])
+  pub(crate) fn fmt_ty_if_const(&self, cond: &Path, then: &Ty, else_: &Option<Ty>) -> Content {
+    Content::right((
+      (Keyword("if"), Space),
+      (Keyword("const"), Space, self.fmt_path(Color::NORMAL, cond), Space),
+      self._fmt_if_branches(
+        Content::even((Punct("{"), Space, Indent::eager(self.fmt_ty(then)), Space, Punct("}"))),
+        else_.as_ref().map(|else_| {
+          Content::even((Punct("{"), Space, Indent::eager(self.fmt_ty(else_)), Space, Punct("}")))
+        }),
+      ),
+    ))
+  }
+
+  fn _fmt_if_branches(&self, then: Content, else_: Option<Content>) -> Content {
+    match else_ {
+      None => then,
+      Some(else_) => {
+        let mut then = then.into_element();
+        let mut else_ = else_.into_element();
+        if then.measure().max.is_multi() || else_.measure().max.is_multi() {
+          then = Compress::new(then).into_element();
+          else_ = Compress::new(else_).into_element();
+        }
+        Content::even((then, Space, Keyword("else"), Space, else_))
+      }
+    }
   }
 }
 

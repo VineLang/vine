@@ -5,9 +5,7 @@ pub fn main(&io: &IO) {
   let write_file = File::create(&io, "vine-file-test.txt");
   io.println("Creating a file should succeed: {write_file.show()}");
 
-  assert write_file is Ok(write_file) else {
-    return;
-  }
+  assert write_file is Ok(write_file) else { return; }
 
   write_file.write_bytes(&io, "Tripterygium wilfordii, or "!.map(fn* (c: Char) { c as N32 }));
   write_file.write_string(&io, "雷公藤.");

@@ -15,12 +15,13 @@ use crate::{
   },
   structures::{
     ast::{Expr, ExprKind, Ident, Key, Pat, PatKind, Span, Ty, TyKind},
+    content::{Color, Colored, Content, Delimited, Delims, Indent, Punct, Space},
     diag::{Diag, ErrorGuaranteed},
     tir::{TirExpr, TirExprKind, TirImpl, TirPat, TirPatKind},
     types::{Inverted, Type, TypeCtx, TypeKind, Types},
     vir::{Layer, Port, Stage, Step},
   },
-  tools::fmt::{Formatter, doc::Doc},
+  tools::fmt::{Chain, ChainKind, Formatter},
 };
 
 impl Parser<'_> {
@@ -150,72 +151,85 @@ impl Parser<'_> {
 }
 
 impl<'src> Formatter<'src> {
-  pub(crate) fn fmt_expr_tuple(&self, t: &[Expr]) -> Doc<'src> {
-    Doc::tuple(t.iter().map(|x| self.fmt_expr(x)))
+  pub(crate) fn fmt_expr_tuple(&self, t: &[Expr]) -> Content {
+    let delims = if t.len() == 1 { Delims::TUPLE } else { Delims::PAREN_COMMA };
+    Content::even(Delimited::new(delims, t.iter().map(|x| self.fmt_expr(x))))
   }
 
-  pub(crate) fn fmt_expr_tuple_field(&self, expr: &Expr, index: usize) -> Doc<'src> {
-    Doc::concat([self.fmt_expr(expr), Doc("."), Doc(format!("{index}"))])
+  pub(crate) fn fmt_expr_tuple_field(&self, expr: &Expr, index: usize) -> Chain {
+    self.chain_expr(expr).chain(
+      ChainKind::Postfix,
+      Content::even((Punct("."), Colored(Color::KEYWORD, format!("{index}")))),
+    )
   }
 
-  pub(crate) fn fmt_pat_tuple(&self, t: &[Pat]) -> Doc<'src> {
-    Doc::tuple(t.iter().map(|x| self.fmt_pat(x)))
+  pub(crate) fn fmt_pat_tuple(&self, t: &[Pat]) -> Content {
+    let delims = if t.len() == 1 { Delims::TUPLE } else { Delims::PAREN_COMMA };
+    Content::even(Delimited::new(delims, t.iter().map(|x| self.fmt_pat(x))))
   }
 
-  pub(crate) fn fmt_ty_tuple(&self, elements: &[Ty]) -> Doc<'src> {
-    Doc::tuple(elements.iter().map(|x| self.fmt_ty(x)))
+  pub(crate) fn fmt_ty_tuple(&self, t: &[Ty]) -> Content {
+    let delims = if t.len() == 1 { Delims::TUPLE } else { Delims::PAREN_COMMA };
+    Content::even(Delimited::new(delims, t.iter().map(|x| self.fmt_ty(x))))
   }
 
-  pub(crate) fn fmt_expr_object(&self, entries: &[(Key, Expr)]) -> Doc<'src> {
-    Doc::brace_comma_space(entries.iter().map(|(key, expr)| {
-      if let ExprKind::Path(path, None) = &*expr.kind
-        && let Some(i) = path.as_ident()
-        && key.ident == i
-      {
-        return Doc(key.ident.clone());
-      }
-      Doc::concat([Doc(key.ident.clone()), Doc(": "), self.fmt_expr(expr)])
-    }))
+  pub(crate) fn fmt_expr_object(&self, entries: &[(Key, Expr)]) -> Content {
+    Content::even(Delimited::new(
+      Delims::BRACE_COMMA,
+      entries.iter().map(|(key, expr)| {
+        Content::even((
+          key.ident.clone(),
+          if let ExprKind::Path(path, None) = &*expr.kind
+            && let Some(i) = path.as_ident()
+            && key.ident == i
+          {
+            None
+          } else {
+            Some((Punct(":"), Space, Indent::lazy(self.fmt_expr(expr))))
+          },
+        ))
+      }),
+    ))
   }
 
-  pub(crate) fn fmt_expr_object_field(&self, expr: &Expr, key: &Key) -> Doc<'src> {
-    Doc::concat([self.fmt_expr(expr), Doc("."), Doc(key.ident.clone())])
+  pub(crate) fn fmt_expr_object_field(&self, expr: &Expr, key: &Key) -> Chain {
+    self.chain_expr(expr).chain(ChainKind::Postfix, Content::even((Punct("."), key.ident.clone())))
   }
 
-  pub(crate) fn fmt_pat_object(&self, entries: &[(Key, Pat)]) -> Doc<'src> {
-    Doc::brace_comma_space(entries.iter().map(|(key, pat)| {
-      let (pat, ty) = match &*pat.kind {
-        PatKind::Annotation(p, t) => (p, Some(t)),
-        _ => (pat, None),
-      };
-      let pat = if let PatKind::Path(path, None) = &*pat.kind {
-        if let Some(i) = path.as_ident() {
-          if key.ident == i { None } else { Some(pat) }
+  pub(crate) fn fmt_pat_object(&self, entries: &[(Key, Pat)]) -> Content {
+    Content::even(Delimited::new(
+      Delims::BRACE_COMMA,
+      entries.iter().map(|(key, pat)| {
+        let (pat, ty) = match &*pat.kind {
+          PatKind::Annotation(p, t) => (p, Some(t)),
+          _ => (pat, None),
+        };
+        let pat = if let PatKind::Path(path, None) = &*pat.kind {
+          if let Some(i) = path.as_ident() {
+            if key.ident == i { None } else { Some(pat) }
+          } else {
+            Some(pat)
+          }
         } else {
           Some(pat)
-        }
-      } else {
-        Some(pat)
-      };
-      match (pat, ty) {
-        (None, None) => Doc(key.ident.clone()),
-        (Some(pat), None) => Doc::concat([Doc(key.ident.clone()), Doc(": "), self.fmt_pat(pat)]),
-        (None, Some(ty)) => Doc::concat([Doc(key.ident.clone()), Doc(":: "), self.fmt_ty(ty)]),
-        (Some(pat), Some(ty)) => Doc::concat([
-          Doc(key.ident.clone()),
-          Doc(": "),
-          self.fmt_pat(pat),
-          Doc(": "),
-          self.fmt_ty(ty),
-        ]),
-      }
-    }))
+        };
+        Content::even((
+          key.ident.clone(),
+          (pat.is_some() || ty.is_some()).then_some(Punct(":")),
+          pat.as_ref().map(|pat| (Space, Indent::lazy(self.fmt_pat(pat)))),
+          ty.as_ref().map(|ty| (Punct(":"), Space, Indent::lazy(self.fmt_ty(ty)))),
+        ))
+      }),
+    ))
   }
 
-  pub(crate) fn fmt_ty_object(&self, entries: &[(Key, Ty)]) -> Doc<'src> {
-    Doc::brace_comma_space(
-      entries.iter().map(|(k, t)| Doc::concat([Doc(k.ident.clone()), Doc(": "), self.fmt_ty(t)])),
-    )
+  pub(crate) fn fmt_ty_object(&self, entries: &[(Key, Ty)]) -> Content {
+    Content::even(Delimited::new(
+      Delims::BRACE_COMMA,
+      entries.iter().map(|(k, t)| {
+        Content::even((k.ident.clone(), Punct(":"), Space, Indent::lazy(self.fmt_ty(t))))
+      }),
+    ))
   }
 }
 

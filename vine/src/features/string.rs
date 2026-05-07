@@ -10,12 +10,13 @@ use crate::{
   },
   structures::{
     ast::{Expr, ExprKind, Span, StringSegment},
+    content::{Color, Content, Indent},
     diag::Diag,
     tir::{TirExpr, TirExprKind},
     types::Type,
     vir::{Port, PortKind, Stage, Step},
   },
-  tools::fmt::{Formatter, doc::Doc},
+  tools::fmt::Formatter,
 };
 
 impl<'src> Parser<'src> {
@@ -193,14 +194,13 @@ impl<'src> Formatter<'src> {
     &self,
     init: &StringSegment,
     rest: &[(Expr, StringSegment)],
-  ) -> Doc<'src> {
-    Doc::concat(
-      [self.fmt_verbatim(init.span)].into_iter().chain(
-        rest
-          .iter()
-          .flat_map(|(expr, seg)| [Doc::group([self.fmt_expr(expr)]), self.fmt_verbatim(seg.span)]),
-      ),
-    )
+  ) -> Content {
+    Content::even((
+      self.fmt_verbatim(Color::STRING, init.span),
+      Content::even(Content::all(rest.iter().map(|(expr, seg)| {
+        (Indent::eager(self.fmt_expr(expr)), self.fmt_verbatim(Color::STRING, seg.span))
+      }))),
+    ))
   }
 }
 

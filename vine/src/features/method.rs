@@ -3,11 +3,12 @@ use crate::{
   structures::{
     ast::{Expr, GenericArgs, Ident, Span},
     chart::FnId,
+    content::{Color, Colored, Content, Delimited, Delims, Punct},
     diag::{Diag, ErrorGuaranteed},
     tir::{TirExpr, TirExprKind},
     types::{Inverted, Type, TypeCtx, TypeKind},
   },
-  tools::fmt::{Formatter, doc::Doc},
+  tools::fmt::{Chain, ChainKind, Formatter},
 };
 
 impl<'src> Formatter<'src> {
@@ -17,14 +18,19 @@ impl<'src> Formatter<'src> {
     name: &Ident,
     generics: &GenericArgs,
     args: &[Expr],
-  ) -> Doc<'src> {
-    Doc::concat([
-      self.fmt_expr(receiver),
-      Doc("."),
-      Doc(name.clone()),
-      self.fmt_generic_args(generics),
-      Doc::paren_comma(args.iter().map(|x| self.fmt_expr(x))),
-    ])
+  ) -> Chain {
+    self.chain_expr(receiver).chain(
+      ChainKind::Postfix,
+      Content::smart((
+        Punct("."),
+        Colored(Color::SPECIAL, name.0.clone()),
+        self.fmt_generic_args(generics),
+        Delimited::new(Delims::PAREN_COMMA, args.iter().map(|x| self.fmt_expr(x)))
+          .omit_unary_separators(true)
+          .allow_final_multi(true)
+          .break_final(args.len() == 1),
+      )),
+    )
   }
 }
 

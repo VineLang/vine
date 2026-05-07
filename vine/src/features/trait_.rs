@@ -15,11 +15,12 @@ use crate::{
       ConstId, DefId, DefTraitKind, DefValueKind, FnId, GenericsDef, GenericsId, GenericsKind,
       TraitConst, TraitConstId, TraitDef, TraitFn, TraitFnId, TraitId, VisId,
     },
+    content::{Content, Delimited, Delims, Keyword, Space},
     diag::Diag,
     signatures::{ConstSig, FnSig, TraitSig},
     types::TypeCtx,
   },
-  tools::fmt::{Formatter, doc::Doc},
+  tools::fmt::Formatter,
 };
 
 impl Parser<'_> {
@@ -40,16 +41,19 @@ impl Parser<'_> {
 }
 
 impl<'src> Formatter<'src> {
-  pub(crate) fn fmt_trait_item(&self, t: &TraitItem) -> Doc<'src> {
-    Doc::concat([
-      Doc("trait"),
-      Doc::bracket_comma(t.inherent_params.iter().map(|p| self.fmt_type_param(p))),
-      Doc(" "),
-      Doc(t.name.clone()),
+  pub(crate) fn fmt_trait_item(&self, t: &TraitItem) -> Content {
+    Content::even((
+      Keyword("trait"),
+      Delimited::new(
+        Delims::BRACKET_COMMA,
+        t.inherent_params.iter().map(|p| self.fmt_type_param(p)),
+      ),
+      Space,
+      t.name.clone(),
       self.fmt_generic_params(&t.generics),
-      Doc(" "),
-      self.fmt_block_like(t.items_span, t.items.iter().map(|i| (i.span, self.fmt_item(i)))),
-    ])
+      Space,
+      self.fmt_block_like(t.items_span, true, t.items.iter().map(|i| (i.span, self.fmt_item(i)))),
+    ))
   }
 }
 

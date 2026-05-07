@@ -32,9 +32,7 @@ fn run(&io: &IO, a: Bool, b: Bool, c: Bool, d: Bool) {
       }
       io.print("5");
     }
-    _ {
-      io.print("6");
-    }
+    _ { io.print("6"); }
   }
   io.print("\n\n");
 }

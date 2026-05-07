@@ -21,11 +21,7 @@ pub fn main(&io: &IO) {
   for a in iter_a {
     let (b, _iter_b) = iter_b.advance().assume();
     iter_b = _iter_b;
-    total_dist += if a > b {
-      a - b
-    } else {
-      b - a
-    };
+    total_dist += if a > b { a - b } else { b - a };
   }
 
   io.println("Total Distance: {total_dist}");

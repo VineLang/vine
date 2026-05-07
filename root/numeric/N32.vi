@@ -163,11 +163,7 @@ pub mod N32 {
     let chars = [];
     loop {
       let nibble = n & 15;
-      let nibble = if nibble < 10 {
-        '0' + nibble
-      } else {
-        'a' - 10 + nibble
-      };
+      let nibble = if nibble < 10 { '0' + nibble } else { 'a' - 10 + nibble };
       chars.push_front(nibble);
       n >>= 4;
       if n != 0 {

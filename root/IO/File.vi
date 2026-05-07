@@ -42,18 +42,11 @@ pub mod File {
 
   /// Reads the next byte in the file, returning `None()` on EOF.
   pub fn .read_byte(&self: &File, &io: &IO) -> Result[Option[N32], Error] {
-    let result: Ext = safe $ivy { ${io} = vi:ext#2[root:io:file:read_byte](
-      ${self}
-      ^
-      ${~io}
-      ${~self}
-    ) };
+    let result: Ext = safe $ivy {
+      ${io} = vi:ext#2[root:io:file:read_byte](${self} ^ ${~io} ${~self})
+    };
     let byte = (result as Result[N32, Error]).try;
-    Ok(if byte == N32::maximum {
-      None()
-    } else {
-      Some(byte)
-    })
+    Ok(if byte == N32::maximum { None() } else { Some(byte) })
   }
 
   /// Reads all remaining data in the file into a `String`.
@@ -71,18 +64,11 @@ pub mod File {
   /// sequence of bytes are not a valid UTF-8 character, the UTF-8 replacement
   /// character is returned.
   pub fn .read_char(&self: &File, &io: &IO) -> Result[Option[Char], Error] {
-    let result: Ext = safe $ivy { ${io} = vi:ext#2[root:io:file:read_char](
-      ${self}
-      ^
-      ${~io}
-      ${~self}
-    ) };
+    let result: Ext = safe $ivy {
+      ${io} = vi:ext#2[root:io:file:read_char](${self} ^ ${~io} ${~self})
+    };
     let char = (result as Result[Char, Error]).try;
-    Ok(if char == N32::maximum as Char {
-      None()
-    } else {
-      Some(char)
-    })
+    Ok(if char == N32::maximum as Char { None() } else { Some(char) })
   }
 
   /// Writes the list of bytes into the file.
@@ -96,13 +82,9 @@ pub mod File {
 
   /// Writes a byte to the file.
   pub fn .write_byte(&self: &File, &io: &IO, byte: N32) -> Result[(), Error] {
-    let result: Ext = safe $ivy { ${io} = vi:ext#3[root:io:file:write_byte](
-      ${self}
-      ${byte}
-      ^
-      ${~io}
-      ${~self}
-    ) };
+    let result: Ext = safe $ivy {
+      ${io} = vi:ext#3[root:io:file:write_byte](${self} ${byte} ^ ${~io} ${~self})
+    };
     result as Result[(), Error]
   }
 
@@ -117,13 +99,9 @@ pub mod File {
 
   /// Writes a char to the file.
   pub fn .write_char(&self: &File, &io: &IO, char: Char) -> Result[(), Error] {
-    let result: Ext = safe $ivy { ${io} = vi:ext#3[root:io:file:write_char](
-      ${self}
-      ${char}
-      ^
-      ${~io}
-      ${~self}
-    ) };
+    let result: Ext = safe $ivy {
+      ${io} = vi:ext#3[root:io:file:write_char](${self} ${char} ^ ${~io} ${~self})
+    };
     result as Result[(), Error]
   }
 
@@ -176,7 +154,9 @@ pub mod File {
     }
 
     pub fn .message(&self: &ExtError) -> String {
-      let message: Ext[String] = safe $ivy { ${self} = vi:ext#1[root:io:error:message](^ ${~self}) };
+      let message: Ext[String] = safe $ivy {
+        ${self} = vi:ext#1[root:io:error:message](^ ${~self})
+      };
       message as String
     }
 

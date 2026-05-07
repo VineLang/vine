@@ -9,12 +9,13 @@ use crate::{
   },
   structures::{
     ast::{Block, Expr, ExprKind, Label, Span, Target, Ty},
+    content::{Content, Delimited, Delims, Keyword, Punct, Space},
     diag::Diag,
     tir::{TargetId, TirExpr, TirExprKind},
     types::Type,
     vir::{Port, Stage, Transfer},
   },
-  tools::fmt::{Formatter, doc::Doc},
+  tools::fmt::Formatter,
 };
 
 impl Parser<'_> {
@@ -42,21 +43,25 @@ impl<'src> Formatter<'src> {
     ty: &Option<Ty>,
     arms: &[(Expr, Block)],
     leg: &Option<Block>,
-  ) -> Doc<'src> {
-    Doc::concat([
-      Doc("when"),
+  ) -> Content {
+    Content::even((
+      Keyword("when"),
       self.fmt_label(label),
       self.fmt_arrow_ty(ty),
-      Doc(" "),
-      Doc::brace_multiline(
+      Space,
+      Delimited::new(
+        Delims::BRACE,
         arms
           .iter()
           .map(|(cond, block)| {
-            Doc::concat([self.fmt_expr(cond), Doc(" "), self.fmt_block(block, false)])
+            Content::right((self.fmt_expr(cond), Space, self.fmt_block(block, false)))
           })
-          .chain(leg.iter().flat_map(|leg| [Doc::concat([Doc("_ "), self.fmt_block(leg, false)])])),
-      ),
-    ])
+          .chain(
+            leg.iter().map(|leg| Content::right((Punct("_"), Space, self.fmt_block(leg, false)))),
+          ),
+      )
+      .force_multi(true),
+    ))
   }
 }
 

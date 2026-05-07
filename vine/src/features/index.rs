@@ -6,17 +6,21 @@ use crate::{
   structures::{
     ast::{Expr, Span},
     chart::{FnId, TraitFnId},
+    content::{Content, Punct},
     diag::Diag,
     tir::{TirExpr, TirExprKind},
     types::{ImplType, Type},
     vir::{Port, PortKind, Stage, Step},
   },
-  tools::fmt::{Formatter, doc::Doc},
+  tools::fmt::{Chain, ChainKind, Formatter},
 };
 
 impl<'src> Formatter<'src> {
-  pub(crate) fn fmt_expr_index(&self, expr: &Expr, index: &Expr) -> Doc<'src> {
-    Doc::concat([self.fmt_expr(expr), Doc(".["), self.fmt_expr(index), Doc("]")])
+  pub(crate) fn fmt_expr_index(&self, expr: &Expr, index: &Expr) -> Chain {
+    self.chain_expr(expr).chain(
+      ChainKind::Postfix,
+      Content::even((Punct("."), Punct("["), self.fmt_expr(index), Punct("]"))),
+    )
   }
 }
 

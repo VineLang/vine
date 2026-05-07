@@ -11,12 +11,13 @@ use crate::{
   },
   structures::{
     ast::{Expr, ExprKind, Pat, PatKind, Span, Ty, TyKind},
+    content::{Content, Operator, Punct},
     diag::Diag,
     tir::{TirExpr, TirExprKind, TirPat, TirPatKind},
     types::{Type, TypeKind},
     vir::{Layer, Port, Stage, Step},
   },
-  tools::fmt::{Formatter, doc::Doc},
+  tools::fmt::{Chain, ChainKind, Formatter},
 };
 
 impl Parser<'_> {
@@ -77,32 +78,32 @@ impl Parser<'_> {
 }
 
 impl<'src> Formatter<'src> {
-  pub(crate) fn fmt_expr_ref(&self, expr: &Expr, postfix: bool) -> Doc<'src> {
+  pub(crate) fn fmt_expr_ref(&self, expr: &Expr, postfix: bool) -> Chain {
     if postfix {
-      Doc::concat([self.fmt_expr(expr), Doc(".&")])
+      self.chain_expr(expr).chain(ChainKind::Postfix, Content::even((Punct("."), Operator("&"))))
     } else {
-      Doc::concat([Doc("&"), self.fmt_expr(expr)])
+      Chain::new(Content::even((Operator("&"), self.fmt_expr(expr))))
     }
   }
 
-  pub(crate) fn fmt_expr_deref(&self, expr: &Expr, postfix: bool) -> Doc<'src> {
+  pub(crate) fn fmt_expr_deref(&self, expr: &Expr, postfix: bool) -> Chain {
     if postfix {
-      Doc::concat([self.fmt_expr(expr), Doc(".*")])
+      self.chain_expr(expr).chain(ChainKind::Postfix, Content::even((Punct("."), Operator("*"))))
     } else {
-      Doc::concat([Doc("*"), self.fmt_expr(expr)])
+      Chain::new(Content::even((Operator("*"), self.fmt_expr(expr))))
     }
   }
 
-  pub(crate) fn fmt_pat_ref(&self, pat: &Pat) -> Doc<'src> {
-    Doc::concat([Doc("&"), self.fmt_pat(pat)])
+  pub(crate) fn fmt_pat_ref(&self, pat: &Pat) -> Content {
+    Content::even((Operator("&"), self.fmt_pat(pat)))
   }
 
-  pub(crate) fn fmt_pat_deref(&self, pat: &Pat) -> Doc<'src> {
-    Doc::concat([Doc("*"), self.fmt_pat(pat)])
+  pub(crate) fn fmt_pat_deref(&self, pat: &Pat) -> Content {
+    Content::even((Operator("*"), self.fmt_pat(pat)))
   }
 
-  pub(crate) fn fmt_ty_ref(&self, ty: &Ty) -> Doc<'src> {
-    Doc::concat([Doc("&"), self.fmt_ty(ty)])
+  pub(crate) fn fmt_ty_ref(&self, ty: &Ty) -> Content {
+    Content::even((Operator("&"), self.fmt_ty(ty)))
   }
 }
 

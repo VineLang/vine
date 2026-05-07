@@ -9,13 +9,10 @@ const len: N32 = 100_000;
 pub fn main(&io: &IO) {
   let i = 0;
   let rng = Pcg32::seeded("Nils made me seed this");
-  let list = List::from_fn(
-    len,
-    fn* () {
-      i += 1;
-      (rng.gen_n32() % 100, i)
-    },
-  );
+  let list = List::from_fn(len, fn* () {
+    i += 1;
+    (rng.gen_n32() % 100, i)
+  });
 
   list.sort[; ord_first]();
   io.println("{list.is_sorted()}");

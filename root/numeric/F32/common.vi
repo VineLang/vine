@@ -24,19 +24,11 @@ pub fn apply_exponent(frac: F32, exp: I32) -> F32 {
   exp += ((x >> num_mantissa_bits) as N32 & exp_mask) as I32 - max_exponent;
   if exp < -149 {
     // underflow
-    return if frac < 0.0 {
-      -0.0
-    } else {
-      0.0
-    };
+    return if frac < 0.0 { -0.0 } else { 0.0 };
   }
   if exp > +127 {
     // overflow
-    return if frac < 0.0 {
-      F32::neg_inf
-    } else {
-      F32::inf
-    };
+    return if frac < 0.0 { F32::neg_inf } else { F32::inf };
   }
   let m = 1.0;
   if exp < -126 {

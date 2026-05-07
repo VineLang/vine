@@ -202,9 +202,7 @@ pub mod Iterator[I, T; Iterator[I, T]] {
               iter = rest;
               continue;
             }
-            None() {
-              return Some(chunk, Chunks(None(), size));
-            }
+            None() { return Some(chunk, Chunks(None(), size)); }
           }
         }
       }
@@ -280,7 +278,7 @@ pub mod Iterator[I, T; Iterator[I, T]] {
 
     pub impl iter_tuple[
       IS, I, IR, TS, T, TR;
-      Tuple[IS, I, IR], Iterator[I, T], Iterator[Zip[IR], TR], Tuple[TS, T, TR];
+      Tuple[IS, I, IR], Iterator[I, T], Iterator[Zip[IR], TR], Tuple[TS, T, TR]
     ]: Iterator[Zip[IS], TS] {
       fn advance(Zip[IS](iters)) -> Option[(TS, Zip[IS])] {
         let (i, ir) = iters as (I, IR);
@@ -315,7 +313,7 @@ pub mod Iterator[I, T; Iterator[I, T]] {
       Tuple[TS, T, TR],
       Drop[I],
       Drop[IR],
-      Drop[T];
+      Drop[T]
     ]: Iterator[ZipShortest[IS], TS] {
       fn advance(ZipShortest[IS](iters)) -> Option[(TS, ZipShortest[IS])] {
         let (i, ir) = iters as (I, IR);
@@ -353,9 +351,10 @@ pub mod Iterator[I, T; Iterator[I, T]] {
     }
   }
 
-  pub fn .flat_map[... J, U, F*; fn F(T) -> J, Iterator[J, T]](iter: I, f: F) -> Flatten[
-    Map[I, F], J;
-  ] {
+  pub fn .flat_map[...
+    J, U, F*;
+    fn F(T) -> J, Iterator[J, T]
+  ](iter: I, f: F) -> Flatten[Map[I, F], J] {
     iter.map(f).flatten()
   }
 
@@ -434,16 +433,15 @@ pub mod Iterator[I, T; Iterator[I, T]] {
   }
 
   pub mod Windows {
-    pub impl iter[I, T, W, R; Iterator[I, T], Tuple[W, T, R], Window[R, T], Fork[R], Drop[R]]: Iterator[
-      Windows[I, R], W;
-    ] {
+    pub impl iter[
+      I, T, W, R;
+      Iterator[I, T], Tuple[W, T, R], Window[R, T], Fork[R], Drop[R]
+    ]: Iterator[Windows[I, R], W] {
       fn advance(Windows[I, R](rest, iter)) -> Option[(W, Windows[I, R])] {
         let (rest, iter) = when {
           rest is Some(rest) { (rest, iter) }
           Window::start[R, T, I](iter) is Some(rest, iter) { (rest, iter) }
-          _ {
-            return None();
-          }
+          _ { return None(); }
         };
         if iter.advance() is Some(value, iter) {
           let init = rest.shift(value);
@@ -641,11 +639,7 @@ pub mod Iterate {
 
   pub impl iterate_tuple[
     Cs, C, Cr, Is, I, Ir, Ts, T, Tr;
-    Tuple[Cs, C, Cr],
-    Iterate[C, I, T],
-    Iterate[Cr, Zip[Ir], Tr],
-    Tuple[Is, I, Ir],
-    Tuple[Ts, T, Tr];
+    Tuple[Cs, C, Cr], Iterate[C, I, T], Iterate[Cr, Zip[Ir], Tr], Tuple[Is, I, Ir], Tuple[Ts, T, Tr]
   ]: Iterate[Cs, Zip[Is], Ts] {
     fn iter(cs: Cs) -> Zip[Is] {
       let (c, cr) = cs as (C, Cr);
