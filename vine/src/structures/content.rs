@@ -443,3 +443,22 @@ impl Element for Compress {
     self.0.format(writer, Surround::MAX);
   }
 }
+
+/// Prevents its child from breaking if possible.
+pub struct Rigid(Box<dyn Element>);
+
+impl Rigid {
+  pub fn new<E: IntoElement>(element: E) -> Self {
+    Rigid(element.into_element())
+  }
+}
+
+impl Element for Rigid {
+  fn measure(&mut self) -> Shapes {
+    Shapes::from(self.0.measure().max)
+  }
+
+  fn format(&mut self, writer: &mut Writer, surround: Surround) {
+    self.0.format(writer, surround);
+  }
+}

@@ -19,7 +19,7 @@ use crate::{
       Stmt, StmtKind, Ty,
     },
     chart::{ConcreteFnDef, ConcreteFnId, DefId, DefValueKind, FnId, GenericsId, TraitFnId, VisId},
-    content::{Color, Colored, Content, Delimited, Delims, Indent, Keyword, Punct, Space},
+    content::{Color, Colored, Content, Delimited, Delims, Indent, Keyword, Punct, Rigid, Space},
     diag::Diag,
     resolutions::{FnRelId, Fragment},
     signatures::FnSig,
@@ -107,10 +107,10 @@ impl<'src> Formatter<'src> {
   ) -> Content {
     Content::right((
       (Keyword("fn"), self.fmt_flex(*flex), Space),
-      Content::smart((
+      Rigid::new(Content::smart((
         Delimited::new(Delims::PAREN_COMMA, params.iter().map(|p| self.fmt_pat(p))),
         self.fmt_arrow_ty(ty),
-      )),
+      ))),
       Space,
       self.fmt_block(body, false),
     ))

@@ -156,21 +156,21 @@ pub fn construct_torus[
   type W[T] = (T, T, T);
   type E[T] = (T, T, T);
 
-  construct_torus_ortho(width, height, fn* (
-    i,
-    j,
-    TorusOrthoNeighbors[N[T], S[T], W[T], E[T]]({ n, s, w, e }),
-  ) {
-    let (w_se, w, sw) = w;
-    let (se, e, e_sw) = e;
-    let (n_w, n, n_e) = n;
-    let (s_nw, s, s_ne) = s;
-    let nw = n_w.recv();
-    let ne = n_e.recv();
-    s_nw.send(w_se);
-    s_ne.send(e_sw);
-    f(i, j, TorusNeighbors({ nw, n, ne, w, e, sw, s, se }));
-  })
+  construct_torus_ortho(
+    width,
+    height,
+    fn* (i, j, TorusOrthoNeighbors[N[T], S[T], W[T], E[T]]({ n, s, w, e })) {
+      let (w_se, w, sw) = w;
+      let (se, e, e_sw) = e;
+      let (n_w, n, n_e) = n;
+      let (s_nw, s, s_ne) = s;
+      let nw = n_w.recv();
+      let ne = n_e.recv();
+      s_nw.send(w_se);
+      s_ne.send(e_sw);
+      f(i, j, TorusNeighbors({ nw, n, ne, w, e, sw, s, se }));
+    },
+  )
 }
 
 pub enum? Signal {
