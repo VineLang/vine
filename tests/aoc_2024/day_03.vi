@@ -6,13 +6,15 @@ pub fn main(&io: &IO) {
 
   io.println("Part 1: {part1}");
 
-  let part2 = get_muls(input
-    .split("do()")
-    .map(fn* (x: String) {
-      let (a, _) = x.split_once("don't()");
-      a
-    })
-    .join("")
+  let part2 = get_muls(
+    input
+      .split("do()")
+      .map(fn* (x: String) {
+        let (a, _) = x.split_once("don't()");
+        a
+      })
+      .join("")
+    ,
   );
 
   io.println("Part 2: {part2}");

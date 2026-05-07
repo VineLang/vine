@@ -97,13 +97,16 @@ impl IntoElement for Delimited {
       initial_shape = initial_shape + child.measure().max + Shape::of(separator);
     }
     let final_shapes = self.children[last].measure();
+    let allow_final_multi = self.allow_final_multi
+      && !final_shapes.min.leading().length().empty()
+      && !final_shapes.min.trailing().length().empty();
     let base = DelimitedBase { delims: self.delims, children: self.children, indent: self.indent };
     if self.force_multi
       || initial_shape.is_multi()
-      || (!self.allow_final_multi && final_shapes.max.is_multi())
+      || (!allow_final_multi && final_shapes.max.is_multi())
     {
       Box::new(base)
-    } else if self.allow_final_multi && self.break_final {
+    } else if allow_final_multi && self.break_final {
       Box::new(DelimitedBreakFinal { base, initial_shape, final_shapes })
     } else {
       Box::new(DelimitedStandard {

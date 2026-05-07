@@ -4,7 +4,7 @@ use std::ops::{Add, Sub};
 pub struct Length(pub u16);
 
 impl Length {
-  fn empty(self) -> bool {
+  pub fn empty(self) -> bool {
     self.0 == 0
   }
 }
