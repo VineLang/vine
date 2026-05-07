@@ -14,7 +14,6 @@ pub fn main(&io: &IO) {
         a
       })
       .join("")
-    ,
   );
 
   io.println("Part 2: {part2}");

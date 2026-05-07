@@ -39,7 +39,7 @@ pub fn main(&io: &IO) {
   ];
 
   let rng = Pcg32::seeded(
-    "how many logs could a log calculator calculate if a log calculator could calculate logs",
+    "how many logs could a log calculator calculate if a log calculator could calculate logs"
   );
   for _ in 0..max {
     interesting_floats.push_back(F64::from_bits(N64(rng.gen_n32(), rng.gen_n32())));

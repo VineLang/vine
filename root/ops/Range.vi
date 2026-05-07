@@ -87,7 +87,7 @@ pub mod Range {
 
   pub impl exclusive_iter[T*; Ord[T], Step[T]]: Iterator[Range[Inclusive[T], Exclusive[T]], T] {
     fn advance(
-      Range[Inclusive[T], Exclusive[T]](Inclusive[T](start), end),
+      Range[Inclusive[T], Exclusive[T]](Inclusive[T](start), end)
     ) -> Option[(T, Range[Inclusive[T], Exclusive[T]])] {
       if end.right_of(&start) {
         Some(start, Range(Inclusive(start.step()), end))
@@ -101,7 +101,7 @@ pub mod Range {
     Iterate[Range[Inclusive[T], Inclusive[T]], InclusiveIter[T], T]
   {
     fn iter(
-      Range[Inclusive[T], Inclusive[T]](Inclusive(start), Inclusive(end)),
+      Range[Inclusive[T], Inclusive[T]](Inclusive(start), Inclusive(end))
     ) -> InclusiveIter[T] {
       InclusiveIter(Some(start, end))
     }

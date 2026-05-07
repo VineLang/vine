@@ -71,7 +71,8 @@ impl<'src> Formatter<'src> {
           };
           Content::even((
             v.name.clone(),
-            Delimited::new(Delims::PAREN_COMMA, tys.iter().map(|t| self.fmt_ty(t))),
+            Delimited::new(Delims::PAREN_COMMA, tys.iter().map(|t| self.fmt_ty(t)))
+              .omit_unary_separators(true),
           ))
         }),
       )

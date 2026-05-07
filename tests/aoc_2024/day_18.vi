@@ -30,7 +30,6 @@ pub fn main(&io: &IO) {
           row.fold_front("", fn* (s: String, n: N32) { s ++ if n < c { "#" } else { "." } })
         })
         .join("\n")
-      ,
     )
   }
 
