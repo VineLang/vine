@@ -60,7 +60,7 @@ impl<'src> Formatter<'src> {
     else_: &Option<Block>,
     force_multi: bool,
   ) -> Content {
-    Content::smart((
+    Content::right((
       Keyword("if"),
       Space,
       Indent::eager(self.fmt_expr(cond)),
@@ -80,7 +80,7 @@ impl<'src> Formatter<'src> {
     else_: &Option<Block>,
     force_multi: bool,
   ) -> Content {
-    Content::even((
+    Content::right((
       (Keyword("if"), Space),
       (Keyword("const"), Space, self.fmt_path(Color::NORMAL, cond), Space),
       self._fmt_if_branches(
@@ -91,7 +91,7 @@ impl<'src> Formatter<'src> {
   }
 
   pub(crate) fn fmt_ty_if_const(&self, cond: &Path, then: &Ty, else_: &Option<Ty>) -> Content {
-    Content::even((
+    Content::right((
       (Keyword("if"), Space),
       (Keyword("const"), Space, self.fmt_path(Color::NORMAL, cond), Space),
       self._fmt_if_branches(
