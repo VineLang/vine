@@ -22,10 +22,6 @@ error: cannot find `z` in `#is_not::main`
    @ is_not.vi:5:29
  5 |   if x is y or y is z { (y, z) }
 
-error: missing else block
-   @ is_not.vi:5:3
- 5 |   if x is y or y is z { (y, z) }
-
 error: cannot find `y` in `#is_not::main`
    @ is_not.vi:7:3
  7 |   y

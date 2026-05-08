@@ -286,6 +286,7 @@ guide!(pub Guide {
   synthetic_enum: PathId = "vi:synthetic:Enum",
   synthetic_if_const: PathId = "vi:synthetic:IfConst",
   synthetic_opaque: PathId = "vi:synthetic:Opaque",
+  synthetic_default_nil: PathId = "vi:synthetic:Default:nil",
 
   synthetic: PathId = "vi:synthetic",
   synthetic_composite_deconstruct: PathId = "vi:synthetic:composite_deconstruct",
@@ -300,6 +301,7 @@ guide!(pub Guide {
   synthetic_debug_state: PathId = "vi:synthetic:debug_state",
   synthetic_n32: PathId = "vi:synthetic:n32",
   synthetic_string: PathId = "vi:synthetic:string",
+  synthetic_const_nil: PathId = "vi:synthetic:const_nil",
 });
 
 impl fmt::Debug for Guide {

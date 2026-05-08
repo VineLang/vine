@@ -68,8 +68,6 @@ pub mod IO {
         }
         String(chars)
       })
-    } else {
-      None()
     }
   }
 
@@ -91,8 +89,6 @@ pub mod IO {
   pub fn .read_char(&io: &IO) -> Option[Char] {
     if io._read_char() is char and char != eof {
       Some(char)
-    } else {
-      None()
     }
   }
 
@@ -106,8 +102,6 @@ pub mod IO {
   pub fn .read_byte(&io: &IO) -> Option[Char] {
     if io._read_byte() is byte and byte != eof {
       Some(byte)
-    } else {
-      None()
     }
   }
 

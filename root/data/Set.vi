@@ -263,8 +263,6 @@ pub mod Set[T; Ord[T]] {
         }
         if stack.head_tail() is Some(&(value, node), stack) {
           Some(&value, IterRef(&node, stack))
-        } else {
-          None()
         }
       }
     }
@@ -297,8 +295,6 @@ pub mod Set[T; Ord[T]] {
         }
         if stack.head_tail() is Some((value, node), stack) {
           Some(value, Iter(node, stack))
-        } else {
-          None()
         }
       }
     }

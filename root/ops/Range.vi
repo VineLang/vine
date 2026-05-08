@@ -91,8 +91,6 @@ pub mod Range {
     ) -> Option[(T, Range[Inclusive[T], Exclusive[T]])] {
       if end.right_of(&start) {
         Some(start, Range(Inclusive(start.step()), end))
-      } else {
-        None()
       }
     }
   }

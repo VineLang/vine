@@ -368,6 +368,8 @@ impl<'a> Finder<'a> {
           self.find_auto_impls_if_const(type_params, types, found);
         } else if Some(*trait_id) == self.chart.builtins.opaque {
           self.find_auto_impls_opaque(type_params, types, found);
+        } else if Some(*trait_id) == self.chart.builtins.default {
+          self.find_auto_impls_default(type_params, types, found);
         }
       }
       ImplType::Error(_) => {}

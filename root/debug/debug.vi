@@ -23,8 +23,6 @@ pub fn log[T; Cast[T, String]](msg: T) {
 pub fn backtrace() -> Option[&Stack] {
   if debug_state() is Some(&state) {
     Some(&state.stack)
-  } else {
-    None()
   }
 }
 
@@ -109,8 +107,6 @@ pub mod Stack {
   pub fn .top(&Stack((present, frame), _)) -> Option[&Frame] {
     if present {
       Some(&frame)
-    } else {
-      None()
     }
   }
 
@@ -118,8 +114,6 @@ pub mod Stack {
     fn advance(Stack((present, frame), rest)) -> Option[(Frame, Stack)] {
       if present {
         Some(frame, rest)
-      } else {
-        None()
       }
     }
   }
