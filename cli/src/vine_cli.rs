@@ -50,7 +50,7 @@ use vine::{
 use vine_lsp::{Doc, lsp_stdio};
 use vine_util::idx::IdxVec;
 
-use crate::common::RunArgs;
+use crate::common::{Colors, RunArgs, colors};
 #[derive(Debug, Parser)]
 #[command(name = "vine", version, about = "Vine's CLI", propagate_version = true)]
 pub enum VineCommand {
@@ -779,32 +779,6 @@ fn _print_diags(mut w: impl io::Write + IsTerminal, compiler: &Compiler) -> io::
   }
 
   Ok(())
-}
-
-struct Colors {
-  reset: &'static str,
-  bold: &'static str,
-  underline: &'static str,
-  grey: &'static str,
-  red: &'static str,
-  yellow: &'static str,
-  green: &'static str,
-}
-
-fn colors(t: &impl IsTerminal) -> Colors {
-  if t.is_terminal() {
-    Colors {
-      reset: "\x1b[0m",
-      bold: "\x1b[1m",
-      underline: "\x1b[4m",
-      grey: "\x1b[2;39m",
-      red: "\x1b[91m",
-      yellow: "\x1b[33m",
-      green: "\x1b[32m",
-    }
-  } else {
-    Colors { reset: "", bold: "", underline: "", grey: "", red: "", yellow: "", green: "" }
-  }
 }
 
 #[derive(Clone, Debug)]

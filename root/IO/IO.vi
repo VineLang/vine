@@ -145,4 +145,16 @@ pub mod IO {
     let args: Ext[List[String]] = safe $ivy { ${io} = vi:ext#1[root:io:args](^ ${~io}) };
     args as List[String]
   }
+
+  /// Collects statistics for the minimum amount of work required to reduce `f`.
+  ///
+  /// `IO::bench` can be called multiple times with the same `key` and the
+  /// statistics will be aggregated across each of those invocations.
+  pub fn .bench[F, T; fn F(&IO) -> T](&io: &IO, key: String, f: F) -> T {
+    let (start, resume) = safe $ivy { ${io} = vi:ext#2[ivm:io:bench](${key as Ext} ${~io} ^0 ^1) };
+    assert start else { debug::error_with("unreachable", f) }
+    let value = f(&io);
+    assert resume else { debug::error_with("unreachable", value) }
+    value
+  }
 }

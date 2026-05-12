@@ -1,5 +1,5 @@
 use std::{
-  collections::HashMap,
+  collections::{BTreeMap, HashMap},
   io::{self, Write},
   sync::{Mutex, MutexGuard},
 };
@@ -63,7 +63,7 @@ impl<'ivm, 'ext> Runner<'ivm, 'ext> {
     breadth_first: bool,
     workers: usize,
     hooks: impl Hooks,
-  ) -> (Stats, Flags) {
+  ) -> (Stats, Flags, BTreeMap<String, Stats>) {
     if breadth_first {
       self.runtime.normalize_breadth_first(hooks);
     } else if workers > 0 {
@@ -78,7 +78,7 @@ impl<'ivm, 'ext> Runner<'ivm, 'ext> {
       out.tag() != Tag::ExtVal || unsafe { out.as_ext_val() }.ty_id() != self.io.id();
     self.runtime.flags.vicious = self.runtime.stats.mem_free < self.runtime.stats.mem_alloc;
 
-    (self.runtime.stats, self.runtime.flags)
+    (self.runtime.stats, self.runtime.flags, self.runtime.benches)
   }
 }
 
