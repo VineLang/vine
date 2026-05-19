@@ -11,7 +11,12 @@ use ivm::{
     ext::common,
     runner::{CaptureOutput, Runner},
   },
-  runtime::{flags::Flags, heap::Heap, stats::Stats},
+  runtime::{
+    bench::{Bench, Benches},
+    flags::Flags,
+    heap::Heap,
+    stats::Stats,
+  },
 };
 use ivy::{
   name::{NameId, Table},
@@ -43,7 +48,7 @@ impl RunArgs {
     let runner = Runner::new(&mut heap, &mut host, extrinsics, table, nets);
 
     let (mut stats, flags, mut benches) = runner.normalize(self.breadth_first, self.workers, ());
-    for stats in benches.iter_mut().map(|(_, stats)| stats).chain([(&mut stats)]) {
+    for stats in benches.values_mut().map(|bench| &mut bench.stats).chain([(&mut stats)]) {
       if self.no_perf {
         stats.clear_perf();
       }
@@ -59,9 +64,9 @@ impl RunArgs {
       } else {
         let Colors { reset, bold, .. } = colors(&stderr());
 
-        for (name, stats) in &benches {
+        for Bench { key, stats, .. } in benches.values() {
           let stats = indent(stats.to_string().trim(), 2);
-          eprintln!("\n{bold}Stats for {name:?}{reset}:\n{stats}\n");
+          eprintln!("\n{bold}Stats for {key:?}{reset}:\n{stats}\n");
         }
 
         let stats = indent(stats.to_string().trim(), 2);

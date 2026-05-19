@@ -1,0 +1,9 @@
+
+// @run
+
+pub fn main(&io: &IO) {
+  io.bench(
+    "outer",
+    fn (&io: &IO) { io.bench("inner", fn (&io: &IO) { io.println("parks need more benches"); }); },
+  );
+}

@@ -17,7 +17,7 @@ use crate::{
     },
   },
   runtime::{
-    Bench, Runtime,
+    Runtime,
     addr::Addr,
     ext::{Boxed, ExtTyCast, ExtTyCastStatic, ExtVal},
     graft::Graft,
@@ -124,13 +124,13 @@ pub fn io_bench<'ivm>() -> impl Register<Host<'ivm>> {
     let str = from_list::<char, _, String>(host, table);
     let n32 = host.register_ext_ty::<u32>();
     move |rt: &mut Runtime<'ivm, '_>,
-          [io_in, name]: [ExtVal<'ivm>; 2],
+          [io_in, key]: [ExtVal<'ivm>; 2],
           [io_out, start, resume]: [Wire<'ivm>; 3]| {
-      let (Some(IO), Ok(name)) = (io.unwrap_static(io_in), str(rt, name)) else {
+      let (Some(IO), Ok(key)) = (io.unwrap_static(io_in), str(rt, key)) else {
         return error(rt, [io_out, start, resume]);
       };
       rt.link_wire(io_out, Port::new_ext_val(io.wrap_static(IO)));
-      rt.benches_todo.push(Bench::new(name, start, resume, n32));
+      rt.push_bench(key, start, resume, n32);
     }
   })
 }
