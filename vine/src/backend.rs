@@ -17,7 +17,7 @@ use ivy::{
   net::FlatNet,
   prune::prune,
   translate::{
-    Translate, Translator,
+    Translate, TranslateFree, Translator,
     common::{chain_binary, elide_unary, map_name, replace_name, replace_nilary, replace_path},
   },
 };
@@ -172,11 +172,9 @@ pub fn optimizations<'r>(vi: &'r Guide, table: &mut Table) -> impl use<'r> + Reg
       let [pri, content] = engine.remove_node_n(variant);
       let [pri_, ctx] = engine.remove_node_n(match_);
       engine.remove_wire(pri, pri_);
-      let [interface, content_, ctx_] = engine.insert_node_n(net, vi.interface.into());
-      let [graft] = engine.insert_node_n(net, vi.graft.with_children([graft_name]));
+      let [content_, ctx_] = engine.insert_node_n(net, vi.graft.with_children([graft_name]));
       engine.link(content, content_);
       engine.link(ctx, ctx_);
-      engine.link(graft, interface);
       true
     }),
     arithmetic(vi, table),
@@ -209,6 +207,14 @@ pub fn vi_to_ivm<'r>(vi: &'r Guide, ivm: &'r IvmGuide) -> impl Register<Translat
       net.add(ivm.x, enum_, [tag, content]);
       let ctx = net.make(ivm.x, [content, ctx]);
       net.add(ivm.branch.with_children(branches), tag, [ctx]);
+    }),
+    TranslateFree(move |free, _, net| {
+      if free.len() == 2 {
+        let free = net.make(ivm.x, free);
+        net.free = vec![free];
+      } else {
+        net.free = free;
+      }
     }),
     Translate([ivm.branch], move |node, _, net| {
       let [ctx] = *node.aux else { unreachable!() };

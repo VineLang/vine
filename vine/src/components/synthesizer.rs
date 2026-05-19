@@ -248,8 +248,8 @@ impl Synthesizer<'_> {
     let frame = self.net.make(self.guide.tuple, [col, file, line, path]);
     let option = self.enum_(self.chart.builtins.option.unwrap(), VariantId(1), frame);
     let nil = self.net.make(self.guide.tuple, []);
-    let root = self.net.make(self.guide.interface, [option, nil]);
-    self.net.free.push(root);
+    self.net.free.push(option);
+    self.net.free.push(nil);
   }
 
   fn synthesize_debug_state(&mut self) {
@@ -298,8 +298,8 @@ impl Synthesizer<'_> {
       .map(|i| {
         self.stage(|self_| {
           let [content, ctx] = self_.net.wires();
-          let free = self_.net.make(self_.guide.interface, [content, ctx]);
-          self_.net.free.push(free);
+          self_.net.free.push(content);
+          self_.net.free.push(ctx);
           arm(self_, i, content, ctx)
         })
       })
