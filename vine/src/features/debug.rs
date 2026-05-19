@@ -83,8 +83,8 @@ pub(crate) fn insert_main_net_debug(
   let enum_ = table.add_name(guide.enum_.with_payload(1u32));
   let option = net.make(guide.enum_variant.with_payload(0u32).with_children([enum_]), [nil]);
   let nil = net.make(guide.tuple, []);
-  let root = net.make(guide.interface, [option, nil]);
-  net.free.push(root);
+  net.free.push(option);
+  net.free.push(nil);
   translator.translate(table, &mut net);
   nets.insert(guide.synthetic_frame_end, net);
 

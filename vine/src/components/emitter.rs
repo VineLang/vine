@@ -69,8 +69,7 @@ impl<'a> Emitter<'a> {
     (interface.incoming != 0 && !interface.inline()).then(|| {
       self.wire_offset = 0;
       self.net.wires.0.0 = stage.wires.0.0;
-      let root = self.emit_header(&stage.header, interface);
-      self.net.free.push(root);
+      self.emit_header(&stage.header, interface);
       self._emit_stage(stage);
       for (local, state) in take(&mut self.locals) {
         self.finish_local(&self.vir.locals[local], state);
@@ -261,26 +260,30 @@ impl<'a> Emitter<'a> {
     }
   }
 
-  fn emit_header(&mut self, header: &Header, interface: &Interface) -> Wire {
+  fn emit_header(&mut self, header: &Header, interface: &Interface) {
     match header {
       Header::Const(port) => {
         let port = self.emit_port(port);
-        self.with_debug(port)
+        let root = self.with_debug(port);
+        self.net.free.push(root);
       }
       Header::Fn(params, result) => {
         let wires = params.iter().chain([result]).map(|i| self.emit_port(i)).collect::<Vec<_>>();
         let func = self.net.make(self.guide.fn_, wires);
-        self.with_debug(func)
+        let root = self.with_debug(func);
+        self.net.free.push(root);
       }
       Header::Bare => {
         let interface = self.emit_interface(interface, false);
-        self.with_debug(interface)
+        let root = self.with_debug(interface);
+        self.net.free.push(root);
       }
       Header::Match(_, _, data) => {
         let interface = self.emit_interface(interface, false);
         let data = self.emit_port(data);
         let ctx = self.with_debug(interface);
-        self.net.make(self.guide.interface, [data, ctx])
+        self.net.free.push(data);
+        self.net.free.push(ctx);
       }
       Header::Closure(params, result) => {
         let interface = self.emit_interface(interface, false);
@@ -288,7 +291,8 @@ impl<'a> Emitter<'a> {
         let result = self.emit_port(result);
         let tuple = self.net.make(self.guide.tuple, params);
         let func = self.net.make(self.guide.fn_, [interface, tuple, result]);
-        self.with_debug(func)
+        let root = self.with_debug(func);
+        self.net.free.push(root);
       }
       Header::Fork(former, latter) => {
         let interface = self.emit_interface(interface, false);
@@ -296,18 +300,21 @@ impl<'a> Emitter<'a> {
         let latter = self.emit_port(latter);
         let ref_ = self.net.make(self.guide.ref_, [interface, latter]);
         let func = self.net.make(self.guide.fn_, [ref_, former]);
-        self.with_debug(func)
+        let root = self.with_debug(func);
+        self.net.free.push(root);
       }
       Header::Drop => {
         let interface = self.emit_interface(interface, false);
         let nil = self.net.make(self.guide.tuple, []);
         let func = self.net.make(self.guide.fn_, [interface, nil]);
-        self.with_debug(func)
+        let root = self.with_debug(func);
+        self.net.free.push(root);
       }
       Header::Entry(ports) => {
         let ports = ports.iter().map(|p| self.emit_port(p)).collect::<Vec<_>>();
         let interface = self.net.make(self.guide.interface, ports);
-        self.with_debug(interface)
+        let root = self.with_debug(interface);
+        self.net.free.push(root);
       }
     }
   }
