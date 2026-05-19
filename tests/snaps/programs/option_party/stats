@@ -4,15 +4,15 @@ Error: the net did not return its `IO` handle
 Error: a linear extrinsic was erased
 
 Interactions
-  Total               20_745
-  Annihilate          12_670
-  Commute                 21
-  Copy                 1_206
-  Erase                1_787
-  Graft                1_617
-  Extrinsic            3_444
+  Total               23_283
+  Annihilate          11_374
+  Commute                 14
+  Copy                 3_822
+  Erase                3_494
+  Graft                1_464
+  Extrinsic            3_115
 
 Memory
-  Heap                34_544 B
-  Allocated          489_120 B
-  Freed              489_120 B
+  Heap                36_208 B
+  Allocated          482_816 B
+  Freed              482_816 B

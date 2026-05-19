@@ -246,9 +246,10 @@ impl Synthesizer<'_> {
     let line = self.net.make(self.guide.n32.with_payload(pos.line as u32 + 1), []);
     let col = self.net.make(self.guide.n32.with_payload(pos.col as u32 + 1), []);
     let frame = self.net.make(self.guide.tuple, [col, file, line, path]);
-    let continuation = self.net.make(self.guide.n32.with_payload(1u32), []);
-    let entry = self.net.make(self.guide.tuple, [continuation, frame]);
-    self.net.free.push(entry);
+    let option = self.enum_(self.chart.builtins.option.unwrap(), VariantId(1), frame);
+    let nil = self.net.make(self.guide.tuple, []);
+    let root = self.net.make(self.guide.interface, [option, nil]);
+    self.net.free.push(root);
   }
 
   fn synthesize_debug_state(&mut self) {

@@ -13,7 +13,7 @@ use crate::{
     analyzer::analyze,
     charter::Charter,
     distiller::Distiller,
-    emitter::{emit, main_net},
+    emitter::{emit, insert_main_net},
     finder::FinderCache,
     loader::{FileId, Module},
     normalizer::normalize,
@@ -213,11 +213,8 @@ impl Compiler {
     entrypoint: FragmentId,
     translator: &Translator<'_>,
   ) {
-    let entrypoint = self.entrypoint_name(table, entrypoint);
-    let main = table.add_path_name("iv:main");
-    let mut net = main_net(self.debug, entrypoint, &Guide::build(table));
-    translator.translate(table, &mut net);
-    nets.insert(main, net);
+    let name = self.entrypoint_name(table, entrypoint);
+    insert_main_net(self.debug, table, nets, name, translator);
   }
 }
 
@@ -250,7 +247,6 @@ guide!(pub Guide {
   dbg: PathId = "vi:dbg",
   fn_: PathId = "vi:fn",
   graft: PathId = "vi:graft",
-  graft_lazy: PathId = "vi:graft:lazy",
   black_box: PathId = "iv:black_box",
 
   n32_and: NameId = "vi:n32:and",
@@ -298,6 +294,7 @@ guide!(pub Guide {
   synthetic_const_alias: PathId = "vi:synthetic:const_alias",
   synthetic_call_fn: PathId = "vi:synthetic:call_fn",
   synthetic_frame: PathId = "vi:synthetic:frame",
+  synthetic_frame_end: NameId = "vi:synthetic:frame_end",
   synthetic_debug_state: PathId = "vi:synthetic:debug_state",
   synthetic_n32: PathId = "vi:synthetic:n32",
   synthetic_string: PathId = "vi:synthetic:string",

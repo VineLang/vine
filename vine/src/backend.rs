@@ -148,10 +148,12 @@ pub fn optimizations<'r>(vi: &'r Guide, table: &mut Table) -> impl use<'r> + Reg
   let vi_x = [vi.tuple, vi.fn_, vi.dbg, vi.ref_, vi.interface];
   (
     graft(vi.graft, false),
-    graft(vi.graft_lazy, true),
     annihilate([vi.dup].into_iter().chain(vi_x)),
-    commute([vi.dup], [vi.eraser, vi.tuple].into_iter().chain(vi_data)),
-    erase([vi.eraser].into_iter().chain(vi_x), [vi.eraser].into_iter().chain(vi_data).chain(vi_x)),
+    commute([vi.dup], [vi.eraser, vi.tuple, vi.enum_match].into_iter().chain(vi_data)),
+    erase(
+      [vi.eraser].into_iter().chain(vi_x),
+      [vi.eraser, vi.enum_match].into_iter().chain(vi_data).chain(vi_x),
+    ),
     eta_reduce(vi_x, [vi.eraser], vi_x),
     Interaction([(vi.bool, vi.bool_if)], move |engine, _, net, bool, cond| {
       let value = engine.name(bool).payload.as_u32().unwrap() != 0;
@@ -188,7 +190,7 @@ pub fn vi_to_ivm<'r>(vi: &'r Guide, ivm: &'r IvmGuide) -> impl Register<Translat
     chain_binary([ivm.x, ivm.y]),
     elide_unary([ivm.x, ivm.y]),
     replace_nilary([ivm.x, ivm.y, vi.eraser], ivm.eraser),
-    replace_path([vi.graft, vi.graft_lazy], ivm.graft),
+    replace_path([vi.graft], ivm.graft),
     replace_path([vi.n32, vi.bool], ivm.n32),
     replace_path([vi.f32], ivm.f32),
     map_name([vi.bool_if], move |_, name| {

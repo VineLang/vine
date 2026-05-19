@@ -1,8 +1,9 @@
-use std::mem::replace;
+use std::{collections::HashMap, mem::replace};
 
 use ivy::{
-  name::NameId,
+  name::{FromTable, NameId, Table},
   net::{FlatNet, Wire},
+  translate::Translator,
 };
 use vine_util::nat::Nat;
 
@@ -42,8 +43,10 @@ impl Emitter<'_> {
       self.net.wires();
     let dbg_in = replace(&mut self.debug_state.as_mut().unwrap().0, dbg_out);
     self.net.add(self.guide.tuple, dbg_in, [io_in, stack_in]);
+    let enum_ = self.table.add_name(self.guide.enum_.with_payload(1u32));
     let frame_name = self.table.add_name(frame_name);
-    let frame_in = self.net.make(self.guide.graft_lazy.with_children([frame_name]), []);
+    let nil = self.net.make(self.guide.tuple, []);
+    let frame_in = self.net.make(self.guide.enum_match.with_children([enum_, frame_name]), [nil]);
     let new_stack_in = self.net.make(self.guide.tuple, [frame_in, stack_in]);
     let new_dbg_in = self.net.make(self.guide.tuple, [io_in, new_stack_in]);
     let ref_ = self.net.make(self.guide.ref_, [new_dbg_in, new_dbg_out]);
@@ -67,7 +70,24 @@ impl Emitter<'_> {
   }
 }
 
-pub(crate) fn main_net_debug(main: NameId, guide: &Guide) -> FlatNet {
+pub(crate) fn insert_main_net_debug(
+  table: &mut Table,
+  nets: &mut HashMap<NameId, FlatNet>,
+  entrypoint: NameId,
+  translator: &Translator<'_>,
+) {
+  let guide = Guide::build(table);
+
+  let mut net = <FlatNet>::default();
+  let nil = net.make(guide.tuple, []);
+  let enum_ = table.add_name(guide.enum_.with_payload(1u32));
+  let option = net.make(guide.enum_variant.with_payload(0u32).with_children([enum_]), [nil]);
+  let nil = net.make(guide.tuple, []);
+  let root = net.make(guide.interface, [option, nil]);
+  net.free.push(root);
+  translator.translate(table, &mut net);
+  nets.insert(guide.synthetic_frame_end, net);
+
   let mut net = FlatNet::default();
   let [io_in, io_out, main_io_in, main_io_out, dbg_io_in, dbg_io_out] = net.wires();
   let free = net.make(guide.tuple, [io_in, io_out]);
@@ -78,11 +98,11 @@ pub(crate) fn main_net_debug(main: NameId, guide: &Guide) -> FlatNet {
   net.add(merge, main_io_out, [dbg_io_out, io_out]);
   let dbg_state_ref = {
     let stack_in = {
-      let zero = net.make(guide.n32.with_payload(0u32), []);
+      let enum_ = table.add_name(guide.enum_.with_payload(1u32));
+      let nil = net.make(guide.tuple, []);
+      let end = net.make(guide.enum_match.with_children([enum_, guide.synthetic_frame_end]), [nil]);
       let eraser = net.make(guide.eraser, []);
-      let sentinel = net.make(guide.tuple, [zero, eraser]);
-      let eraser = net.make(guide.eraser, []);
-      net.make(guide.tuple, [sentinel, eraser])
+      net.make(guide.tuple, [end, eraser])
     };
     let dbg_state_in = net.make(guide.tuple, [dbg_io_in, stack_in]);
     let stack_out = net.make(guide.eraser, []);
@@ -90,11 +110,12 @@ pub(crate) fn main_net_debug(main: NameId, guide: &Guide) -> FlatNet {
     net.make(guide.ref_, [dbg_state_in, dbg_state_out])
   };
   let main_io_ref = net.make(guide.ref_, [main_io_in, main_io_out]);
-  let main = net.make(guide.graft.with_children([main]), []);
+  let main = net.make(guide.graft.with_children([entrypoint]), []);
   let nil = net.make(guide.tuple, []);
   let call = net.make(guide.fn_, [main_io_ref, nil]);
   net.add(guide.dbg, main, [dbg_state_ref, call]);
-  net
+  translator.translate(table, &mut net);
+  nets.insert(guide.main, net);
 }
 
 pub(crate) fn frame_data(path: &str, span: Span) -> Nat {
