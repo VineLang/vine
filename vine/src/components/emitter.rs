@@ -1,14 +1,18 @@
-use std::{collections::BTreeMap, mem::take};
+use std::{
+  collections::{BTreeMap, HashMap},
+  mem::take,
+};
 
 use ivy::{
-  name::{NameId, Table},
+  name::{FromTable, NameId, Table},
   net::{FlatNet, Wire},
+  translate::Translator,
 };
 use vine_util::idx::IdxVec;
 
 use crate::{
   compiler::Guide,
-  features::{debug::main_net_debug, enum_::enum_name, local::LocalEmissionState},
+  features::{debug::insert_main_net_debug, enum_::enum_name, local::LocalEmissionState},
   structures::{
     chart::Chart,
     resolutions::{ConstRelId, FnRelId, Fragment},
@@ -309,18 +313,26 @@ impl<'a> Emitter<'a> {
   }
 }
 
-pub(crate) fn main_net(debug: bool, main: NameId, guide: &Guide) -> FlatNet {
+pub(crate) fn insert_main_net(
+  debug: bool,
+  table: &mut Table,
+  nets: &mut HashMap<NameId, FlatNet>,
+  entrypoint: NameId,
+  translator: &Translator<'_>,
+) {
   if debug {
-    main_net_debug(main, guide)
+    insert_main_net_debug(table, nets, entrypoint, translator);
   } else {
+    let guide = Guide::build(table);
     let mut net = FlatNet::default();
     let [io0, io1] = net.wires();
     let free = net.make(guide.tuple, [io0, io1]);
     net.free.push(free);
-    let main = net.make(guide.graft.with_children([main]), []);
+    let main = net.make(guide.graft.with_children([entrypoint]), []);
     let ref_ = net.make(guide.ref_, [io0, io1]);
     let nil = net.make(guide.tuple, []);
     net.add(guide.fn_, main, [ref_, nil]);
-    net
+    translator.translate(table, &mut net);
+    nets.insert(guide.main, net);
   }
 }

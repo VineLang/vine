@@ -91,7 +91,7 @@ impl<'ivm> Runtime<'ivm, '_> {
       sym!((Graft, c), (Comb, d)) if d.label() != 0 => self.copy(c, d),
       sym!((Graft, c), (_, p)) => self._graft(c, p),
       ((Comb, a), (Comb, b)) if a.label() == b.label() => self.annihilate(a, b),
-      ((Comb, a), (Comb, b)) => self.commute(a, b),
+      ((Comb, a), (Comb, b)) | sym!((Comb, a), (ExtFn, b)) => self.commute(a, b),
       sym!((Erase, n), (_, b)) => self.copy(n, b),
       sym!((ExtVal, n), (Comb, b)) => {
         let x = unsafe { n.as_ext_val() };
