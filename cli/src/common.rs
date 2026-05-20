@@ -1,4 +1,8 @@
-use std::{collections::HashMap, io, process::exit};
+use std::{
+  collections::HashMap,
+  io::{self, IsTerminal, stderr},
+  process::exit,
+};
 
 use clap::Args;
 use ivm::{
@@ -7,7 +11,7 @@ use ivm::{
     ext::common,
     runner::{CaptureOutput, Runner},
   },
-  runtime::{flags::Flags, heap::Heap, stats::Stats},
+  runtime::{bench::Bench, flags::Flags, heap::Heap, stats::Stats},
 };
 use ivy::{
   name::{NameId, Table},
@@ -38,17 +42,31 @@ impl RunArgs {
     let extrinsics = common::all(&self.args, io::stdin, io::stdout);
     let runner = Runner::new(&mut heap, &mut host, extrinsics, table, nets);
 
-    let (mut stats, flags) = runner.normalize(self.breadth_first, self.workers, ());
+    let (mut stats, flags, mut benches) = runner.normalize(self.breadth_first, self.workers, ());
+    for stats in benches.values_mut().map(|bench| &mut bench.stats).chain([(&mut stats)]) {
+      if self.no_perf {
+        stats.clear_perf();
+      }
+    }
 
     if !flags.success() {
       eprintln!("\n{}", flags.error_message(debug_hint));
     }
 
     if !self.no_stats {
-      if self.no_perf {
-        stats.clear_perf();
+      if benches.is_empty() {
+        eprintln!("{stats}");
+      } else {
+        let Colors { reset, bold, .. } = colors(&stderr());
+
+        for Bench { name, stats, .. } in benches.values() {
+          let stats = indent(stats.to_string().trim(), 2);
+          eprintln!("\n{bold}Stats for {name:?}{reset}:\n{stats}\n");
+        }
+
+        let stats = indent(stats.to_string().trim(), 2);
+        eprintln!("\n{bold}Stats for overall execution{reset}: \n{stats}\n");
       }
-      eprintln!("{stats}");
     }
 
     if !flags.success() {
@@ -66,7 +84,7 @@ impl RunArgs {
     let mut heap = self.heap();
     let mut ivm = IVM::new();
 
-    let (stats, flags) = {
+    let (stats, flags, _) = {
       let mut host = Host::new(&mut ivm);
       let extrinsics = capture.extrinsics(&self.args);
       let runner = Runner::new(&mut heap, &mut host, extrinsics, table, nets);
@@ -95,4 +113,37 @@ fn parse_size(size: &str) -> anyhow::Result<usize> {
   } else {
     Ok(size.parse::<usize>()?)
   }
+}
+
+pub struct Colors {
+  pub reset: &'static str,
+  pub bold: &'static str,
+  pub underline: &'static str,
+  pub grey: &'static str,
+  pub red: &'static str,
+  pub yellow: &'static str,
+  pub green: &'static str,
+}
+
+pub fn colors(t: &impl IsTerminal) -> Colors {
+  if t.is_terminal() {
+    Colors {
+      reset: "\x1b[0m",
+      bold: "\x1b[1m",
+      underline: "\x1b[4m",
+      grey: "\x1b[2;39m",
+      red: "\x1b[91m",
+      yellow: "\x1b[33m",
+      green: "\x1b[32m",
+    }
+  } else {
+    Colors { reset: "", bold: "", underline: "", grey: "", red: "", yellow: "", green: "" }
+  }
+}
+
+fn indent(s: &str, level: usize) -> String {
+  s.lines()
+    .map(|line| format!("{line:>width$}", width = line.len() + level))
+    .collect::<Vec<_>>()
+    .join("\n")
 }

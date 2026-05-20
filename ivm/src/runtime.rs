@@ -6,6 +6,7 @@ use std::time::Instant;
 mod parallel;
 
 pub mod addr;
+pub mod bench;
 pub mod ext;
 pub mod flags;
 pub mod graft;
@@ -19,7 +20,7 @@ pub(crate) mod allocator;
 mod interact;
 
 use crate::runtime::{
-  allocator::Allocator, ext::Extrinsics, flags::Flags, port::Port, stats::Stats,
+  allocator::Allocator, bench::Bencher, ext::Extrinsics, flags::Flags, port::Port, stats::Stats,
 };
 
 pub struct Runtime<'ivm, 'ext> {
@@ -43,6 +44,9 @@ pub struct Runtime<'ivm, 'ext> {
 
   /// Used by [`IVM::execute`].
   pub(crate) registers: Vec<Option<Port<'ivm>>>,
+
+  /// Used by the `ivm:io:bench` extrinsic function.
+  pub(crate) bencher: Bencher<'ivm>,
 }
 
 impl<'ivm, 'ext> Runtime<'ivm, 'ext> {
@@ -52,6 +56,7 @@ impl<'ivm, 'ext> Runtime<'ivm, 'ext> {
       extrinsics,
       alloc_pool: Vec::new(),
       registers: Vec::new(),
+      bencher: Bencher::default(),
       active_fast: Vec::new(),
       active_slow: Vec::new(),
       stats: Stats::default(),
@@ -60,8 +65,9 @@ impl<'ivm, 'ext> Runtime<'ivm, 'ext> {
   }
 
   /// Normalize all nets in this IVM.
-  pub fn normalize(&mut self, mut hooks: impl Hooks) {
-    let start = hooks.now();
+  pub fn normalize<H: Hooks>(&mut self, mut hooks: H) {
+    let mut start = hooks.now();
+    let mut cont = None;
     loop {
       hooks.tick(&start, &mut self.stats);
 
@@ -69,7 +75,7 @@ impl<'ivm, 'ext> Runtime<'ivm, 'ext> {
 
       if let Some((a, b)) = self.active_slow.pop() {
         self.interact(a, b);
-      } else {
+      } else if !self.bench_check(&mut start, &mut cont, &mut hooks) {
         break;
       }
     }
@@ -88,15 +94,16 @@ impl<'ivm, 'ext> Runtime<'ivm, 'ext> {
   ///
   /// This is useful to get the depth (longest critical path) of the computation
   /// to understand the parallelism of the program.
-  pub fn normalize_breadth_first(&mut self, mut hooks: impl Hooks) {
-    let start = hooks.now();
+  pub fn normalize_breadth_first<H: Hooks>(&mut self, mut hooks: H) {
+    let mut start = hooks.now();
     let mut work = vec![];
+    let mut cont = None;
     loop {
       hooks.tick(&start, &mut self.stats);
 
       mem::swap(&mut work, &mut self.active_fast);
       work.append(&mut self.active_slow);
-      if work.is_empty() {
+      if work.is_empty() && !self.bench_check(&mut start, &mut cont, &mut hooks) {
         break;
       }
       for (a, b) in work.drain(..) {
@@ -127,6 +134,6 @@ impl Hooks for () {
   fn tick(&mut self, _start: &Self::Instant, _stats: &mut Stats) {}
 
   fn end(&mut self, start: &Self::Instant, stats: &mut Stats) {
-    stats.time_clock += start.elapsed();
+    stats.time_clock = start.elapsed();
   }
 }
