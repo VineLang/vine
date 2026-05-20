@@ -42,7 +42,7 @@ error: search limit reached when finding impl of trait `Add[?28, N32, ?30]`
     @ atypical.vi:11:10
  11 |   let x; x + 1;
 
-error: cannot find impl of trait `Fn[N32, (), ?33]`
+error: cannot find impl of trait `fn N32() -> ?33`
     @ atypical.vi:12:3
  12 |   1();
 
