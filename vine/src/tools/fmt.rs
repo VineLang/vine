@@ -64,7 +64,7 @@ impl<'src> Formatter<'src> {
     match vis {
       Vis::Private => Content::even(()),
       Vis::Public => Content::even((Keyword("pub"), Space)),
-      Vis::PublicTo(_, name) => Content::even((Keyword("pub"), Punct("."), name.clone(), Space)),
+      Vis::PublicTo(_, name) => Content::even((Keyword("pub"), Punct(":"), name.clone(), Space)),
     }
   }
 

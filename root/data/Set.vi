@@ -230,7 +230,7 @@ pub mod Set[T; Ord[T]] {
   /// Maps the values of the set
   ///
   /// Safety: Is only safe if the order of elements is preserved by the mapping function.
-  pub.data fn .map[... U, F*; fn F(T) -> U](Set[T](len, node), f: F) -> Set[U] {
+  pub:data fn .map[... U, F*; fn F(T) -> U](Set[T](len, node), f: F) -> Set[U] {
     if len == 0 {
       safe node.null;
       Set::empty

@@ -24,13 +24,13 @@ pub fn main(&io: &IO) {
         if num == goal {
           part1 += goal;
           part2 += goal;
-          break.do;
+          break:do;
         }
       }
       for num in results2.iter() {
         if num == goal {
           part2 += goal;
-          break.do;
+          break:do;
         }
       }
     }

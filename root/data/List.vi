@@ -25,9 +25,9 @@ use util::{duplicate, erase};
 ///
 /// If frequently accessing elements by index, consider using an array instead.
 #[builtin = "List"]
-pub struct List[T](pub.root (N32, Stream[T], ~Stream[T]));
+pub struct List[T](pub:root (N32, Stream[T], ~Stream[T]));
 
-pub.root unsafe enum Stream[T] {
+pub:root unsafe enum Stream[T] {
   done(),
   more(T, Stream[T]),
 }
@@ -532,7 +532,7 @@ pub mod List {
   }
 }
 
-pub.root mod Stream {
+pub:root mod Stream {
   pub const pair[T]: (Stream[T], ~Stream[T]) = do {
     let loop stream;
     (stream, ~stream)

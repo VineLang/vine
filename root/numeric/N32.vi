@@ -291,11 +291,11 @@ pub mod N32 {
     r
   }
 
-  pub.numeric fn add_high(a: N32, b: N32) -> Bool {
+  pub:numeric fn add_high(a: N32, b: N32) -> Bool {
     safe $ivy { ${a} = vi:ext#2[vi:n32:add_high](${b} ^) }
   }
 
-  pub.numeric fn mul_high(a: N32, b: N32) -> N32 {
+  pub:numeric fn mul_high(a: N32, b: N32) -> N32 {
     safe $ivy { ${a} = vi:ext#2[vi:n32:mul_high](${b} ^) }
   }
 

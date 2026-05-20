@@ -20,7 +20,7 @@ fn run(&io: &IO, a: Bool, b: Bool, c: Bool, d: Bool) {
       io.print("0");
       if b {
         io.print("1");
-        continue.when;
+        continue:when;
       }
       io.print("2");
     }
@@ -28,7 +28,7 @@ fn run(&io: &IO, a: Bool, b: Bool, c: Bool, d: Bool) {
       io.print("3");
       if d {
         io.print("4");
-        break.when;
+        break:when;
       }
       io.print("5");
     }

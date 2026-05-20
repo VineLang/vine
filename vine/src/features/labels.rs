@@ -58,18 +58,18 @@ impl Parser<'_> {
 
 impl<'src> Formatter<'src> {
   pub(crate) fn fmt_label(&self, label: Label) -> Content {
-    Content::even(label.0.map(|label| (Punct("."), label)))
+    Content::even(label.0.map(|label| (Punct(":"), label)))
   }
 
   pub(crate) fn fmt_target(&self, target: Target) -> Content {
     match target {
       Target::AnyLoop => Content::even(()),
-      Target::Label(label) => Content::even((Punct("."), label)),
-      Target::Do => Content::even((Punct("."), Keyword("do"))),
-      Target::Loop => Content::even((Punct("."), Keyword("loop"))),
-      Target::While => Content::even((Punct("."), Keyword("while"))),
-      Target::For => Content::even((Punct("."), Keyword("for"))),
-      Target::When => Content::even((Punct("."), Keyword("when"))),
+      Target::Label(label) => Content::even((Punct(":"), label)),
+      Target::Do => Content::even((Punct(":"), Keyword("do"))),
+      Target::Loop => Content::even((Punct(":"), Keyword("loop"))),
+      Target::While => Content::even((Punct(":"), Keyword("while"))),
+      Target::For => Content::even((Punct(":"), Keyword("for"))),
+      Target::When => Content::even((Punct(":"), Keyword("when"))),
     }
   }
 

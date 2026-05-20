@@ -37,7 +37,7 @@ pub mod N64 {
     }
   }
 
-  pub.numeric fn .hi(N64(_, hi)) -> N32 {
+  pub:numeric fn .hi(N64(_, hi)) -> N32 {
     hi
   }
 

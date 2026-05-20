@@ -125,7 +125,7 @@ pub fn main(&io: &IO) {
       if ~success {
         robot += (0, dir_y);
       }
-      while.outer front.len() != 0 {
+      while:outer front.len() != 0 {
         pos_y += dir_y;
         let new_front = [];
         while front.pop_front() is Some(pos_x, carry) {
