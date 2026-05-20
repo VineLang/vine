@@ -1,0 +1,105 @@
+
+Stats for "1. generate graph":
+  Interactions
+    Total               97_118
+    Annihilate          32_150
+    Commute              2_006
+    Copy                21_205
+    Erase                4_440
+    Graft                6_982
+    Extrinsic           30_335
+  
+  Parallelism
+    Depth               19_530
+    Breadth                  4
+    Speedup                 70 cB
+  
+  Memory
+    Heap               721_808 B
+    Allocated        2_037_328 B
+    Freed            2_030_592 B
+
+
+Stats for "2. floyd-warshall":
+  Interactions
+    Total              807_189
+    Annihilate         480_133
+    Commute                  0
+    Copy                78_054
+    Erase               39_289
+    Graft               82_108
+    Extrinsic          127_605
+  
+  Parallelism
+    Depth              588_079
+    Breadth                  1
+    Speedup                 14 cB
+  
+  Memory
+    Heap                     0 B
+    Allocated       19_130_176 B
+    Freed           19_131_208 B
+
+
+Stats for "3. multi-dijkstra":
+  Interactions
+    Total              576_274
+    Annihilate         322_150
+    Commute              8_096
+    Copy                69_962
+    Erase               35_935
+    Graft               54_176
+    Extrinsic           85_955
+  
+  Parallelism
+    Depth               45_426
+    Breadth                 12
+    Speedup                110 cB
+  
+  Memory
+    Heap                     0 B
+    Allocated       13_381_504 B
+    Freed           13_382_024 B
+
+
+Stats for "4. verify":
+  Interactions
+    Total               82_584
+    Annihilate          38_361
+    Commute                  0
+    Copy                11_503
+    Erase                5_977
+    Graft                8_325
+    Extrinsic           18_418
+  
+  Parallelism
+    Depth               23_713
+    Breadth                  3
+    Speedup                 54 cB
+  
+  Memory
+    Heap                     0 B
+    Allocated        1_712_368 B
+    Freed            1_727_216 B
+
+
+Stats for overall execution: 
+  Interactions
+    Total            1_564_940
+    Annihilate         873_483
+    Commute             10_355
+    Copy               181_043
+    Erase               85_671
+    Graft              151_743
+    Extrinsic          262_645
+  
+  Parallelism
+    Depth              677_047
+    Breadth                  2
+    Speedup                 36 cB
+  
+  Memory
+    Heap               725_312 B
+    Allocated       36_307_168 B
+    Freed           36_307_168 B
+

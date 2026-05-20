@@ -1,0 +1,100 @@
+
+use #root::data::{Heap, Map, Set};
+use #root::rng::Pcg32;
+
+type Graph = Map[(N32, N32), N32];
+
+#[configurable]
+const n: N32 = 32;
+
+pub fn main(&io: &IO) {
+  let graph = io.bench("1. generate graph", fn (_: &IO) { random_graph(n) });
+
+  let fw = io.bench("2. floyd-warshall", fn (_: &IO) { floyd_warshall(graph, n) });
+  let dj = io.bench("3. multi-dijkstra", fn (_: &IO) { all_pairs_dijkstra(graph, n) });
+
+  io.bench("4. verify", fn (_: &IO) {
+    let fw = "{fw.show()}";
+    let dj = "{dj.show()}";
+    assert fw == dj else { debug::error("algorithms unequal") }
+  });
+}
+
+pub fn random_graph(size: N32) -> Graph {
+  let rng = Pcg32::canonical;
+  let graph = Map::empty;
+
+  for i in 0..size {
+    for j in 0..size {
+      when {
+        i == j { graph.insert((i, j), 0); }
+        rng.gen_n32() % 100 < 1 { graph.insert((i, j), 1 + (rng.gen_n32() % 100)); }
+      }
+    }
+  }
+
+  graph
+}
+
+pub fn floyd_warshall(graph: Graph, size: N32) -> Graph {
+  let dist = graph;
+
+  for k in 0..size {
+    for i in 0..size {
+      assert dist.get(&(i, k)) is Some(ik) else { continue; }
+
+      for j in 0..size {
+        assert dist.get(&(k, j)) is Some(kj) else { continue; }
+
+        let through_k = ik + kj;
+        let current = dist.get(&(i, j)).or_use(N32::maximum);
+
+        if through_k < current {
+          dist.insert((i, j), through_k);
+        }
+      }
+    }
+  }
+
+  dist
+}
+
+pub fn all_pairs_dijkstra(graph: Graph, size: N32) -> Graph {
+  let result = Map::empty;
+
+  for src in 0..size {
+    for (dst, dist) in dijkstra(graph, size, src) {
+      result.insert((src, dst), dist);
+    }
+  }
+
+  result
+}
+
+pub fn dijkstra(graph: Graph, size: N32, src: N32) -> Map[N32, N32] {
+  let dist = [(src, 0)] as Map;
+  let heap = [(0, src)] as Heap;
+  let visited = Set::empty;
+
+  while heap.pop() is Some((best_dist, u)) {
+    if visited.has(&u) {
+      continue;
+    }
+
+    visited.insert(u);
+
+    for v in 0..size {
+      assert graph.get(&(u, v)) is Some(edge) else { continue; }
+
+      let alt = best_dist + edge;
+      let current = dist.get(&v).or_use(N32::maximum);
+
+      if alt < current {
+        dist.insert(v, alt);
+        heap.insert((alt, v));
+      }
+    }
+  }
+
+  dist
+}
