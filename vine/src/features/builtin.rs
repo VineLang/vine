@@ -1,139 +1,12 @@
 use vine_util::idx::IntMap;
 
 use crate::{
-  components::{
-    charter::{ChartedItem, Charter},
-    parser::Parser,
-  },
+  components::charter::{ChartedItem, Charter},
   structures::{
     ast::{BinaryOp, ComparisonOp},
     chart::{DefId, EnumId, FnId, ImplId, OpaqueTypeId, StructId, TraitId},
-    diag::Diag,
   },
 };
-
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum Builtin {
-  Bool,
-  N32,
-  I32,
-  F32,
-  F64,
-  Nat,
-  Char,
-  IO,
-  Prelude,
-  List,
-  String,
-  Option,
-  Result,
-  BinaryOp(BinaryOp),
-  Pos,
-  Neg,
-  Not,
-  BoolNot,
-  ComparisonOp(ComparisonOp),
-  Cast,
-  Fn,
-  Fork,
-  Drop,
-  Duplicate,
-  Erase,
-  Index,
-  IndexValue,
-  IndexSpace,
-  IndexPlace,
-  Range,
-  BoundUnbounded,
-  BoundInclusive,
-  BoundExclusive,
-  Advance,
-  Iter,
-  Tuple,
-  Object,
-  Struct,
-  Enum,
-  Variant,
-  IfConst,
-  Opaque,
-  Default,
-  DebugState,
-  Show,
-  ReplShow,
-}
-
-impl Parser<'_> {
-  pub(crate) fn parse_builtin(&mut self) -> Result<Builtin, Diag> {
-    let span = self.start_span();
-    let builtin = self.parse_string()?;
-    let span = self.end_span(span);
-    Ok(match &*builtin {
-      "Bool" => Builtin::Bool,
-      "N32" => Builtin::N32,
-      "I32" => Builtin::I32,
-      "F32" => Builtin::F32,
-      "F64" => Builtin::F64,
-      "Nat" => Builtin::Nat,
-      "Char" => Builtin::Char,
-      "IO" => Builtin::IO,
-      "List" => Builtin::List,
-      "String" => Builtin::String,
-      "Option" => Builtin::Option,
-      "Result" => Builtin::Result,
-      "prelude" => Builtin::Prelude,
-      "pos" => Builtin::Pos,
-      "neg" => Builtin::Neg,
-      "not" => Builtin::Not,
-      "bool_not" => Builtin::BoolNot,
-      "cast" => Builtin::Cast,
-      "add" => Builtin::BinaryOp(BinaryOp::Add),
-      "sub" => Builtin::BinaryOp(BinaryOp::Sub),
-      "mul" => Builtin::BinaryOp(BinaryOp::Mul),
-      "div" => Builtin::BinaryOp(BinaryOp::Div),
-      "rem" => Builtin::BinaryOp(BinaryOp::Rem),
-      "and" => Builtin::BinaryOp(BinaryOp::BitAnd),
-      "or" => Builtin::BinaryOp(BinaryOp::BitOr),
-      "xor" => Builtin::BinaryOp(BinaryOp::BitXor),
-      "shl" => Builtin::BinaryOp(BinaryOp::Shl),
-      "shr" => Builtin::BinaryOp(BinaryOp::Shr),
-      "concat" => Builtin::BinaryOp(BinaryOp::Concat),
-      "pow" => Builtin::BinaryOp(BinaryOp::Pow),
-      "eq" => Builtin::ComparisonOp(ComparisonOp::Eq),
-      "ne" => Builtin::ComparisonOp(ComparisonOp::Ne),
-      "lt" => Builtin::ComparisonOp(ComparisonOp::Lt),
-      "gt" => Builtin::ComparisonOp(ComparisonOp::Gt),
-      "le" => Builtin::ComparisonOp(ComparisonOp::Le),
-      "ge" => Builtin::ComparisonOp(ComparisonOp::Ge),
-      "Fn" => Builtin::Fn,
-      "Fork" => Builtin::Fork,
-      "Drop" => Builtin::Drop,
-      "duplicate" => Builtin::Duplicate,
-      "erase" => Builtin::Erase,
-      "Index" => Builtin::Index,
-      "IndexValue" => Builtin::IndexValue,
-      "IndexSpace" => Builtin::IndexSpace,
-      "IndexPlace" => Builtin::IndexPlace,
-      "Range" => Builtin::Range,
-      "BoundUnbounded" => Builtin::BoundUnbounded,
-      "BoundInclusive" => Builtin::BoundInclusive,
-      "BoundExclusive" => Builtin::BoundExclusive,
-      "advance" => Builtin::Advance,
-      "iter" => Builtin::Iter,
-      "Tuple" => Builtin::Tuple,
-      "Object" => Builtin::Object,
-      "Struct" => Builtin::Struct,
-      "Enum" => Builtin::Enum,
-      "Variant" => Builtin::Variant,
-      "IfConst" => Builtin::IfConst,
-      "Opaque" => Builtin::Opaque,
-      "Default" => Builtin::Default,
-      "debug_state" => Builtin::DebugState,
-      "Show" => Builtin::Show,
-      "repl_show" => Builtin::ReplShow,
-      _ => Err(Diag::BadBuiltin { span })?,
-    })
-  }
-}
 
 #[derive(Debug, Default)]
 pub struct Builtins {
@@ -196,7 +69,7 @@ pub struct Builtins {
 }
 
 impl Charter<'_> {
-  pub(crate) fn chart_builtin(&mut self, item: ChartedItem, builtin: Builtin) -> bool {
+  pub(crate) fn chart_builtin(&mut self, item: ChartedItem, builtin: String) -> bool {
     fn set<T>(builtin: &mut Option<T>, got: Option<T>) -> bool {
       if builtin.is_none() && got.is_some() {
         *builtin = got;
@@ -205,79 +78,87 @@ impl Charter<'_> {
         false
       }
     }
-    let opaque_type_id = match item {
-      ChartedItem::OpaqueType(_, id) => Some(id),
-      _ => None,
-    };
-    let struct_id = match item {
-      ChartedItem::Struct(_, id) => Some(id),
-      _ => None,
-    };
-    let enum_id = match item {
-      ChartedItem::Enum(_, id) => Some(id),
-      _ => None,
-    };
-    let fn_id = match item {
-      ChartedItem::Fn(_, id) => Some(id),
-      _ => None,
-    };
-    let trait_id = match item {
-      ChartedItem::Trait(_, id) => Some(id),
-      _ => None,
-    };
-    let impl_id = match item {
-      ChartedItem::Impl(_, id) => Some(id),
-      _ => None,
-    };
 
-    let builtins = &mut self.chart.builtins;
-    match builtin {
-      Builtin::Prelude => set(&mut builtins.prelude, item.def()),
-      Builtin::Bool => set(&mut builtins.bool, opaque_type_id),
-      Builtin::N32 => set(&mut builtins.n32, opaque_type_id),
-      Builtin::I32 => set(&mut builtins.i32, opaque_type_id),
-      Builtin::F32 => set(&mut builtins.f32, opaque_type_id),
-      Builtin::F64 => set(&mut builtins.f64, opaque_type_id),
-      Builtin::Nat => set(&mut builtins.nat, struct_id),
-      Builtin::Char => set(&mut builtins.char, opaque_type_id),
-      Builtin::IO => set(&mut builtins.io, opaque_type_id),
-      Builtin::List => set(&mut builtins.list, struct_id),
-      Builtin::String => set(&mut builtins.string, struct_id),
-      Builtin::Option => set(&mut builtins.option, enum_id),
-      Builtin::Result => set(&mut builtins.result, enum_id),
-      Builtin::Pos => set(&mut builtins.pos, fn_id),
-      Builtin::Neg => set(&mut builtins.neg, fn_id),
-      Builtin::Not => set(&mut builtins.not, fn_id),
-      Builtin::Cast => set(&mut builtins.cast, fn_id),
-      Builtin::Fn => set(&mut builtins.fn_, trait_id),
-      Builtin::Fork => set(&mut builtins.fork, trait_id),
-      Builtin::Drop => set(&mut builtins.drop, trait_id),
-      Builtin::Duplicate => set(&mut builtins.duplicate, impl_id),
-      Builtin::Erase => set(&mut builtins.erase, impl_id),
-      Builtin::BoolNot => set(&mut builtins.bool_not, impl_id),
-      Builtin::BinaryOp(op) => set(builtins.binary_ops.entry(op).or_default(), fn_id),
-      Builtin::ComparisonOp(op) => set(builtins.comparison_ops.entry(op).or_default(), fn_id),
-      Builtin::Index => set(&mut builtins.index, trait_id),
-      Builtin::IndexValue => set(&mut builtins.index_value, trait_id),
-      Builtin::IndexSpace => set(&mut builtins.index_space, trait_id),
-      Builtin::IndexPlace => set(&mut builtins.index_place, trait_id),
-      Builtin::Range => set(&mut builtins.range, struct_id),
-      Builtin::BoundUnbounded => set(&mut builtins.bound_unbounded, struct_id),
-      Builtin::BoundExclusive => set(&mut builtins.bound_exclusive, struct_id),
-      Builtin::BoundInclusive => set(&mut builtins.bound_inclusive, struct_id),
-      Builtin::Advance => set(&mut builtins.advance, fn_id),
-      Builtin::Iter => set(&mut builtins.iter, fn_id),
-      Builtin::Tuple => set(&mut builtins.tuple, trait_id),
-      Builtin::Object => set(&mut builtins.object, trait_id),
-      Builtin::Struct => set(&mut builtins.struct_, trait_id),
-      Builtin::Enum => set(&mut builtins.enum_, trait_id),
-      Builtin::Variant => set(&mut builtins.variant, enum_id),
-      Builtin::IfConst => set(&mut builtins.if_const, trait_id),
-      Builtin::Opaque => set(&mut builtins.opaque, trait_id),
-      Builtin::Default => set(&mut builtins.default, trait_id),
-      Builtin::DebugState => set(&mut builtins.debug_state, fn_id),
-      Builtin::Show => set(&mut builtins.show, trait_id),
-      Builtin::ReplShow => set(&mut builtins.repl_show, fn_id),
+    fn binary_op(builtins: &mut Builtins, op: BinaryOp, fn_id: Option<FnId>) -> bool {
+      set(builtins.binary_ops.entry(op).or_default(), fn_id)
+    }
+
+    fn comparison_op(builtins: &mut Builtins, op: ComparisonOp, fn_id: Option<FnId>) -> bool {
+      set(builtins.comparison_ops.entry(op).or_default(), fn_id)
+    }
+
+    let opaque_type_id = if let ChartedItem::OpaqueType(_, id) = item { Some(id) } else { None };
+    let struct_id = if let ChartedItem::Struct(_, id) = item { Some(id) } else { None };
+    let enum_id = if let ChartedItem::Enum(_, id) = item { Some(id) } else { None };
+    let fn_id = if let ChartedItem::Fn(_, id) = item { Some(id) } else { None };
+    let trait_id = if let ChartedItem::Trait(_, id) = item { Some(id) } else { None };
+    let impl_id = if let ChartedItem::Impl(_, id) = item { Some(id) } else { None };
+
+    let b = &mut self.chart.builtins;
+    match &*builtin {
+      "prelude" => set(&mut b.prelude, item.def()),
+      "Bool" => set(&mut b.bool, opaque_type_id),
+      "N32" => set(&mut b.n32, opaque_type_id),
+      "I32" => set(&mut b.i32, opaque_type_id),
+      "F32" => set(&mut b.f32, opaque_type_id),
+      "F64" => set(&mut b.f64, opaque_type_id),
+      "Nat" => set(&mut b.nat, struct_id),
+      "Char" => set(&mut b.char, opaque_type_id),
+      "IO" => set(&mut b.io, opaque_type_id),
+      "List" => set(&mut b.list, struct_id),
+      "String" => set(&mut b.string, struct_id),
+      "Option" => set(&mut b.option, enum_id),
+      "Result" => set(&mut b.result, enum_id),
+      "pos" => set(&mut b.pos, fn_id),
+      "neg" => set(&mut b.neg, fn_id),
+      "not" => set(&mut b.not, fn_id),
+      "cast" => set(&mut b.cast, fn_id),
+      "Fn" => set(&mut b.fn_, trait_id),
+      "Fork" => set(&mut b.fork, trait_id),
+      "Drop" => set(&mut b.drop, trait_id),
+      "duplicate" => set(&mut b.duplicate, impl_id),
+      "erase" => set(&mut b.erase, impl_id),
+      "bool_not" => set(&mut b.bool_not, impl_id),
+      "Index" => set(&mut b.index, trait_id),
+      "IndexValue" => set(&mut b.index_value, trait_id),
+      "IndexSpace" => set(&mut b.index_space, trait_id),
+      "IndexPlace" => set(&mut b.index_place, trait_id),
+      "Range" => set(&mut b.range, struct_id),
+      "BoundUnbounded" => set(&mut b.bound_unbounded, struct_id),
+      "BoundExclusive" => set(&mut b.bound_exclusive, struct_id),
+      "BoundInclusive" => set(&mut b.bound_inclusive, struct_id),
+      "advance" => set(&mut b.advance, fn_id),
+      "iter" => set(&mut b.iter, fn_id),
+      "Tuple" => set(&mut b.tuple, trait_id),
+      "Object" => set(&mut b.object, trait_id),
+      "Struct" => set(&mut b.struct_, trait_id),
+      "Enum" => set(&mut b.enum_, trait_id),
+      "Variant" => set(&mut b.variant, enum_id),
+      "IfConst" => set(&mut b.if_const, trait_id),
+      "Opaque" => set(&mut b.opaque, trait_id),
+      "Default" => set(&mut b.default, trait_id),
+      "debug_state" => set(&mut b.debug_state, fn_id),
+      "Show" => set(&mut b.show, trait_id),
+      "repl_show" => set(&mut b.repl_show, fn_id),
+      "add" => binary_op(b, BinaryOp::Add, fn_id),
+      "sub" => binary_op(b, BinaryOp::Sub, fn_id),
+      "mul" => binary_op(b, BinaryOp::Mul, fn_id),
+      "div" => binary_op(b, BinaryOp::Div, fn_id),
+      "rem" => binary_op(b, BinaryOp::Rem, fn_id),
+      "and" => binary_op(b, BinaryOp::BitAnd, fn_id),
+      "or" => binary_op(b, BinaryOp::BitOr, fn_id),
+      "xor" => binary_op(b, BinaryOp::BitXor, fn_id),
+      "shl" => binary_op(b, BinaryOp::Shl, fn_id),
+      "shr" => binary_op(b, BinaryOp::Shr, fn_id),
+      "concat" => binary_op(b, BinaryOp::Concat, fn_id),
+      "pow" => binary_op(b, BinaryOp::Pow, fn_id),
+      "eq" => comparison_op(b, ComparisonOp::Eq, fn_id),
+      "ne" => comparison_op(b, ComparisonOp::Ne, fn_id),
+      "lt" => comparison_op(b, ComparisonOp::Lt, fn_id),
+      "gt" => comparison_op(b, ComparisonOp::Gt, fn_id),
+      "le" => comparison_op(b, ComparisonOp::Le, fn_id),
+      "ge" => comparison_op(b, ComparisonOp::Ge, fn_id),
+      _ => false,
     }
   }
 }
