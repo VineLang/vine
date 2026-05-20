@@ -54,6 +54,7 @@ pub struct Resolver<'a> {
 
   pub(crate) rels: Rels,
   pub(crate) closures: IdxVec<ClosureId, Option<TirClosure>>,
+  pub(crate) benches: Vec<(ClosureId, ClosureId)>,
 }
 
 #[derive(Debug)]
@@ -115,6 +116,7 @@ impl<'a> Resolver<'a> {
       target_id: Default::default(),
       rels: Default::default(),
       closures: Default::default(),
+      benches: Default::default(),
       allow_unsafe: false,
       used_unsafe: false,
     }
@@ -454,6 +456,7 @@ impl<'a> Resolver<'a> {
         types: take(&mut self.types),
         locals: take(&mut self.locals),
         closures: unwrap_idx_vec(take(&mut self.closures)),
+        benches: take(&mut self.benches),
         rels: take(&mut self.rels),
         params,
         body,
@@ -560,6 +563,9 @@ impl<'a> Resolver<'a> {
       ExprKind::Char(char) => self.resolve_expr_char(span, *char),
       ExprKind::String(init, rest) => self.resolve_expr_string(span, init, rest),
       ExprKind::InlineIvy(table, net) => self.resolve_inline_ivy(span, table, net),
+      ExprKind::Bench(flex, params, ret, body) => {
+        self.resolve_bench(span, *flex, params, ret, body)
+      }
       ExprKind::Try(result) => self.resolve_expr_try(span, result),
       ExprKind::Bool(..) | ExprKind::Is(..) | ExprKind::LogicalOp(..) => {
         Ok(self.resolve_cond(expr))

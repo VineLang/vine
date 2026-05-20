@@ -58,6 +58,7 @@ pub fn normalize(
     interfaces: normalizer.interfaces,
     stages: unwrap_idx_vec(normalizer.stages),
     closures: source.closures.clone(),
+    benches: source.benches.clone(),
   }
 }
 

@@ -144,11 +144,12 @@ pub mod IO {
   ///
   /// `IO::bench` can be called multiple times with the same `key` and the
   /// statistics will be aggregated across each of those invocations.
-  pub fn .bench[F, T; fn F(&IO) -> T](&io: &IO, key: String, f: F) -> T {
+  pub fn .bench[F, G, T; fn F(&IO) -> G, fn G() -> T](&io: &IO, key: String, f: F) -> T {
     let (enter, exit) = safe $ivy { ${io} = vi:ext#2[ivm:io:bench](${key as Ext} ${~io} ^0 ^1) };
     assert enter else { debug::error_with("unreachable", f) }
-    let value = f(&io);
-    assert exit else { debug::error_with("unreachable", value) }
-    value
+    let g = f(&io);
+    assert exit else { debug::error_with("unreachable", g) }
+    &io;
+    g()
   }
 }

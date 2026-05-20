@@ -8,12 +8,12 @@ type Graph = Map[(N32, N32), N32];
 const n: N32 = 32;
 
 pub fn main(&io: &IO) {
-  let graph = io.bench("1. generate graph", fn (_: &IO) { random_graph(n) });
+  let graph = io.bench("1. generate graph", $bench fn (_: &IO) { random_graph(n) });
 
-  let fw = io.bench("2. floyd-warshall", fn (_: &IO) { floyd_warshall(graph, n) });
-  let dj = io.bench("3. multi-dijkstra", fn (_: &IO) { all_pairs_dijkstra(graph, n) });
+  let fw = io.bench("2. floyd-warshall", $bench fn (_: &IO) { floyd_warshall(graph, n) });
+  let dj = io.bench("3. multi-dijkstra", $bench fn (_: &IO) { all_pairs_dijkstra(graph, n) });
 
-  io.bench("4. verify", fn (_: &IO) {
+  io.bench("4. verify", $bench fn (_: &IO) {
     let fw = "{fw.show()}";
     let dj = "{dj.show()}";
     assert fw == dj else { debug::error("algorithms unequal") }

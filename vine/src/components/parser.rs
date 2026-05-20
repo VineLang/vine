@@ -281,6 +281,7 @@ impl<'src> Parser<'src> {
     if self.eat(Token::Dollar)? {
       return match &*self.parse_ident()?.0 {
         "ivy" => Ok(Some(self.parse_inline_ivy(span)?)),
+        "bench" => Ok(Some(self.parse_expr_bench()?)),
         _ => Err(Diag::UnknownMacro { span: self.end_span(span) }),
       };
     }

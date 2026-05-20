@@ -45,6 +45,7 @@ pub struct Vir {
   pub interfaces: IdxVec<InterfaceId, Interface>,
   pub stages: IdxVec<StageId, Stage>,
   pub closures: IdxVec<ClosureId, InterfaceId>,
+  pub benches: Vec<(InterfaceId, InterfaceId)>,
 }
 
 #[derive(Debug, Clone)]
