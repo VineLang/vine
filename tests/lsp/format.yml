@@ -1,0 +1,37 @@
+- send:
+    id: 1
+    method: initialize
+    params:
+      capabilities: {}
+      processId: null
+      rootUri: null
+  recv:
+    id: 1
+- send:
+    method: initialized
+    params: {}
+- wait:
+    method: textDocument/publishDiagnostics
+    params:
+      uri: file://<tmp>/empty.vi
+- send:
+    method: textDocument/didOpen
+    params:
+      textDocument:
+        uri: file://<tmp>/main.vi
+        languageId: vine
+        version: 1
+        text: |
+          pub  fn main(&io :&IO){io.
+          println("Hello, world!" )}
+- send:
+    id: 2
+    method: textDocument/formatting
+    params:
+      textDocument:
+        uri: file://<tmp>/main.vi
+      options:
+        tabSize: 2
+        insertSpaces: true
+  recv:
+    id: 2
