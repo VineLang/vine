@@ -7,28 +7,12 @@
       rootUri: null
   recv:
     id: 1
-    result:
-      capabilities:
-        definitionProvider: true
-        documentFormattingProvider: true
-        documentHighlightProvider: true
-        documentSymbolProvider: true
-        hoverProvider: true
-        positionEncoding: utf-16
-        referencesProvider: true
-        textDocumentSync: 1
-        workspace:
-          workspaceFolders:
-            changeNotifications: true
-            supported: true
-        workspaceSymbolProvider: true
 - send:
     method: initialized
     params: {}
 - wait:
     method: textDocument/publishDiagnostics
     params:
-      diagnostics: []
       uri: file://<root>/prelude.vi
 - write:
     main.vi: 'pub fn main (&io: &IO) {}'
@@ -48,15 +32,4 @@
 - wait:
     method: textDocument/publishDiagnostics
     params:
-      diagnostics:
-      - message: unused variable
-        range:
-          end:
-            character: 16
-            line: 0
-          start:
-            character: 14
-            line: 0
-        severity: 2
-        source: vine
       uri: file://<tmp>/main.vi

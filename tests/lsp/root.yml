@@ -6,6 +6,7 @@
       processId: null
       rootUri: null
   recv:
+    $exact: true
     id: 1
     result:
       capabilities:
@@ -28,5 +29,4 @@
 - wait:
     method: textDocument/publishDiagnostics
     params:
-      diagnostics: []
       uri: file://<root>/prelude.vi

@@ -41,7 +41,7 @@ export def main [--vine: path, --test: path, --root: path, --timeout = 5sec, --d
     if recv in $step {
       mut got = do $recv
       $log ++= [{ recv: $got }]
-      if $step.recv != $got {
+      if not (matches $got $step.recv) {
         error make { msg: $"expected:\n($step.recv | to yml)\n\ngot:\n($got | to yml)" }
       }
     }
@@ -53,7 +53,7 @@ export def main [--vine: path, --test: path, --root: path, --timeout = 5sec, --d
           error make { msg: $"waited for but never arrived:\n($step.wait | to yml)" }
         }
         $log ++= [{ recv: $got }]
-        if $got == $step.wait {
+        if (matches $got $step.wait) {
           break
         }
       }
@@ -87,6 +87,14 @@ def 'jsonrpc decode' [] : string -> record {
 
 def spawn [closure] {
   job spawn { do --ignore-errors $closure }
+}
+
+def matches [got: record, expected: record] {
+  if "$exact" in $expected {
+    $got == ($expected | reject "$exact")
+  } else {
+    $got == ($got | merge deep $expected)
+  }
 }
 
 def replace_uri [method: string, root: path, tmp: path]: record -> record {
