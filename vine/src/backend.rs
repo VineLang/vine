@@ -172,7 +172,7 @@ pub fn optimizations<'r>(vi: &'r Guide, table: &mut Table) -> impl use<'r> + Reg
       let [pri, content] = engine.remove_node_n(variant);
       let [pri_, ctx] = engine.remove_node_n(match_);
       engine.remove_wire(pri, pri_);
-      let [content_, ctx_] = engine.insert_node_n(net, vi.graft.with_children([graft_name]));
+      let [ctx_, content_] = engine.insert_node_n(net, vi.graft.with_children([graft_name]));
       engine.link(content, content_);
       engine.link(ctx, ctx_);
       true
@@ -205,7 +205,7 @@ pub fn vi_to_ivm<'r>(vi: &'r Guide, ivm: &'r IvmGuide) -> impl Register<Translat
       let branches = node.name.children;
       let [tag, content] = net.wires();
       net.add(ivm.x, enum_, [tag, content]);
-      let ctx = net.make(ivm.x, [content, ctx]);
+      let ctx = net.make(ivm.x, [ctx, content]);
       net.add(ivm.branch.with_children(branches), tag, [ctx]);
     }),
     TranslateFree(move |free, _, net| {
