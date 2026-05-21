@@ -9,7 +9,6 @@ use vine_util::{idx, nat::Nat};
 
 use crate::{
   components::{lexer::is_ident, loader::FileId},
-  features::builtin::Builtin,
   structures::diag::ErrorGuaranteed,
 };
 
@@ -177,7 +176,7 @@ pub struct Attr {
 
 #[derive(Debug, Clone)]
 pub enum AttrKind {
-  Builtin(Builtin),
+  Builtin(String),
   Manual,
   Basic,
   Become(Path),

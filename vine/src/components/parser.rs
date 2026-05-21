@@ -122,7 +122,7 @@ impl<'src> Parser<'src> {
       match self.expect(Token::Ident)? {
         "builtin" => {
           self.expect(Token::Eq)?;
-          AttrKind::Builtin(self.parse_builtin()?)
+          AttrKind::Builtin(self.parse_string()?)
         }
         "manual" => AttrKind::Manual,
         "basic" => AttrKind::Basic,
