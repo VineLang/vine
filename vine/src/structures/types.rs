@@ -243,39 +243,8 @@ impl Types {
     let a_kind = a_kind.clone();
     let b_kind = b_kind.clone();
 
-    let inverted = Inverted(a_inv ^ a.inv() != b_inv ^ b.inv());
-
-    let result = match (&a_kind, &b_kind) {
-      (TypeKind::Error(e), _) | (_, TypeKind::Error(e)) => Indeterminate(*e),
-      (TypeKind::Tuple(a), TypeKind::Tuple(b)) => self.unify_types(a, b, inverted),
-      (TypeKind::Object(a), TypeKind::Object(b)) => self.unify_objects(a, b, inverted),
-      (TypeKind::IfConst(a, t, e), TypeKind::IfConst(b, u, f)) if a == b => {
-        self.unify(*t, u.invert_if(inverted)).and(self.unify(*e, f.invert_if(inverted)))
-      }
-      (TypeKind::Struct(StructId(i), self_dual, a), TypeKind::Struct(StructId(j), _, b))
-      | (TypeKind::Union(UnionId(i), self_dual, a), TypeKind::Union(UnionId(j), _, b))
-        if i == j && (*self_dual || !inverted.0) =>
-      {
-        self.unify_types(a, b, inverted)
-      }
-      _ if inverted.0 => Failure,
-      (TypeKind::Param(i, _), TypeKind::Param(j, _)) if *i == *j => Success,
-      (TypeKind::Opaque(OpaqueTypeId(i), a), TypeKind::Opaque(OpaqueTypeId(j), b))
-      | (TypeKind::Enum(EnumId(i), a), TypeKind::Enum(EnumId(j), b))
-        if *i == *j =>
-      {
-        self.unify_types(a, b, Inverted(false))
-      }
-      (TypeKind::Fn(i), TypeKind::Fn(j)) if *i == *j => Success,
-      (TypeKind::Closure(i, _, x), TypeKind::Closure(j, _, y)) if *i == *j => self
-        .unify_types(&x.param_tys, &y.param_tys, Inverted(false))
-        .and(self.unify(x.ret_ty, y.ret_ty)),
-      (TypeKind::Ref(a), TypeKind::Ref(b)) => self.unify(*a, *b),
-      (TypeKind::Key(a), TypeKind::Key(b)) if a == b => Success,
-      (TypeKind::Never, TypeKind::Never) => Success,
-      (TypeKind::Default, TypeKind::Default) => Success,
-      _ => Failure,
-    };
+    let (result, sub_queries) = a_kind.unify(&b_kind, a_inv ^ a.inv() ^ b_inv ^ b.inv());
+    let result = result.and(UnifyResult::all(sub_queries.map(|(a, b)| self.unify(a, b))));
 
     let (a_node, b_node) = self.types.get2_mut(a.idx(), b.idx()).unwrap();
     let Root { state: a_state, size: a_size } = &mut *a_node else { unreachable!() };
@@ -297,39 +266,24 @@ impl Types {
     result
   }
 
-  pub fn unify_types(&mut self, a: &[Type], b: &[Type], inv: Inverted) -> UnifyResult {
+  pub fn unify_types(&mut self, a: &[Type], b: &[Type]) -> UnifyResult {
     if a.len() == b.len() {
-      UnifyResult::all(a.iter().zip(b).map(|(&a, &b)| self.unify(a, b.invert_if(inv))))
+      UnifyResult::all(a.iter().zip(b).map(|(&a, &b)| self.unify(a, b)))
     } else {
       UnifyResult::Failure
     }
   }
 
-  pub fn unify_objects(
-    &mut self,
-    a: &BTreeMap<Ident, Type>,
-    b: &BTreeMap<Ident, Type>,
-    inv: Inverted,
-  ) -> UnifyResult {
-    UnifyResult::from_bool(a.len() == b.len()).and(UnifyResult::all(a.iter().map(|(k, &a)| {
-      if let Some(&b) = b.get(k) { self.unify(a, b.invert_if(inv)) } else { Failure }
-    })))
-  }
-
   pub fn unify_impl_type(&mut self, a: &ImplType, b: &ImplType) -> UnifyResult {
     match (a, b) {
       (ImplType::Error(e), _) | (_, ImplType::Error(e)) => Indeterminate(*e),
-      (ImplType::Trait(i, a), ImplType::Trait(j, b)) if i == j => {
-        self.unify_types(a, b, Inverted(false))
-      }
+      (ImplType::Trait(i, a), ImplType::Trait(j, b)) if i == j => self.unify_types(a, b),
       _ => Failure,
     }
   }
 
   pub fn unify_fn_sig(&mut self, a: &FnSig, b: &FnSig) -> UnifyResult {
-    self
-      .unify_types(&a.param_tys, &b.param_tys, Inverted(false))
-      .and(self.unify(a.ret_ty, b.ret_ty))
+    self.unify_types(&a.param_tys, &b.param_tys).and(self.unify(a.ret_ty, b.ret_ty))
   }
 
   fn occurs(&self, var: Type, ty: Type) -> bool {
@@ -842,6 +796,57 @@ impl TypeKind {
       TypeKind::Struct(_, self_dual, _) | TypeKind::Union(_, self_dual, _) => *self_dual,
       _ => false,
     }
+  }
+
+  fn unify(
+    &self,
+    other: &TypeKind,
+    inv: Inverted,
+  ) -> (UnifyResult, impl Iterator<Item = (Type, Type)>) {
+    fn slices(a: &[Type], b: &[Type]) -> impl Iterator<Item = (Type, Type)> {
+      a.iter().copied().zip(b.iter().copied())
+    }
+
+    multi_iter! { Iter { Zero, One, Two, Slices, Object, Closure } }
+
+    let (result, iter) = match (&self, &other) {
+      (TypeKind::Error(e), _) | (_, TypeKind::Error(e)) => (Indeterminate(*e), Iter::Zero([])),
+      (TypeKind::Tuple(a), TypeKind::Tuple(b)) if a.len() == b.len() => {
+        (Success, Iter::Slices(slices(a, b)))
+      }
+      (TypeKind::Object(a), TypeKind::Object(b)) => (
+        UnifyResult::from_bool(a.len() == b.len() && a.keys().eq(b.keys())),
+        Iter::Object(a.iter().filter_map(|(k, a)| Some((*a, *b.get(k)?)))),
+      ),
+      (TypeKind::IfConst(a, t, e), TypeKind::IfConst(b, u, f)) if a == b => {
+        (Success, Iter::Two([(*t, *u), (*e, *f)]))
+      }
+      (TypeKind::Struct(StructId(i), self_dual, a), TypeKind::Struct(StructId(j), _, b))
+      | (TypeKind::Union(UnionId(i), self_dual, a), TypeKind::Union(UnionId(j), _, b))
+        if i == j && (*self_dual || !inv.0) =>
+      {
+        (Success, Iter::Slices(slices(a, b)))
+      }
+      _ if inv.0 => (Failure, Iter::Zero([])),
+      (TypeKind::Param(i, _), TypeKind::Param(j, _)) if *i == *j => (Success, Iter::Zero([])),
+      (TypeKind::Opaque(OpaqueTypeId(i), a), TypeKind::Opaque(OpaqueTypeId(j), b))
+      | (TypeKind::Enum(EnumId(i), a), TypeKind::Enum(EnumId(j), b))
+        if *i == *j =>
+      {
+        (Success, Iter::Slices(slices(a, b)))
+      }
+      (TypeKind::Fn(i), TypeKind::Fn(j)) if *i == *j => (Success, Iter::Zero([])),
+      (TypeKind::Closure(i, _, x), TypeKind::Closure(j, _, y)) if *i == *j => {
+        (Success, Iter::Closure(slices(&x.param_tys, &y.param_tys).chain([(x.ret_ty, y.ret_ty)])))
+      }
+      (TypeKind::Ref(a), TypeKind::Ref(b)) => (Success, Iter::One([(*a, *b)])),
+      (TypeKind::Key(a), TypeKind::Key(b)) if a == b => (Success, Iter::Zero([])),
+      (TypeKind::Never, TypeKind::Never) => (Success, Iter::Zero([])),
+      (TypeKind::Default, TypeKind::Default) => (Success, Iter::Zero([])),
+      _ => (Failure, Iter::Zero([])),
+    };
+
+    (result, iter.map(move |(a, b)| (a, b.invert_if(inv))))
   }
 }
 
