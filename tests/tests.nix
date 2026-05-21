@@ -166,6 +166,21 @@ let
       snaps."${key}/${name}/stats" = "${result}/stats";
     };
 
+  lsp =
+    path:
+    let
+      name = sanitize path;
+      result = pkgs.runCommand name { } ''
+        mkdir $out
+        echo "running lsp ${name}"
+        ${pkgs.nushell}/bin/nu ${./lsp.nu} --vine ${vine} --json ${path} >$out/output.json
+      '';
+    in
+    {
+      checks."tests-lsp-${name}" = result;
+      snaps."lsp/${name}/output.json" = "${result}/output.json";
+    };
+
   tests.programs = forEach (ls ./programs) (path: program { inherit path; });
 
   tests.examples = forEach (ls ../vine/examples) (
@@ -394,6 +409,8 @@ let
       snaps."verify/${name}.txt" = check;
     }
   );
+
+  tests.lsp = forEach (ls ./lsp) lsp;
 
   self.apps.tests-generate-lock = flake-utils.lib.mkApp {
     drv = pkgs.writeShellScriptBin "generate-verify-lock" ''
