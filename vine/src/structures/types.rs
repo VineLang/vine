@@ -244,11 +244,8 @@ impl Types {
     let result = result.and(UnifyResult::all(sub_queries.map(|(a, b)| self.unify(a, b))));
 
     let (a_node, b_node) = self.types.get2_mut(a.idx(), b.idx()).unwrap();
-    let Root { state: a_state, size: a_size } = &mut *a_node else { unreachable!() };
-    let Root { state: b_state, size: b_size } = &mut *b_node else { unreachable!() };
-
-    *a_state = Known(a_inv, a_kind);
-    *b_state = Known(b_inv, b_kind);
+    let Root { size: a_size, .. } = &mut *a_node else { unreachable!() };
+    let Root { size: b_size, .. } = &mut *b_node else { unreachable!() };
 
     if result.is_success() {
       if a_size > b_size {
