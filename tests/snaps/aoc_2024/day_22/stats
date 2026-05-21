@@ -14,6 +14,6 @@ Parallelism
   Speedup                 32 cB
 
 Memory
-  Heap             4_534_064 B
-  Allocated      162_352_672 B
-  Freed          162_352_672 B
+  Heap             4_451_392 B
+  Allocated      162_464_128 B
+  Freed          162_464_128 B

@@ -14,6 +14,6 @@ Parallelism
   Speedup                 35 cB
 
 Memory
-  Heap                10_544 B
-  Allocated          646_608 B
-  Freed              646_608 B
+  Heap                10_640 B
+  Allocated          645_360 B
+  Freed              645_360 B

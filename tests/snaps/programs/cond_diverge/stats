@@ -15,5 +15,5 @@ Parallelism
 
 Memory
   Heap                   800 B
-  Allocated            2_880 B
-  Freed                2_880 B
+  Allocated            2_864 B
+  Freed                2_864 B

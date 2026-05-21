@@ -9,11 +9,11 @@ Interactions
   Extrinsic           13_379
 
 Parallelism
-  Depth                2_205
+  Depth                2_183
   Breadth                 19
   Speedup                129 cB
 
 Memory
-  Heap                14_800 B
-  Allocated          893_520 B
-  Freed              893_520 B
+  Heap                12_992 B
+  Allocated          880_080 B
+  Freed              880_080 B

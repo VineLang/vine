@@ -14,6 +14,6 @@ Parallelism
   Speedup                120 cB
 
 Memory
-  Heap               237_104 B
-  Allocated        7_404_864 B
-  Freed            7_404_864 B
+  Heap               240_304 B
+  Allocated        7_404_544 B
+  Freed            7_404_544 B
