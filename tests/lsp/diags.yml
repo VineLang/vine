@@ -17,14 +17,6 @@
 - write:
     main.vi: 'pub fn main (&io: &IO) {}'
 - send:
-    method: textDocument/didOpen
-    params:
-      textDocument:
-        uri: file://<tmp>/main.vi
-        lanuageId: vine
-        version: 1
-        text: ''
-- send:
     method: textDocument/didSave
     params:
       textDocument:
