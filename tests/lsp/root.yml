@@ -1,0 +1,32 @@
+- send:
+    id: 1
+    method: initialize
+    params:
+      capabilities: {}
+      processId: null
+      rootUri: null
+  recv:
+    id: 1
+    result:
+      capabilities:
+        definitionProvider: true
+        documentFormattingProvider: true
+        documentHighlightProvider: true
+        documentSymbolProvider: true
+        hoverProvider: true
+        positionEncoding: utf-16
+        referencesProvider: true
+        textDocumentSync: 1
+        workspace:
+          workspaceFolders:
+            changeNotifications: true
+            supported: true
+        workspaceSymbolProvider: true
+- send:
+    method: initialized
+    params: {}
+- wait:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/prelude.vi

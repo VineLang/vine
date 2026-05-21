@@ -1,0 +1,55 @@
+- send:
+    id: 1
+    method: initialize
+    params:
+      capabilities: {}
+      processId: null
+      rootUri: null
+  recv:
+    id: 1
+    result:
+      capabilities:
+        definitionProvider: true
+        documentFormattingProvider: true
+        documentHighlightProvider: true
+        documentSymbolProvider: true
+        hoverProvider: true
+        positionEncoding: utf-16
+        referencesProvider: true
+        textDocumentSync: 1
+        workspace:
+          workspaceFolders:
+            changeNotifications: true
+            supported: true
+        workspaceSymbolProvider: true
+- send:
+    method: initialized
+    params: {}
+- wait:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/prelude.vi
+- send:
+    id: 2
+    method: textDocument/hover
+    params:
+      textDocument:
+        uri: file://<root>/root.vi
+      position:
+        line: 2
+        character: 0
+  recv:
+    id: 2
+    result:
+      contents:
+        kind: markdown
+        value: |
+          Vine's standard library.
+      range:
+        end:
+          character: 3
+          line: 2
+        start:
+          character: 0
+          line: 2

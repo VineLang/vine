@@ -171,14 +171,13 @@ let
     let
       name = sanitize path;
       result = pkgs.runCommand name { } ''
-        mkdir $out
         echo "running lsp ${name}"
-        ${pkgs.nushell}/bin/nu ${./lsp.nu} --vine ${vine} --json ${path} >$out/output.json
+        ${pkgs.nushell}/bin/nu ${./lsp.nu} --vine ${vine} --test ${path} >$out
       '';
     in
     {
       checks."tests-lsp-${name}" = result;
-      snaps."lsp/${name}/output.json" = "${result}/output.json";
+      snaps."lsp/${name}.log.yml" = result;
     };
 
   tests.programs = forEach (ls ./programs) (path: program { inherit path; });

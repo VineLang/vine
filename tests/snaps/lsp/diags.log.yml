@@ -1,0 +1,586 @@
+- send:
+    id: 1
+    method: initialize
+    params:
+      capabilities: {}
+      processId: null
+      rootUri: null
+- recv:
+    result:
+      capabilities:
+        definitionProvider: true
+        documentFormattingProvider: true
+        documentHighlightProvider: true
+        documentSymbolProvider: true
+        hoverProvider: true
+        positionEncoding: utf-16
+        referencesProvider: true
+        textDocumentSync: 1
+        workspace:
+          workspaceFolders:
+            changeNotifications: true
+            supported: true
+        workspaceSymbolProvider: true
+    id: 1
+- send:
+    method: initialized
+    params: {}
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/root.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/data/data.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/data/List.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/data/Array.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/data/Map.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/data/Set.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/data/Heap.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/data/Iterator.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/debug/debug.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/debug/Show.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/derive.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/Ext.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/logical/logical.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/logical/Bool.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/logical/Default.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/logical/Nullable.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/logical/Option.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/logical/Result.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/numeric/numeric.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/numeric/N32.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/numeric/N64.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/numeric/Nat/Nat.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/numeric/Nat/div_rem.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/numeric/I32.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/numeric/Int.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/numeric/F32/F32.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/numeric/F32/common.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/numeric/F32/exp.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/numeric/F32/ln.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/numeric/F64/F64.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/numeric/F64/common.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/numeric/F64/exp.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/numeric/F64/ln.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/numeric/Float/Float.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/numeric/Float/parse.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/numeric/Float/to_string.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/ops/ops.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/ops/arithmetic.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/ops/bitwise.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/ops/comparison.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/ops/elementwise.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/ops/flex.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/ops/Index.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/ops/Range.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/rng/rng.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/rng/Pcg32.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/unicode/unicode.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/unicode/Char.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/unicode/String.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/IO/IO.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/IO/File.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/util.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/prelude.vi
+- send:
+    method: textDocument/didOpen
+    params:
+      textDocument:
+        uri: file://<tmp>/main.vi
+        lanuageId: vine
+        version: 1
+        text: ''
+- send:
+    method: textDocument/didSave
+    params:
+      textDocument:
+        uri: file://<tmp>/main.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/root.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/data/data.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/data/List.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/data/Array.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/data/Map.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/data/Set.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/data/Heap.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/data/Iterator.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/debug/debug.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/debug/Show.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/derive.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/Ext.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/logical/logical.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/logical/Bool.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/logical/Default.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/logical/Nullable.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/logical/Option.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/logical/Result.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/numeric/numeric.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/numeric/N32.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/numeric/N64.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/numeric/Nat/Nat.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/numeric/Nat/div_rem.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/numeric/I32.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/numeric/Int.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/numeric/F32/F32.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/numeric/F32/common.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/numeric/F32/exp.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/numeric/F32/ln.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/numeric/F64/F64.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/numeric/F64/common.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/numeric/F64/exp.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/numeric/F64/ln.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/numeric/Float/Float.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/numeric/Float/parse.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/numeric/Float/to_string.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/ops/ops.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/ops/arithmetic.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/ops/bitwise.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/ops/comparison.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/ops/elementwise.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/ops/flex.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/ops/Index.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/ops/Range.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/rng/rng.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/rng/Pcg32.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/unicode/unicode.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/unicode/Char.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/unicode/String.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/IO/IO.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/IO/File.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/util.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<root>/prelude.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics:
+      - message: unused variable
+        range:
+          end:
+            character: 16
+            line: 0
+          start:
+            character: 14
+            line: 0
+        severity: 2
+        source: vine
+      uri: file://<tmp>/main.vi
+

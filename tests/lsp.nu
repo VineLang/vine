@@ -1,5 +1,5 @@
 
-export def main [--vine: path, --json: path, --root: path, --timeout = 5sec, --debug] {
+export def main [--vine: path, --test: path, --root: path, --timeout = 5sec, --debug] {
   let root = $root | default { $vine | path dirname | path dirname | path join lib root } | path expand
   let tmp = mktemp -d
   let entrypoints = [($tmp | path join '*.vi')]
@@ -32,54 +32,54 @@ export def main [--vine: path, --json: path, --root: path, --timeout = 5sec, --d
   let send = { do $replace_uri send | jsonrpc encode | job send $lsp_id }
   let recv = { job recv --timeout $timeout | jsonrpc decode | do $replace_uri recv }
 
-  mut turns = []
-  for turn in (open $json) {
-    if send in $turn {
-      $turn.send | do $send
-      $turns ++= [{ send: $turn.send }]
+  mut log = []
+  for step in (open $test) {
+    if send in $step {
+      $step.send | do $send
+      $log ++= [{ send: $step.send }]
     }
-    if recv in $turn {
+    if recv in $step {
       mut got = do $recv
-      $turns ++= [{ recv: $got }]
-      if $turn.recv != $got {
-        error make { msg: $"expected:\n($turn.recv | to json)\n\ngot:\n($got | to json)" }
+      $log ++= [{ recv: $got }]
+      if $step.recv != $got {
+        error make { msg: $"expected:\n($step.recv | to yml)\n\ngot:\n($got | to yml)" }
       }
     }
-    if wait in $turn {
+    if wait in $step {
       loop {
         let got = try {
           do $recv
         } catch {
-          error make { msg: $"waited for but never arrived:\n($turn.wait | to json)" }
+          error make { msg: $"waited for but never arrived:\n($step.wait | to yml)" }
         }
-        $turns ++= [{ recv: $got }]
-        if $got == $turn.wait {
+        $log ++= [{ recv: $got }]
+        if $got == $step.wait {
           break
         }
       }
     }
-    if run in $turn {
-      with-env { tmp: $tmp } { ^bash -c $turn.run }
+    if run in $step {
+      with-env { tmp: $tmp } { ^bash -c $step.run }
     }
   }
 
   let got = try { do $recv }
   if $got != null {
-    error make { msg: $"unexpected:\n($got | to json)" }
+    error make { msg: $"unexpected:\n($got | to yml)" }
   }
 
-  $turns | to json
+  $log | to yml
 }
 
 def 'jsonrpc encode' [] : record -> string {
-  let json = ($in | to json)
+  let json = $in | insert jsonrpc "2.0" | to json
   let len = $json | str length
   $"Content-Length: ($len)\r\n\r\n($json)"
 }
 
 def 'jsonrpc decode' [] : string -> record {
   # TODO(enricozb): check length
-  $in | split row "\r\n\r\n" | get 1 | from json
+  $in | split row "\r\n\r\n" | get 1 | from json | reject jsonrpc
 }
 
 def spawn [closure] {
