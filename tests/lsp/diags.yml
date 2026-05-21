@@ -30,7 +30,8 @@
     params:
       diagnostics: []
       uri: file://<root>/prelude.vi
-- run: 'echo ''pub fn main (&io: &IO) {}'' > $tmp/main.vi'
+- write:
+    main.vi: 'pub fn main (&io: &IO) {}'
 - send:
     method: textDocument/didOpen
     params:

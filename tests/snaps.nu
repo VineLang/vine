@@ -5,9 +5,9 @@ export def main [snaps, dir, --write] {
   for entry in ($snaps | transpose path expected) {
     let path = $dir | path join $entry.path
     if ($path | path exists) {
-      if (open $path) != (open $entry.expected) {
+      if (open --raw $path) != (open --raw $entry.expected) {
         if $write {
-          open $entry.expected | save -f $path
+          open --raw $entry.expected | save -f $path
           print $"(ansi green)updated(ansi reset) ($path)"
         } else {
           $success = false
@@ -17,7 +17,7 @@ export def main [snaps, dir, --write] {
     } else {
       if $write {
         mkdir ($path | path dirname)
-        open $entry.expected | save -f $path
+        open --raw $entry.expected | save -f $path
         print $"(ansi green)created(ansi reset) ($entry.path)"
       } else {
         $success = false

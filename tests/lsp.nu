@@ -58,8 +58,11 @@ export def main [--vine: path, --test: path, --root: path, --timeout = 5sec, --d
         }
       }
     }
+    if write in $step {
+      $step.write | transpose path content | each {|entry| $entry.content | save -f ($tmp | path join $entry.path)}
+    }
     if run in $step {
-      with-env { tmp: $tmp } { ^bash -c $step.run }
+      tmp=$tmp ^bash -c $step.run 
     }
   }
 
