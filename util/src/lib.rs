@@ -8,6 +8,7 @@ pub mod arithmetic;
 
 mod multi_iter;
 
+pub mod stack_stack;
 pub mod sum_tree;
 mod unwrap_vec;
 pub use unwrap_vec::*;
