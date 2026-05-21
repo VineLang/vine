@@ -5,6 +5,8 @@ export def main [--vine: path, --test: path, --root: path, --timeout = 5sec, --d
   let entrypoints = [($tmp | path join '*.vi')]
   let replace_uri = { |method| replace_uri $method $root $tmp }
 
+  touch $"($tmp)/empty.vi"
+
   let main_id = job id
   let buffer_id = spawn {
     mut buf = ""

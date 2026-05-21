@@ -14,7 +14,7 @@
     method: textDocument/publishDiagnostics
     params:
       diagnostics: []
-      uri: file://<root>/prelude.vi
+      uri: file://<tmp>/empty.vi
 - send:
     id: 2
     method: textDocument/hover

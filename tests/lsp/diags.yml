@@ -13,7 +13,7 @@
 - wait:
     method: textDocument/publishDiagnostics
     params:
-      uri: file://<root>/prelude.vi
+      uri: file://<tmp>/empty.vi
 - write:
     main.vi: 'pub fn main (&io: &IO) {}'
 - send:
