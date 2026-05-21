@@ -390,6 +390,10 @@ impl Types {
     })
   }
 
+  pub(crate) fn is_nil(&self, ty: Type) -> bool {
+    matches!(self.kind(ty), Some((_, TypeKind::Tuple(tys))) if tys.is_empty())
+  }
+
   pub(crate) fn force_kind(&mut self, diags: &mut Diags, ty: Type) -> (Inverted, &TypeKind) {
     let ty = self.find_mut(ty);
     let Root { state, .. } = &mut self.types[ty.idx()] else { unreachable!() };
@@ -511,7 +515,7 @@ impl Types {
               *str += " { ";
               self._show(chart, then.invert_if(inv), str);
               *str += " }";
-              if !matches!(self.kind(*else_), Some((_, TypeKind::Tuple(els))) if els.is_empty()) {
+              if !self.is_nil(*else_) {
                 *str += " else { ";
                 self._show(chart, else_.invert_if(inv), str);
                 *str += " }";
@@ -555,8 +559,18 @@ impl Types {
     let mut str = String::new();
     match ty {
       ImplType::Trait(trait_id, params) => {
-        str += &chart.traits[*trait_id].name.0;
-        self._show_params(chart, params, Inverted(false), &mut str);
+        if chart.builtins.fn_ == Some(*trait_id)
+          && let [receiver, params, ret] = **params
+          && let Some((params_inv, TypeKind::Tuple(params))) = self.kind(params)
+        {
+          str += "fn ";
+          self._show(chart, receiver, &mut str);
+          let params = params.iter().map(|t| t.invert_if(params_inv));
+          self._show_anonymous_fn_sig(chart, params, ret, &mut str);
+        } else {
+          str += &chart.traits[*trait_id].name.0;
+          self._show_params(chart, params, Inverted(false), &mut str);
+        }
       }
       ImplType::Error(_) => str += "??",
     }
@@ -570,7 +584,6 @@ impl Types {
   }
 
   fn _show_fn_sig(&self, chart: &Chart, sig: &FnSig, str: &mut String) {
-    let ret = sig.ret_ty;
     *str += "(";
     let mut first = true;
     for (name, &ty) in sig.names.iter().zip(&sig.param_tys) {
@@ -586,10 +599,33 @@ impl Types {
       first = false;
     }
     *str += ")";
-    if !matches!(self.kind(ret), Some((_, TypeKind::Tuple(els))) if els.is_empty()) {
+    if !self.is_nil(sig.ret_ty) {
+      *str += " -> ";
+      self._show(chart, sig.ret_ty, str);
+    }
+  }
+
+  fn _show_anonymous_fn_sig(
+    &self,
+    chart: &Chart,
+    params: impl IntoIterator<Item = Type>,
+    ret: Type,
+    str: &mut String,
+  ) {
+    *str += "(";
+    let mut first = true;
+    for ty in params {
+      if !first {
+        *str += ", ";
+      }
+      self._show(chart, ty, str);
+      first = false;
+    }
+    *str += ")";
+    if !self.is_nil(ret) {
       *str += " -> ";
       self._show(chart, ret, str);
-    };
+    }
   }
 
   pub fn import<T: TransferTypes>(&mut self, source: &TypeCtx<T>, params: Option<&[Type]>) -> T {
