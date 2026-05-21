@@ -398,6 +398,10 @@ error: cannot infer type
    @ input:1:5
  1 | let x; x.a; x.a
 
+error: cannot infer type
+   @ input:1:5
+ 1 | let x; x.a; x.a
+
 
 let io: IO = <IO>;
 > Ok(true).try

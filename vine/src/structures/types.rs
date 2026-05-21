@@ -117,9 +117,6 @@ enum TypeState {
   /// Not yet inferred; if unable to infer, an error should be issued at the
   /// given `Span`.
   Unknown(Span),
-  /// Not inferred, and an error has been issued reporting the inference
-  /// failure.
-  InferenceFailed(ErrorGuaranteed),
 }
 
 use TypeState::*;
@@ -355,11 +352,9 @@ impl Types {
     match state {
       Known(inverted, kind) => (*inverted ^ ty.inv(), kind),
       Unknown(span) => {
-        let err = diags.error(Diag::CannotInfer { span: *span });
-        *state = InferenceFailed(err);
+        diags.error(Diag::CannotInfer { span: *span });
         (Inverted(false), ERROR)
       }
-      InferenceFailed(_) => (Inverted(false), ERROR),
     }
   }
 
@@ -387,7 +382,7 @@ impl Types {
           ty = parent.invert_if(ty.inv());
           continue;
         }
-        Root { state: Unknown(..) | InferenceFailed(..), .. } => {
+        Root { state: Unknown(..), .. } => {
           write!(str, "{}?{}", if ty.inv().0 { "~" } else { "" }, ty.idx().0).unwrap()
         }
         Root { state: Known(inv, kind), .. } => {
