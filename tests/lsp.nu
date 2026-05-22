@@ -1,6 +1,6 @@
 
-export def main [--vine: path, --test: path, --root: path, --timeout = 5sec, --debug] {
-  let root = $root | default { $vine | path dirname | path dirname | path join lib root } | path expand
+export def main [--vine: path, --test: path, --timeout = 5sec, --debug] {
+  let root = ^$vine root | path expand
   let tmp = mktemp -d
   let entrypoints = [($tmp | path join '*.vi')]
   let replace_uri = { |method| replace_uri $method $root $tmp }
