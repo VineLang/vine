@@ -15,7 +15,7 @@
     params:
       uri: file://<tmp>/empty.vi
 - write:
-    main.vi: 'pub fn main (&io: &IO) {}'
+    main.vi: "pub fn main (&io: &IO) {}"
 - send:
     method: textDocument/didSave
     params:
