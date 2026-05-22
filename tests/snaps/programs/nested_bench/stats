@@ -1,0 +1,353 @@
+
+Overall Execution            4187 ixs
+└── walk 0                   4027 ixs
+    ├── walk 1               2471 ixs
+    │   ├── walk 4           1273 ixs
+    │   │   ├── walk 13       433 ixs
+    │   │   │   ├── walk 40    13 ixs
+    │   │   │   └── walk 41    13 ixs
+    │   │   └── walk 14       433 ixs
+    │   │       ├── walk 43    13 ixs
+    │   │       └── walk 44    13 ixs
+    │   └── walk 5            853 ixs
+    │       ├── walk 16       433 ixs
+    │       │   ├── walk 49    13 ixs
+    │       │   └── walk 50    13 ixs
+    │       └── walk 17        13 ixs
+    └── walk 2               1211 ixs
+        ├── walk 7            433 ixs
+        │   ├── walk 22        13 ixs
+        │   └── walk 23        13 ixs
+        └── walk 8            433 ixs
+            ├── walk 25        13 ixs
+            └── walk 26        13 ixs
+
+Stats for Overall Execution:
+Interactions
+  Total                4_187
+  Annihilate           1_939
+  Commute                  0
+  Copy                   344
+  Erase                  162
+  Graft                  464
+  Extrinsic            1_278
+
+Memory
+  Heap                 2_352 B
+  Allocated           91_248 B
+  Freed               91_248 B
+
+Stats for walk 0:  
+  Interactions
+    Total                4_027
+    Annihilate           1_862
+    Commute                  0
+    Copy                   333
+    Erase                  151
+    Graft                  444
+    Extrinsic            1_237
+  
+  Memory
+    Heap                 1_664 B
+    Allocated           87_792 B
+    Freed               87_808 B
+
+Stats for walk 1:  
+  Interactions
+    Total                2_471
+    Annihilate           1_142
+    Commute                  0
+    Copy                   205
+    Erase                   91
+    Graft                  272
+    Extrinsic              761
+  
+  Memory
+    Heap                   928 B
+    Allocated           53_872 B
+    Freed               53_888 B
+
+Stats for walk 4:  
+  Interactions
+    Total                1_273
+    Annihilate             588
+    Commute                  0
+    Copy                   106
+    Erase                   46
+    Graft                  140
+    Extrinsic              393
+  
+  Memory
+    Heap                   624 B
+    Allocated           27_744 B
+    Freed               27_760 B
+
+Stats for walk 13:  
+  Interactions
+    Total                  433
+    Annihilate             200
+    Commute                  0
+    Copy                    36
+    Erase                   16
+    Graft                   48
+    Extrinsic              133
+  
+  Memory
+    Heap                   304 B
+    Allocated            9_408 B
+    Freed                9_424 B
+
+Stats for walk 40:  
+  Interactions
+    Total                   13
+    Annihilate               6
+    Commute                  0
+    Copy                     1
+    Erase                    1
+    Graft                    2
+    Extrinsic                3
+  
+  Memory
+    Heap                     0 B
+    Allocated              240 B
+    Freed                  256 B
+
+Stats for walk 41:  
+  Interactions
+    Total                   13
+    Annihilate               6
+    Commute                  0
+    Copy                     1
+    Erase                    1
+    Graft                    2
+    Extrinsic                3
+  
+  Memory
+    Heap                     0 B
+    Allocated              240 B
+    Freed                  264 B
+
+Stats for walk 14:  
+  Interactions
+    Total                  433
+    Annihilate             200
+    Commute                  0
+    Copy                    36
+    Erase                   16
+    Graft                   48
+    Extrinsic              133
+  
+  Memory
+    Heap                     0 B
+    Allocated            9_408 B
+    Freed                9_432 B
+
+Stats for walk 43:  
+  Interactions
+    Total                   13
+    Annihilate               6
+    Commute                  0
+    Copy                     1
+    Erase                    1
+    Graft                    2
+    Extrinsic                3
+  
+  Memory
+    Heap                     0 B
+    Allocated              240 B
+    Freed                  256 B
+
+Stats for walk 44:  
+  Interactions
+    Total                   13
+    Annihilate               6
+    Commute                  0
+    Copy                     1
+    Erase                    1
+    Graft                    2
+    Extrinsic                3
+  
+  Memory
+    Heap                     0 B
+    Allocated              240 B
+    Freed                  264 B
+
+Stats for walk 5:  
+  Interactions
+    Total                  853
+    Annihilate             394
+    Commute                  0
+    Copy                    71
+    Erase                   31
+    Graft                   94
+    Extrinsic              263
+  
+  Memory
+    Heap                     0 B
+    Allocated           18_576 B
+    Freed               18_600 B
+
+Stats for walk 16:  
+  Interactions
+    Total                  433
+    Annihilate             200
+    Commute                  0
+    Copy                    36
+    Erase                   16
+    Graft                   48
+    Extrinsic              133
+  
+  Memory
+    Heap                     0 B
+    Allocated            9_408 B
+    Freed                9_424 B
+
+Stats for walk 49:  
+  Interactions
+    Total                   13
+    Annihilate               6
+    Commute                  0
+    Copy                     1
+    Erase                    1
+    Graft                    2
+    Extrinsic                3
+  
+  Memory
+    Heap                     0 B
+    Allocated              240 B
+    Freed                  256 B
+
+Stats for walk 50:  
+  Interactions
+    Total                   13
+    Annihilate               6
+    Commute                  0
+    Copy                     1
+    Erase                    1
+    Graft                    2
+    Extrinsic                3
+  
+  Memory
+    Heap                     0 B
+    Allocated              240 B
+    Freed                  264 B
+
+Stats for walk 17:  
+  Interactions
+    Total                   13
+    Annihilate               6
+    Commute                  0
+    Copy                     1
+    Erase                    1
+    Graft                    2
+    Extrinsic                3
+  
+  Memory
+    Heap                     0 B
+    Allocated              240 B
+    Freed                  264 B
+
+Stats for walk 2:  
+  Interactions
+    Total                1_211
+    Annihilate             560
+    Commute                  0
+    Copy                   100
+    Erase                   46
+    Graft                  134
+    Extrinsic              371
+  
+  Memory
+    Heap                     0 B
+    Allocated           26_368 B
+    Freed               26_392 B
+
+Stats for walk 7:  
+  Interactions
+    Total                  433
+    Annihilate             200
+    Commute                  0
+    Copy                    36
+    Erase                   16
+    Graft                   48
+    Extrinsic              133
+  
+  Memory
+    Heap                     0 B
+    Allocated            9_408 B
+    Freed                9_424 B
+
+Stats for walk 22:  
+  Interactions
+    Total                   13
+    Annihilate               6
+    Commute                  0
+    Copy                     1
+    Erase                    1
+    Graft                    2
+    Extrinsic                3
+  
+  Memory
+    Heap                     0 B
+    Allocated              240 B
+    Freed                  256 B
+
+Stats for walk 23:  
+  Interactions
+    Total                   13
+    Annihilate               6
+    Commute                  0
+    Copy                     1
+    Erase                    1
+    Graft                    2
+    Extrinsic                3
+  
+  Memory
+    Heap                     0 B
+    Allocated              240 B
+    Freed                  264 B
+
+Stats for walk 8:  
+  Interactions
+    Total                  433
+    Annihilate             200
+    Commute                  0
+    Copy                    36
+    Erase                   16
+    Graft                   48
+    Extrinsic              133
+  
+  Memory
+    Heap                     0 B
+    Allocated            9_408 B
+    Freed                9_432 B
+
+Stats for walk 25:  
+  Interactions
+    Total                   13
+    Annihilate               6
+    Commute                  0
+    Copy                     1
+    Erase                    1
+    Graft                    2
+    Extrinsic                3
+  
+  Memory
+    Heap                     0 B
+    Allocated              240 B
+    Freed                  256 B
+
+Stats for walk 26:  
+  Interactions
+    Total                   13
+    Annihilate               6
+    Commute                  0
+    Copy                     1
+    Erase                    1
+    Graft                    2
+    Extrinsic                3
+  
+  Memory
+    Heap                     0 B
+    Allocated              240 B
+    Freed                  264 B

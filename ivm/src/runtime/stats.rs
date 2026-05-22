@@ -190,6 +190,7 @@ impl AddAssign<Stats> for Stats {
     self.erase += rhs.erase;
     self.graft += rhs.graft;
     self.extrinsic += rhs.extrinsic;
+    self.depth += rhs.depth;
     self.mem_heap += rhs.mem_heap;
     self.mem_alloc += rhs.mem_alloc;
     self.mem_free += rhs.mem_free;

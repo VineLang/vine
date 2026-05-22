@@ -18,6 +18,7 @@ use crate::{
   program::Program,
   runtime::{
     Hooks, Runtime,
+    bench::Benches,
     ext::ExtTy,
     flags::Flags,
     heap::Heap,
@@ -63,11 +64,11 @@ impl<'ivm, 'ext> Runner<'ivm, 'ext> {
     breadth_first: bool,
     workers: usize,
     hooks: impl Hooks,
-  ) -> (Stats, Flags) {
+  ) -> (Stats, Flags, Benches) {
     if breadth_first {
       self.runtime.normalize_breadth_first(hooks);
     } else if workers > 0 {
-      self.runtime.normalize_parallel(workers)
+      self.runtime.normalize_parallel(workers, ())
     } else {
       self.runtime.normalize(hooks);
     }
@@ -78,7 +79,7 @@ impl<'ivm, 'ext> Runner<'ivm, 'ext> {
       out.tag() != Tag::ExtVal || unsafe { out.as_ext_val() }.ty_id() != self.io.id();
     self.runtime.flags.vicious = self.runtime.stats.mem_free < self.runtime.stats.mem_alloc;
 
-    (self.runtime.stats, self.runtime.flags)
+    (self.runtime.stats, self.runtime.flags, self.runtime.bencher.benches)
   }
 }
 

@@ -5,44 +5,56 @@ use std::{
   time::Instant,
 };
 
-use crate::runtime::{Runtime, port::Port};
+use crate::runtime::{Hooks, Runtime, port::Port};
 
 impl<'ivm> Runtime<'ivm, '_> {
-  pub fn normalize_parallel(&mut self, threads: usize) {
-    self.do_fast();
+  pub fn normalize_parallel(&mut self, threads: usize, mut hooks: impl Hooks) {
+    let mut start = hooks.now();
+    let mut conts = Vec::new();
 
-    let shared = Vec::from_iter((0..threads).map(|_| Shared::default()));
-    let start = Instant::now();
-    thread::scope(|s| {
-      let workers = Vec::from_iter((0..threads).map(|i| {
-        let dispatch = thread::current();
-        let alloc = self.alloc_pool.pop().unwrap_or(self.alloc.fork(i, threads));
-        let shared = &shared[i];
-        let mut ivm = Runtime::new(alloc, self.extrinsics);
-        if i == 0 {
-          ivm.active_slow = mem::take(&mut self.active_slow);
-        }
-        s.spawn(move || Worker { ivm, shared, dispatch }.execute());
-        WorkerHandle { shared }
-      }));
-      Dispatch { active: workers, idle: vec![] }.execute();
-    });
+    loop {
+      hooks.tick(&start, &mut self.stats);
 
-    self.stats.time_clock += start.elapsed();
-    if self.stats.worker_min == 0 {
-      self.stats.worker_min = u64::MAX;
-    }
-    for mut shared in shared {
-      let ivm = shared.ivm_return.take().unwrap();
-      self.stats.workers_spawned += 1;
-      if ivm.stats.interactions() != 0 {
+      self.do_fast();
+
+      let shared = Vec::from_iter((0..threads).map(|_| Shared::default()));
+      thread::scope(|s| {
+        let workers = Vec::from_iter((0..threads).map(|i| {
+          let dispatch = thread::current();
+          let alloc = self.alloc_pool.pop().unwrap_or(self.alloc.fork(i, threads));
+          let shared = &shared[i];
+          let mut ivm = Runtime::new(alloc, self.extrinsics);
+          if i == 0 {
+            ivm.active_slow = mem::take(&mut self.active_slow);
+          }
+          s.spawn(move || Worker { ivm, shared, dispatch }.execute());
+          WorkerHandle { shared }
+        }));
+        Dispatch { active: workers, idle: vec![] }.execute();
+      });
+
+      if self.stats.worker_min == 0 {
+        self.stats.worker_min = u64::MAX;
+      }
+      for mut shared in shared {
+        let mut ivm = shared.ivm_return.take().unwrap();
         self.alloc_pool.push(ivm.alloc);
-        self.stats.workers_used += 1;
-        self.stats.worker_max = self.stats.worker_max.max(ivm.stats.interactions());
-        self.stats.worker_min = self.stats.worker_min.min(ivm.stats.interactions());
-        self.stats += ivm.stats;
+        self.bencher.todo.append(&mut ivm.bencher.todo);
+        self.stats.workers_spawned += 1;
+        if ivm.stats.interactions() != 0 {
+          self.stats.workers_used += 1;
+          self.stats.worker_max = self.stats.worker_max.max(ivm.stats.interactions());
+          self.stats.worker_min = self.stats.worker_min.min(ivm.stats.interactions());
+          self.stats += ivm.stats;
+        }
+      }
+
+      if !self.bench_check(&mut start, &mut conts, &mut hooks) {
+        break;
       }
     }
+
+    hooks.end(&start, &mut self.stats);
   }
 }
 

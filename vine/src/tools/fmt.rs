@@ -221,6 +221,9 @@ impl<'src> Formatter<'src> {
         Chain::new(self.fmt_expr_for(label.clone(), pat, expr, ty, block, else_))
       }
       ExprKind::Fn(flex, params, ty, body) => Chain::new(self.fmt_expr_fn(flex, params, ty, body)),
+      ExprKind::Bench(flex, params, ty, body) => {
+        Chain::new(self.fmt_expr_bench(flex, params, ty, body))
+      }
       ExprKind::Ref(expr, postfix) => self.fmt_expr_ref(expr, *postfix),
       ExprKind::Deref(expr, postfix) => self.fmt_expr_deref(expr, *postfix),
       ExprKind::Inverse(expr, postfix) => self.fmt_expr_inverse(expr, *postfix),

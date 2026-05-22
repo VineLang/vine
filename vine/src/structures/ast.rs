@@ -329,6 +329,7 @@ pub enum ExprKind {
   Loop(Label, Option<Ty>, Block),
   For(Label, Pat, Expr, Option<Ty>, Block, Option<Block>),
   Fn(Flex, Vec<Pat>, Option<Ty>, Block),
+  Bench(Flex, Vec<Pat>, Option<Ty>, Block),
   Ref(Expr, bool),
   Deref(Expr, bool),
   Inverse(Expr, bool),

@@ -135,6 +135,12 @@ impl<'r> Distiller<'r> {
       interfaces: unwrap_idx_vec(take(&mut self.interfaces)),
       stages: unwrap_idx_vec(take(&mut self.stages)),
       locals,
+      benches: fragment
+        .tir
+        .benches
+        .iter()
+        .map(|&(i, o)| (self.closures[i], self.closures[o]))
+        .collect(),
       closures: take(&mut self.closures),
     }
   }
@@ -262,6 +268,9 @@ impl<'r> Distiller<'r> {
       TirExprKind::CallAssign(func, lhs, rhs) => {
         self.distill_expr_nil_call_assign(stage, span, *func, lhs, rhs)
       }
+      TirExprKind::CaptureReturn(local, body) => {
+        self.distill_expr_nil_capture_return(stage, span, *local, body)
+      }
     }
   }
 
@@ -321,7 +330,6 @@ impl<'r> Distiller<'r> {
       TirExprKind::CallCompare(init, cmps) => {
         self.distill_expr_value_call_compare(stage, span, ty, init, cmps)
       }
-
       TirExprKind::InlineIvy(table, net, interpolations) => {
         self.distill_expr_value_inline_ivy(stage, span, ty, table, net, interpolations)
       }

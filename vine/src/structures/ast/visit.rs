@@ -142,7 +142,7 @@ pub trait VisitMut<'a> {
         self.visit_block(b);
         self.visit(c);
       }
-      ExprKind::Fn(_, a, b, c) => {
+      ExprKind::Fn(_, a, b, c) | ExprKind::Bench(_, a, b, c) => {
         self.visit(a);
         self.visit(b);
         self.visit_block(c);

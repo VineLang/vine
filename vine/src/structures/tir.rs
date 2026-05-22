@@ -27,6 +27,7 @@ pub struct Tir {
   pub locals: IdxVec<Local, TirLocal>,
   pub rels: Rels,
   pub closures: IdxVec<ClosureId, TirClosure>,
+  pub benches: Vec<(ClosureId, ClosureId)>,
   pub params: Option<Vec<TirPat>>,
   pub body: TirExpr,
 }
@@ -139,6 +140,8 @@ pub enum TirExprKind {
   CallCompare(TirExpr, Vec<(FnRelId, TirExpr)>),
   #[class(value)]
   Let(TirPat, TirExprLetKind, TirExpr),
+  #[class(nil, value)]
+  CaptureReturn(Local, TirExpr),
   #[class(value)]
   Seq(TirExpr, TirExpr),
   #[class(poly, value, place, space)]

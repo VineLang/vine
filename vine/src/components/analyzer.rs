@@ -29,6 +29,7 @@ pub fn analyze(chart: &Chart, diags: &mut Diags, span: Span, vir: &mut Vir) {
     stages: &vir.stages,
     interfaces: &mut vir.interfaces,
     types: &vir.types,
+    benches: &vir.benches,
     effects: IdxVec::from([Effect::Pass]),
     dependent: IdxVec::from([Vec::new()]),
     relations: IdxVec::new(),
@@ -49,6 +50,7 @@ struct Analyzer<'a> {
   stages: &'a IdxVec<StageId, Stage>,
   interfaces: &'a mut IdxVec<InterfaceId, Interface>,
   types: &'a Types,
+  benches: &'a Vec<(InterfaceId, InterfaceId)>,
   effects: IdxVec<EffectVar, Effect>,
   dependent: IdxVec<EffectVar, Vec<RelationId>>,
   relations: IdxVec<RelationId, (EffectVar, EffectVar, EffectVar, EffectVar)>,
@@ -79,6 +81,15 @@ impl Analyzer<'_> {
 
     for (local, stages) in take(&mut self.local_declarations) {
       self.process_local(local, stages);
+    }
+
+    for &(inner, outer) in self.benches {
+      let (inner, outer) = self.interfaces.get2_mut(inner, outer).unwrap();
+      for (local, (_, _, write)) in &outer.wires {
+        if *write {
+          inner.wires.insert(*local, (true, true, true));
+        }
+      }
     }
   }
 

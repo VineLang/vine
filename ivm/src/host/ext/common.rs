@@ -35,6 +35,7 @@ pub fn all<'ivm, R: Read, W: Write>(
   (
     fundamental(),
     arithmetic(),
+    io_bench(),
     io_meta(),
     io_stdio_with(stdin, stdout),
     io_args(args),
@@ -115,6 +116,23 @@ pub fn io_meta<'ivm>() -> impl Register<Host<'ivm>> {
     ExtFn("vi:io:merge", |(IO, IO)| IO),
     ExtFn("vi:io:ready", |IO| (true, IO)),
   )
+}
+
+pub fn io_bench<'ivm>() -> impl Register<Host<'ivm>> {
+  ExtFn("ivm:io:bench", |host: &mut Host<'ivm>, table: &mut Table| {
+    let io = host.register_ext_ty::<IO>();
+    let str = from_list::<char, _, String>(host, table);
+    let n32 = host.register_ext_ty::<u32>();
+    move |rt: &mut Runtime<'ivm, '_>,
+          [io_in, key]: [ExtVal<'ivm>; 2],
+          [io_out, enter, exit]: [Wire<'ivm>; 3]| {
+      let (Some(IO), Ok(key)) = (io.unwrap_static(io_in), str(rt, key)) else {
+        return error(rt, [io_out, enter, exit]);
+      };
+      rt.link_wire(io_out, Port::new_ext_val(io.wrap_static(IO)));
+      rt.push_bench(key, enter, exit, n32);
+    }
+  })
 }
 
 pub fn io_stdio<'ivm>() -> impl Register<Host<'ivm>> {
