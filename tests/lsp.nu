@@ -3,9 +3,8 @@ export def main [--vine: path, --test: path, --timeout = 5sec, --debug] {
   let root = ^$vine root | path expand
   let tmp = mktemp -d
   let entrypoints = [($tmp | path join '*.vi')]
-  let replace_uri = { |method| replace_uri $method $root $tmp }
 
-  touch $"($tmp)/empty.vi"
+  touch ($tmp | path join empty.vi)
 
   let main_id = job id
   let buffer_id = spawn {
@@ -31,17 +30,37 @@ export def main [--vine: path, --test: path, --timeout = 5sec, --debug] {
     | each { job send $buffer_id }
   }
 
-  let send = { do $replace_uri send | jsonrpc encode | job send $lsp_id }
-  let recv = { job recv --timeout $timeout | jsonrpc decode | do $replace_uri recv }
+  def replace_uri [method: string]: record -> record {
+    let record = $in | to json
+    match $method {
+      "send" => (
+        $record
+        | str replace "<root>" $root
+        | str replace "<tmp>" $tmp
+      )
+      "recv" => (
+        $record
+        | str replace $root "<root>"
+        | str replace $tmp "<tmp>"
+      )
+    }
+    | from json
+  }
+  def send [] { replace_uri send | jsonrpc encode | job send $lsp_id }
+  def recv [] { job recv --timeout $timeout | jsonrpc decode | replace_uri recv }
 
   mut log = []
   for step in (open $test) {
     if send in $step {
-      $step.send | do $send
+      $step.send | send
       $log ++= [{ send: $step.send }]
     }
     if recv in $step {
-      mut got = do $recv
+      mut got = try {
+        recv
+      } catch {
+        error make { msg: $"expected but never arrived:\n($step.recv | to yml)" }
+      }
       $log ++= [{ recv: $got }]
       if not (matches $got $step.recv) {
         error make { msg: $"expected:\n($step.recv | to yml)\n\ngot:\n($got | to yml)" }
@@ -50,7 +69,7 @@ export def main [--vine: path, --test: path, --timeout = 5sec, --debug] {
     if wait in $step {
       loop {
         let got = try {
-          do $recv
+          recv
         } catch {
           error make { msg: $"waited for but never arrived:\n($step.wait | to yml)" }
         }
@@ -64,11 +83,11 @@ export def main [--vine: path, --test: path, --timeout = 5sec, --debug] {
       $step.write | transpose path content | each {|entry| $entry.content | save -f ($tmp | path join $entry.path)}
     }
     if run in $step {
-      tmp=$tmp ^bash -c $step.run 
+      tmp=$tmp ^bash -c $step.run
     }
   }
 
-  let got = try { do $recv }
+  let got = try { recv }
   if $got != null {
     error make { msg: $"unexpected:\n($got | to yml)" }
   }
@@ -83,7 +102,6 @@ def 'jsonrpc encode' [] : record -> string {
 }
 
 def 'jsonrpc decode' [] : string -> record {
-  # TODO(enricozb): check length
   $in | split row "\r\n\r\n" | get 1 | from json | reject jsonrpc
 }
 
@@ -99,24 +117,7 @@ def matches [got: record, expected: record] {
   }
 }
 
-def replace_uri [method: string, root: path, tmp: path]: record -> record {
-  let record = $in | to json
-  match $method {
-    "send" => (
-      $record
-      | str replace "<root>" $root
-      | str replace "<tmp>" $tmp
-    )
-    "recv" => (
-      $record
-      | str replace $root "<root>"
-      | str replace $tmp "<tmp>"
-    )
-  }
-  | from json
-}
-
-def peek [debug:bool] : any -> any {
+def peek [debug: bool] : any -> any {
   if ($debug) {
     print $"peek: ($in)"
   }
