@@ -1,5 +1,32 @@
 
-Stats for "1. generate graph":
+Overall Execution       1564958 ixs
+├── Generate              97118 ixs
+├── Algorithms          1384573 ixs
+│   ├── Floyd-Warshall   807189 ixs
+│   └── Multi-Dijkstra   576274 ixs
+└── Verification          82584 ixs
+
+Stats for Overall Execution:
+Interactions
+  Total            1_564_958
+  Annihilate         873_492
+  Commute             10_355
+  Copy               181_042
+  Erase               85_677
+  Graft              151_748
+  Extrinsic          262_644
+
+Parallelism
+  Depth              677_166
+  Breadth                  2
+  Speedup                 36 cB
+
+Memory
+  Heap               725_072 B
+  Allocated       36_307_440 B
+  Freed           36_307_440 B
+
+Stats for Generate:  
   Interactions
     Total               97_118
     Annihilate          32_150
@@ -15,12 +42,31 @@ Stats for "1. generate graph":
     Speedup                 70 cB
   
   Memory
-    Heap               721_808 B
+    Heap               722_704 B
     Allocated        2_037_328 B
     Freed            2_030_592 B
 
+Stats for Algorithms:  
+  Interactions
+    Total            1_384_573
+    Annihilate         802_614
+    Commute              8_349
+    Copy               148_300
+    Erase               75_236
+    Graft              136_357
+    Extrinsic          213_717
+  
+  Parallelism
+    Depth              633_725
+    Breadth                  2
+    Speedup                 34 cB
+  
+  Memory
+    Heap                     0 B
+    Allocated       32_542_032 B
+    Freed           32_534_104 B
 
-Stats for "2. floyd-warshall":
+Stats for Floyd-Warshall:  
   Interactions
     Total              807_189
     Annihilate         480_133
@@ -38,10 +84,9 @@ Stats for "2. floyd-warshall":
   Memory
     Heap                     0 B
     Allocated       19_130_176 B
-    Freed           19_131_208 B
+    Freed           19_131_192 B
 
-
-Stats for "3. multi-dijkstra":
+Stats for Multi-Dijkstra:  
   Interactions
     Total              576_274
     Annihilate         322_150
@@ -59,10 +104,9 @@ Stats for "3. multi-dijkstra":
   Memory
     Heap                     0 B
     Allocated       13_381_504 B
-    Freed           13_382_024 B
+    Freed           13_382_000 B
 
-
-Stats for "4. verify":
+Stats for Verification:  
   Interactions
     Total               82_584
     Annihilate          38_361
@@ -81,25 +125,3 @@ Stats for "4. verify":
     Heap                     0 B
     Allocated        1_712_368 B
     Freed            1_727_216 B
-
-
-Stats for overall execution: 
-  Interactions
-    Total            1_564_940
-    Annihilate         873_483
-    Commute             10_355
-    Copy               181_043
-    Erase               85_671
-    Graft              151_743
-    Extrinsic          262_645
-  
-  Parallelism
-    Depth              677_047
-    Breadth                  2
-    Speedup                 36 cB
-  
-  Memory
-    Heap               725_312 B
-    Allocated       36_307_168 B
-    Freed           36_307_168 B
-

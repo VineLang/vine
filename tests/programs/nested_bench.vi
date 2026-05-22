@@ -1,0 +1,13 @@
+
+pub fn main(&io: &IO) {
+  walk(&io, 0);
+}
+
+fn walk(&io: &IO, n: N32) {
+  io.bench("walk {n}", $bench fn (&io: &IO) {
+    if n <= 16 {
+      walk(&io, n * 3 + 1);
+      walk(&io, n * 3 + 2);
+    }
+  })
+}

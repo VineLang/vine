@@ -67,7 +67,7 @@ impl<'ivm, 'ext> Runtime<'ivm, 'ext> {
   /// Normalize all nets in this IVM.
   pub fn normalize<H: Hooks>(&mut self, mut hooks: H) {
     let mut start = hooks.now();
-    let mut cont = None;
+    let mut conts = Vec::new();
     loop {
       hooks.tick(&start, &mut self.stats);
 
@@ -75,7 +75,7 @@ impl<'ivm, 'ext> Runtime<'ivm, 'ext> {
 
       if let Some((a, b)) = self.active_slow.pop() {
         self.interact(a, b);
-      } else if !self.bench_check(&mut start, &mut cont, &mut hooks) {
+      } else if !self.bench_check(&mut start, &mut conts, &mut hooks) {
         break;
       }
     }
@@ -97,13 +97,13 @@ impl<'ivm, 'ext> Runtime<'ivm, 'ext> {
   pub fn normalize_breadth_first<H: Hooks>(&mut self, mut hooks: H) {
     let mut start = hooks.now();
     let mut work = vec![];
-    let mut cont = None;
+    let mut conts = Vec::new();
     loop {
       hooks.tick(&start, &mut self.stats);
 
       mem::swap(&mut work, &mut self.active_fast);
       work.append(&mut self.active_slow);
-      if work.is_empty() && !self.bench_check(&mut start, &mut cont, &mut hooks) {
+      if work.is_empty() && !self.bench_check(&mut start, &mut conts, &mut hooks) {
         break;
       }
       for (a, b) in work.drain(..) {

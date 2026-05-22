@@ -1,5 +1,6 @@
 use std::{
   collections::HashMap,
+  fmt::Display,
   io::{self, IsTerminal, stderr},
   process::exit,
 };
@@ -11,7 +12,12 @@ use ivm::{
     ext::common,
     runner::{CaptureOutput, Runner},
   },
-  runtime::{bench::Bench, flags::Flags, heap::Heap, stats::Stats},
+  runtime::{
+    bench::{Bench, Benches},
+    flags::Flags,
+    heap::Heap,
+    stats::Stats,
+  },
 };
 use ivy::{
   name::{NameId, Table},
@@ -57,15 +63,12 @@ impl RunArgs {
       if benches.is_empty() {
         eprintln!("{stats}");
       } else {
-        let Colors { reset, bold, .. } = colors(&stderr());
-
+        let Colors { bold, reset, .. } = colors(&stderr());
+        print_benches_tree(stats, &benches);
+        eprintln!("\nStats for {bold}Overall Execution{reset}:{stats}");
         for Bench { name, stats, .. } in benches.values() {
-          let stats = indent(stats.to_string().trim(), 2);
-          eprintln!("\n{bold}Stats for {name:?}{reset}:\n{stats}\n");
+          eprintln!("\nStats for {bold}{name}{reset}:{}", indent(stats, 2));
         }
-
-        let stats = indent(stats.to_string().trim(), 2);
-        eprintln!("\n{bold}Stats for overall execution{reset}: \n{stats}\n");
       }
     }
 
@@ -141,9 +144,67 @@ pub fn colors(t: &impl IsTerminal) -> Colors {
   }
 }
 
-fn indent(s: &str, level: usize) -> String {
-  s.lines()
-    .map(|line| format!("{line:>width$}", width = line.len() + level))
-    .collect::<Vec<_>>()
-    .join("\n")
+fn indent(s: impl Display, level: usize) -> String {
+  s.to_string().lines().map(|line| format!("{:>level$}{line}", "")).collect::<Vec<_>>().join("\n")
+}
+
+fn print_benches_tree(stats: Stats, benches: &Benches) {
+  fn _print_benches_tree(
+    bench: &Bench,
+    benches: &Benches,
+    prefix: &mut String,
+    is_last: bool,
+    lines: &mut Vec<(String, u64, u64)>,
+  ) {
+    let Bench { name, children, stats, .. } = bench;
+    let connector = if is_last { "└── " } else { "├── " };
+    lines.push((
+      format!("{prefix}{connector}{name}"),
+      stats.interactions(),
+      stats.time_clock.as_millis() as u64,
+    ));
+    let cont = if is_last { "    " } else { "│   " };
+    prefix.push_str(cont);
+    for (i, &id) in children.iter().enumerate() {
+      _print_benches_tree(&benches[id], benches, prefix, i == children.len() - 1, lines);
+    }
+    prefix.truncate(prefix.len() - cont.len());
+  }
+
+  fn len_base10(n: u64) -> usize {
+    match n {
+      0 => 1,
+      n => ((n as f64).log10().floor() as usize) + 1,
+    }
+  }
+
+  let mut lines = vec![(
+    "Overall Execution".to_owned(),
+    stats.interactions(),
+    stats.time_clock.as_millis() as u64,
+  )];
+  let mut prefix = String::new();
+  let root_benches: Vec<_> = benches.values().filter(|b| b.parent.is_none()).collect();
+  for (i, bench) in root_benches.iter().enumerate() {
+    let is_last = i == root_benches.len() - 1;
+    _print_benches_tree(bench, benches, &mut prefix, is_last, &mut lines);
+  }
+
+  let mut max_len = 0;
+  let mut max_ixs = 0;
+  let mut max_ms = 0;
+  for (line, ixs, ms) in &lines {
+    max_len = max_len.max(line.chars().count());
+    max_ixs = max_ixs.max(len_base10(*ixs));
+    max_ms = max_ms.max(len_base10(*ms));
+  }
+
+  eprintln!();
+  for (line, ixs, ms) in lines {
+    eprint!("{line:<max_len$}  {ixs:>max_ixs$} ixs");
+    if !stats.time_clock.is_zero() {
+      eprint!("  {ms:>max_ms$} ms")
+    }
+    eprintln!();
+  }
 }

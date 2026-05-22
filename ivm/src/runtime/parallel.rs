@@ -10,7 +10,7 @@ use crate::runtime::{Hooks, Runtime, port::Port};
 impl<'ivm> Runtime<'ivm, '_> {
   pub fn normalize_parallel(&mut self, threads: usize, mut hooks: impl Hooks) {
     let mut start = hooks.now();
-    let mut cont = None;
+    let mut conts = Vec::new();
 
     loop {
       hooks.tick(&start, &mut self.stats);
@@ -49,7 +49,7 @@ impl<'ivm> Runtime<'ivm, '_> {
         }
       }
 
-      if !self.bench_check(&mut start, &mut cont, &mut hooks) {
+      if !self.bench_check(&mut start, &mut conts, &mut hooks) {
         break;
       }
     }

@@ -18,24 +18,28 @@ impl<'ivm, 'ext> Runtime<'ivm, 'ext> {
   pub(crate) fn bench_check<H: Hooks>(
     &mut self,
     start: &mut H::Instant,
-    cont: &mut Option<Cont<'ivm, H::Instant>>,
+    conts: &mut Vec<Cont<'ivm, H::Instant>>,
     hooks: &mut H,
   ) -> bool {
-    if let Some(Cont { id, prev_start, prev_stats, exit, n32 }) = cont.take() {
+    if let Some(Request { key, enter, exit, n32 }) = self.bencher.todo.pop() {
+      let id = self.bencher.benches.push(Bench::new(key));
+      if let Some(cont) = conts.last_mut() {
+        self.bencher.benches[id].parent = Some(cont.id);
+        self.bencher.benches[cont.id].children.push(id);
+      }
+      let prev_start = mem::replace(start, hooks.now());
+      let prev_stats = mem::take(&mut self.stats);
+      conts.push(Cont { id, prev_start, prev_stats, exit, n32 });
+      self.link_wire(enter, Port::new_ext_val(n32.wrap_static(1)));
+      return true;
+    }
+
+    if let Some(Cont { id, prev_start, prev_stats, exit, n32 }) = conts.pop() {
       hooks.end(start, &mut self.stats);
       self.bencher.benches[id].stats = self.stats;
       *start = prev_start;
       self.stats += prev_stats;
       self.link_wire(exit, Port::new_ext_val(n32.wrap_static(1)));
-      return true;
-    }
-
-    if let Some(Request { key, enter, exit, n32 }) = self.bencher.todo.pop() {
-      let id = self.bencher.benches.push(Bench::new(key));
-      let prev_start = mem::replace(start, hooks.now());
-      let prev_stats = mem::take(&mut self.stats);
-      assert!(cont.replace(Cont { id, prev_start, prev_stats, exit, n32 }).is_none());
-      self.link_wire(enter, Port::new_ext_val(n32.wrap_static(1)));
       return true;
     }
 
@@ -56,11 +60,13 @@ pub(crate) struct Bencher<'ivm> {
 pub struct Bench {
   pub name: String,
   pub stats: Stats,
+  pub parent: Option<BenchId>,
+  pub children: Vec<BenchId>,
 }
 
 impl Bench {
   fn new(name: String) -> Self {
-    Self { name, stats: Stats::default() }
+    Self { name, stats: Stats::default(), parent: None, children: Vec::new() }
   }
 }
 

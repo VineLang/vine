@@ -1,0 +1,33 @@
+
+Overall Execution  2900 ixs
+└── should be low    32 ixs
+
+Stats for Overall Execution:
+Interactions
+  Total                2_900
+  Annihilate           1_206
+  Commute                  0
+  Copy                   455
+  Erase                  339
+  Graft                  310
+  Extrinsic              590
+
+Memory
+  Heap                 4_512 B
+  Allocated           55_856 B
+  Freed               55_856 B
+
+Stats for should be low:  
+  Interactions
+    Total                   32
+    Annihilate              18
+    Commute                  0
+    Copy                     1
+    Erase                    5
+    Graft                    6
+    Extrinsic                2
+  
+  Memory
+    Heap                     0 B
+    Allocated              624 B
+    Freed                  608 B
