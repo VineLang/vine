@@ -14,7 +14,11 @@ pub use nohash_hasher::IsEnabled;
 pub use nohash_hasher::{IntMap, IntSet};
 use slab::Slab;
 
-pub trait Idx: Copy + Eq + Ord + Hash + IsEnabled + From<usize> + Into<usize> + Debug {}
+pub trait Idx: Copy + Eq + Ord + Hash + IsEnabled + From<usize> + Into<usize> + Debug {
+  fn index(self) -> usize {
+    self.into()
+  }
+}
 impl Idx for usize {}
 
 #[macro_export]
