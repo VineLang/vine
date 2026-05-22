@@ -9,6 +9,6 @@ Interactions
   Extrinsic              441
 
 Memory
-  Heap                 4_096 B
-  Allocated           39_056 B
-  Freed               39_056 B
+  Heap                 3_072 B
+  Allocated           38_640 B
+  Freed               38_640 B

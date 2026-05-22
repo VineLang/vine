@@ -14,6 +14,6 @@ Parallelism
   Speedup                 14 cB
 
 Memory
-  Heap                 1_232 B
-  Allocated           19_648 B
-  Freed               19_648 B
+  Heap                 1_248 B
+  Allocated           19_312 B
+  Freed               19_312 B

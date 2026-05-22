@@ -282,8 +282,8 @@ impl<'a> Emitter<'a> {
         let interface = self.emit_interface(interface, false);
         let data = self.emit_port(data);
         let ctx = self.with_debug(interface);
-        self.net.free.push(data);
         self.net.free.push(ctx);
+        self.net.free.push(data);
       }
       Header::Closure(params, result) => {
         let interface = self.emit_interface(interface, false);
