@@ -443,6 +443,7 @@ module.exports = grammar({
         $.expr_num,
         $.char,
         $.string,
+        $.expr_bench,
         $.expr_inline_ivy,
         $.expr_chain,
         $.expr_binary_op,
@@ -537,6 +538,8 @@ module.exports = grammar({
 
     expr_range: $ =>
       prec.left(BP.Range, seq(optional($._expr), choice("..", "..="), optional($._expr))),
+
+    expr_bench: $ => seq("$", "bench", $.expr_fn),
 
     expr_inline_ivy: $ => seq("$", "ivy", $.ivy),
 
