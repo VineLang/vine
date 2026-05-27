@@ -1,0 +1,104 @@
+- send:
+    id: 1
+    method: initialize
+    params:
+      capabilities: {}
+      processId: null
+      rootUri: null
+  recv:
+    id: 1
+- send:
+    method: initialized
+    params: {}
+- wait:
+    method: textDocument/publishDiagnostics
+    params:
+      uri: file://<tmp>/empty.vi
+- write:
+    hello_world.vi: |
+      pub fn main
+- send:
+    method: textDocument/didSave
+    params:
+      textDocument:
+        uri: file://<tmp>/hello_world.vi
+- wait:
+    method: textDocument/publishDiagnostics
+    params:
+      uri: file://<tmp>/hello_world.vi
+- write:
+    hello_world.vi: |
+      pub fn main(&io: &IO) {}
+- send:
+    method: textDocument/didSave
+    params:
+      textDocument:
+        uri: file://<tmp>/hello_world.vi
+- wait:
+    method: textDocument/publishDiagnostics
+    params:
+      uri: file://<tmp>/hello_world.vi
+- write:
+    hello_world.vi: |
+      pub fn main(&io: &IO) {
+        io.println("Hello, world!")
+      }
+- send:
+    method: textDocument/didSave
+    params:
+      textDocument:
+        uri: file://<tmp>/hello_world.vi
+- wait:
+    method: textDocument/publishDiagnostics
+    params:
+      uri: file://<tmp>/hello_world.vi
+- send:
+    id: 2
+    method: textDocument/hover
+    params:
+      textDocument:
+        uri: file://<tmp>/hello_world.vi
+      position:
+        line: 1
+        character: 2
+  recv:
+    id: 2
+- send:
+    id: 3
+    method: textDocument/definition
+    params:
+      textDocument:
+        uri: file://<tmp>/hello_world.vi
+      position:
+        line: 1
+        character: 5
+  recv:
+    id: 3
+- send:
+    id: 4
+    method: textDocument/references
+    params:
+      textDocument:
+        uri: file://<tmp>/hello_world.vi
+      position:
+        line: 1
+        character: 2
+      context:
+        includeDeclaration: false
+  recv:
+    id: 4
+- send:
+    id: 5
+    method: textDocument/documentSymbol
+    params:
+      textDocument:
+        uri: file://<tmp>/hello_world.vi
+  recv:
+    id: 5
+- send:
+    id: 6
+    method: workspace/symbol
+    params:
+      query: main
+  recv:
+    id: 6

@@ -61,29 +61,28 @@ impl Backend {
     _ = lsp.compiler.check(());
     eprintln!("compiled in {:?}", start.elapsed());
 
-    let mut diags_by_file = HashMap::<FileId, (Vec<&Diag>, Vec<&Diag>)>::new();
+    let mut diags_by_file = IdxVec::repeat((vec![], vec![]), lsp.compiler.files.len());
     for diag in &lsp.compiler.diags.errors {
       let Some(span) = diag.span() else { continue };
-      diags_by_file.entry(span.file).or_default().0.push(diag);
+      diags_by_file[span.file].0.push(diag);
     }
     for diag in &lsp.compiler.diags.warnings {
       let Some(span) = diag.span() else { continue };
-      diags_by_file.entry(span.file).or_default().1.push(diag);
+      diags_by_file[span.file].1.push(diag);
     }
 
     let futures = FuturesUnordered::new();
-    for file_id in lsp.compiler.files.keys() {
+    for (file_id, (errors, warnings)) in diags_by_file {
       let mut out = Vec::new();
-      if let Some((errors, warnings)) = diags_by_file.get(&file_id) {
-        for diag in errors {
-          out.push(lsp.diag_to_diagnostic(diag, DiagnosticSeverity::ERROR));
-        }
-        for diag in warnings {
-          out.push(lsp.diag_to_diagnostic(diag, DiagnosticSeverity::WARNING));
-        }
+      for diag in errors {
+        out.push(lsp.diag_to_diagnostic(diag, DiagnosticSeverity::ERROR));
       }
-      let uri = lsp.file_to_uri(file_id);
-      futures.push(self.client.publish_diagnostics(uri, out, None));
+      for diag in warnings {
+        out.push(lsp.diag_to_diagnostic(diag, DiagnosticSeverity::WARNING));
+      }
+      if !out.is_empty() || file_id >= self.checkpoint.files {
+        futures.push(self.client.publish_diagnostics(lsp.file_to_uri(file_id), out, None));
+      }
     }
     futures.collect::<()>().await;
   }

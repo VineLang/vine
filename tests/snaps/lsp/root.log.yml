@@ -1,0 +1,33 @@
+- send:
+    id: 1
+    method: initialize
+    params:
+      capabilities: {}
+      processId: null
+      rootUri: null
+- recv:
+    result:
+      capabilities:
+        definitionProvider: true
+        documentFormattingProvider: true
+        documentHighlightProvider: true
+        documentSymbolProvider: true
+        hoverProvider: true
+        positionEncoding: utf-16
+        referencesProvider: true
+        textDocumentSync: 1
+        workspace:
+          workspaceFolders:
+            changeNotifications: true
+            supported: true
+        workspaceSymbolProvider: true
+    id: 1
+- send:
+    method: initialized
+    params: {}
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<tmp>/empty.vi
+

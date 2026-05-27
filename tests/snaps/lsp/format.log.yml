@@ -1,0 +1,67 @@
+- send:
+    id: 1
+    method: initialize
+    params:
+      capabilities: {}
+      processId: null
+      rootUri: null
+- recv:
+    result:
+      capabilities:
+        definitionProvider: true
+        documentFormattingProvider: true
+        documentHighlightProvider: true
+        documentSymbolProvider: true
+        hoverProvider: true
+        positionEncoding: utf-16
+        referencesProvider: true
+        textDocumentSync: 1
+        workspace:
+          workspaceFolders:
+            changeNotifications: true
+            supported: true
+        workspaceSymbolProvider: true
+    id: 1
+- send:
+    method: initialized
+    params: {}
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<tmp>/empty.vi
+- send:
+    method: textDocument/didOpen
+    params:
+      textDocument:
+        uri: file://<tmp>/main.vi
+        languageId: vine
+        version: 1
+        text: |
+          pub  fn main(&io :&IO){io.
+          println("Hello, world!" )}
+- send:
+    id: 2
+    method: textDocument/formatting
+    params:
+      textDocument:
+        uri: file://<tmp>/main.vi
+      options:
+        tabSize: 2
+        insertSpaces: true
+- recv:
+    result:
+    - newText: |2
+
+        pub fn main(&io: &IO) {
+          io.println("Hello, world!")
+        }
+      range:
+        end:
+          character: 4294967295
+          line: 4294967295
+        start:
+          character: 0
+          line: 0
+    id: 2
+

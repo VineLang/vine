@@ -69,6 +69,9 @@ pub enum VineCommand {
 
   #[command(hide = true)]
   Doc(VineDocCommand),
+
+  #[command(hide = true)]
+  Root,
 }
 
 impl VineCommand {
@@ -84,6 +87,9 @@ impl VineCommand {
       VineCommand::Lsp(lsp) => lsp.execute(),
       VineCommand::Completion(completion) => completion.execute(),
       VineCommand::Doc(doc) => doc.execute(),
+      VineCommand::Root => {
+        Ok(stdout().write_all(root_source().path.as_os_str().as_encoded_bytes())?)
+      }
     }
   }
 }

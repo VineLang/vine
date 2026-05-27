@@ -395,6 +395,21 @@ let
     }
   );
 
+  tests.lsp = forEach (ls ./lsp) (
+    path:
+    let
+      name = sanitize path;
+      result = pkgs.runCommand name { } ''
+        echo "running lsp ${name}"
+        ${pkgs.nushell}/bin/nu ${./lsp.nu} --vine ${vine} --test ${path} >$out
+      '';
+    in
+    {
+      checks."tests-lsp-${name}" = result;
+      snaps."lsp/${name}.log.yml" = result;
+    }
+  );
+
   self.apps.tests-generate-lock = flake-utils.lib.mkApp {
     drv = pkgs.writeShellScriptBin "generate-verify-lock" ''
       name="$1"

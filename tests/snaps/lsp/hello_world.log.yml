@@ -1,0 +1,211 @@
+- send:
+    id: 1
+    method: initialize
+    params:
+      capabilities: {}
+      processId: null
+      rootUri: null
+- recv:
+    result:
+      capabilities:
+        definitionProvider: true
+        documentFormattingProvider: true
+        documentHighlightProvider: true
+        documentSymbolProvider: true
+        hoverProvider: true
+        positionEncoding: utf-16
+        referencesProvider: true
+        textDocumentSync: 1
+        workspace:
+          workspaceFolders:
+            changeNotifications: true
+            supported: true
+        workspaceSymbolProvider: true
+    id: 1
+- send:
+    method: initialized
+    params: {}
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<tmp>/empty.vi
+- send:
+    method: textDocument/didSave
+    params:
+      textDocument:
+        uri: file://<tmp>/hello_world.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<tmp>/empty.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics:
+      - message: expected `[` or `(`; found eof
+        range:
+          end:
+            character: 12
+            line: 0
+          start:
+            character: 12
+            line: 0
+        severity: 1
+        source: vine
+      uri: file://<tmp>/hello_world.vi
+- send:
+    method: textDocument/didSave
+    params:
+      textDocument:
+        uri: file://<tmp>/hello_world.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<tmp>/empty.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics:
+      - message: unused variable
+        range:
+          end:
+            character: 15
+            line: 0
+          start:
+            character: 13
+            line: 0
+        severity: 2
+        source: vine
+      uri: file://<tmp>/hello_world.vi
+- send:
+    method: textDocument/didSave
+    params:
+      textDocument:
+        uri: file://<tmp>/hello_world.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<tmp>/empty.vi
+- recv:
+    method: textDocument/publishDiagnostics
+    params:
+      diagnostics: []
+      uri: file://<tmp>/hello_world.vi
+- send:
+    id: 2
+    method: textDocument/hover
+    params:
+      textDocument:
+        uri: file://<tmp>/hello_world.vi
+      position:
+        line: 1
+        character: 2
+- recv:
+    result:
+      contents:
+        kind: markdown
+        value: |
+          ```vi
+          let io: IO;
+          ```
+      range:
+        end:
+          character: 4
+          line: 1
+        start:
+          character: 2
+          line: 1
+    id: 2
+- send:
+    id: 3
+    method: textDocument/definition
+    params:
+      textDocument:
+        uri: file://<tmp>/hello_world.vi
+      position:
+        line: 1
+        character: 5
+- recv:
+    result:
+    - range:
+        end:
+          character: 17
+          line: 15
+        start:
+          character: 10
+          line: 15
+      uri: file://<root>/IO/IO.vi
+    id: 3
+- send:
+    id: 4
+    method: textDocument/references
+    params:
+      textDocument:
+        uri: file://<tmp>/hello_world.vi
+      position:
+        line: 1
+        character: 2
+      context:
+        includeDeclaration: false
+- recv:
+    result:
+    - range:
+        end:
+          character: 4
+          line: 1
+        start:
+          character: 2
+          line: 1
+      uri: file://<tmp>/hello_world.vi
+    id: 4
+- send:
+    id: 5
+    method: textDocument/documentSymbol
+    params:
+      textDocument:
+        uri: file://<tmp>/hello_world.vi
+- recv:
+    result:
+    - children: []
+      kind: 12
+      name: main
+      range:
+        end:
+          character: 1
+          line: 2
+        start:
+          character: 0
+          line: 0
+      selectionRange:
+        end:
+          character: 11
+          line: 0
+        start:
+          character: 7
+          line: 0
+    id: 5
+- send:
+    id: 6
+    method: workspace/symbol
+    params:
+      query: main
+- recv:
+    result:
+    - containerName: hello_world
+      kind: 12
+      location:
+        range:
+          end:
+            character: 11
+            line: 0
+          start:
+            character: 7
+            line: 0
+        uri: file://<tmp>/hello_world.vi
+      name: main
+    id: 6
+
