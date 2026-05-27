@@ -166,20 +166,6 @@ let
       snaps."${key}/${name}/stats" = "${result}/stats";
     };
 
-  lsp =
-    path:
-    let
-      name = sanitize path;
-      result = pkgs.runCommand name { } ''
-        echo "running lsp ${name}"
-        ${pkgs.nushell}/bin/nu ${./lsp.nu} --vine ${vine} --test ${path} >$out
-      '';
-    in
-    {
-      checks."tests-lsp-${name}" = result;
-      snaps."lsp/${name}.log.yml" = result;
-    };
-
   tests.programs = forEach (ls ./programs) (path: program { inherit path; });
 
   tests.examples = forEach (ls ../vine/examples) (
@@ -409,7 +395,20 @@ let
     }
   );
 
-  tests.lsp = forEach (ls ./lsp) lsp;
+  tests.lsp = forEach (ls ./lsp) (
+    path:
+    let
+      name = sanitize path;
+      result = pkgs.runCommand name { } ''
+        echo "running lsp ${name}"
+        ${pkgs.nushell}/bin/nu ${./lsp.nu} --vine ${vine} --test ${path} >$out
+      '';
+    in
+    {
+      checks."tests-lsp-${name}" = result;
+      snaps."lsp/${name}.log.yml" = result;
+    }
+  );
 
   self.apps.tests-generate-lock = flake-utils.lib.mkApp {
     drv = pkgs.writeShellScriptBin "generate-verify-lock" ''
