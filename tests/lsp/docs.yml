@@ -1,0 +1,125 @@
+# intended to test a deadlock race condition on the lock around the lsp's docs.
+
+- send:
+    id: 1
+    method: initialize
+    params:
+      capabilities: {}
+      processId: null
+      rootUri: null
+  recv:
+    id: 1
+- send:
+    method: initialized
+    params: {}
+- send:
+    method: textDocument/didOpen
+    params:
+      textDocument:
+        uri: file://<tmp>/empty.vi
+        languageId: vine
+        version: 1
+        text: ""
+- send:
+    method: textDocument/didSave
+    params:
+      textDocument:
+        uri: file://<tmp>/empty.vi
+- send:
+    method: textDocument/didOpen
+    params:
+      textDocument:
+        uri: file://<tmp>/empty.vi
+        languageId: vine
+        version: 1
+        text: ""
+- send:
+    method: textDocument/didSave
+    params:
+      textDocument:
+        uri: file://<tmp>/empty.vi
+- send:
+    method: textDocument/didOpen
+    params:
+      textDocument:
+        uri: file://<tmp>/empty.vi
+        languageId: vine
+        version: 1
+        text: ""
+- send:
+    method: textDocument/didSave
+    params:
+      textDocument:
+        uri: file://<tmp>/empty.vi
+- send:
+    method: textDocument/didOpen
+    params:
+      textDocument:
+        uri: file://<tmp>/empty.vi
+        languageId: vine
+        version: 1
+        text: ""
+- send:
+    method: textDocument/didSave
+    params:
+      textDocument:
+        uri: file://<tmp>/empty.vi
+- send:
+    method: textDocument/didOpen
+    params:
+      textDocument:
+        uri: file://<tmp>/empty.vi
+        languageId: vine
+        version: 1
+        text: ""
+- send:
+    method: textDocument/didSave
+    params:
+      textDocument:
+        uri: file://<tmp>/empty.vi
+- send:
+    method: textDocument/didOpen
+    params:
+      textDocument:
+        uri: file://<tmp>/empty.vi
+        languageId: vine
+        version: 1
+        text: ""
+- send:
+    method: textDocument/didSave
+    params:
+      textDocument:
+        uri: file://<tmp>/empty.vi
+- send:
+    method: textDocument/didOpen
+    params:
+      textDocument:
+        uri: file://<tmp>/empty.vi
+        languageId: vine
+        version: 1
+        text: ""
+- wait:
+    method: textDocument/publishDiagnostics
+- wait:
+    method: textDocument/publishDiagnostics
+- wait:
+    method: textDocument/publishDiagnostics
+- wait:
+    method: textDocument/publishDiagnostics
+- wait:
+    method: textDocument/publishDiagnostics
+- wait:
+    method: textDocument/publishDiagnostics
+- wait:
+    method: textDocument/publishDiagnostics
+- send:
+    id: 2
+    method: textDocument/hover
+    params:
+      textDocument:
+        uri: file://<root>/root.vi
+      position:
+        line: 2
+        character: 0
+  recv:
+    id: 2
