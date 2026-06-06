@@ -1,0 +1,103 @@
+
+use #root::{codec::Json::{Json, FromJson, ToJson}, data::Map};
+
+#[impl(Show, ToJson, FromJson)]
+enum* Shape {
+  Point({}),
+  Circle({ radius: F32 }),
+  Polygon({ side_length: F32, sides: N32 }),
+}
+
+#[impl(Show, ToJson, FromJson)]
+struct* Stuff(
+  {
+    a: N32,
+    b: F32,
+    c: List[Bool],
+    d: (String, N32),
+    e: List[{ x: Option[N32] }],
+    f: List[Shape],
+    g: List[F32],
+    h: List[Int],
+    i: Map[String, String],
+  }
+);
+
+pub fn main(&io: &IO) {
+  let stuff = Stuff({
+    a: 1,
+    b: 2.0,
+    c: [true, false],
+    d: ("abc", 123),
+    e: [{ x: None() }, { x: Some(1) }],
+    f: [
+      Shape::Point({}),
+      Shape::Circle({ radius: 1.0 }),
+      Shape::Polygon({ side_length: 4.0, sides: 6 }),
+    ],
+    g: [1.0, 0.0, -0.0, -1.0, 1.0e10, 1.0e-10, F32::nan, F32::inf, F32::neg_inf],
+    h: [1[Int], -1[Int], 0[Int], N64::maximum as Int, -(N64::maximum as Int)],
+    i: [("a", "b"), ("", ""), ("\n", "\0")] as Map,
+  });
+  io.println("\n--- stuff");
+  io.println("{stuff.show()}");
+  io.println("{stuff.to_json().show()}");
+  io.println("{stuff.to_json().to_string()}");
+  io.println("{stuff.to_json().to_string_pretty()}");
+  let str = stuff.to_json().to_string_pretty();
+  io.println("{Json::parse[Json](str).show()}");
+  io.println("{Json::parse[Stuff](str).show()}");
+
+  io.println("\n--- whitespace everywhere");
+  io.println("{
+    Json::parse[Json](
+      "[ \{ \"a\" : \"b\\\"\\\\\\n\\u000c\" , \"d\" : \"\" } , 1 , 2.0 , 3e2 , -4, -5e+6 , true , false , null ]"
+    ).show()
+  }");
+
+  io.println("\n--- invalid syntax")
+  for str in
+    [
+      "",
+      "  ",
+      "\{",
+      "\{,",
+      "[1,]",
+      "[1,]",
+      "[1,2]3",
+      "[1 2]",
+      "\"",
+      "\"\\",
+      "\"\\u",
+      "\"\\z",
+      "\"\"\"",
+      "\{\"a\"}",
+      "\{\"a\"}",
+      "\{\"a\":1 2}",
+      "tru",
+      "falls",
+      "nul",
+      "nil",
+    ]
+  {
+    assert Json::parse[Json](str) is Err(err) else { debug::error("expected error") }
+    io.println("`{str}`: {err}")
+  }
+
+  io.println("\n--- invalid data")
+  for str in
+    [
+      "\{}",
+      "[\{}]",
+      "[\{\"type\":\"\"}]",
+      "[\{\"type\":\"Circle\"}]",
+      "[\{\"type\":\"Circle\",\"radius\":false}]",
+      "[\{\"type\":\"Point\",\"radius\":false}]",
+      "[\{\"type\":\"Polygon\",\"side_length\":0,\"sides\":-1}]",
+      "[\{\"type\":\"Polygon\",\"side_length\":0,\"sides\":4294967296}]",
+    ]
+  {
+    assert Json::parse[List[Shape]](str) is Err(err) else { debug::error("expected error") }
+    io.println("`{str}`: {err}")
+  }
+}

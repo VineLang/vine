@@ -1,0 +1,205 @@
+
+--- stuff
+Stuff({
+  a: 1,
+  b: 2.0,
+  c: [true, false],
+  d: ("abc", 123),
+  e: [{ x: None() }, { x: Some(1) }],
+  f: [Point({}), Circle({ radius: 1.0 }), Polygon({ side_length: 4.0, sides: 6 })],
+  g: [1.0, 0.0, -0.0, -1.0, 1.0e10, 1.00000001e-10, NaN, inf, -inf],
+  h: [+1, -1, 0, +18446744073709551615, -18446744073709551615],
+  i: Map({ "": "", "\n": "\0", "a": "b" }),
+})
+Object([
+  ("a", Integer(+1)),
+  ("b", Float(2.0)),
+  ("c", Array([Boolean(true), Boolean(false)])),
+  ("d", Array([Str("abc"), Integer(+123)])),
+  ("e", Array([Object([]), Object([("x", Integer(+1))])])),
+  (
+    "f",
+    Array([
+      Object([("type", Str("Point"))]),
+      Object([("type", Str("Circle")), ("radius", Float(1.0))]),
+      Object([("type", Str("Polygon")), ("side_length", Float(4.0)), ("sides", Integer(+6))]),
+    ]),
+  ),
+  (
+    "g",
+    Array([
+      Float(1.0),
+      Float(0.0),
+      Float(-0.0),
+      Float(-1.0),
+      Float(1.0e10),
+      Float(1.00000001335143196e-10),
+      Float(NaN),
+      Float(inf),
+      Float(-inf),
+    ]),
+  ),
+  (
+    "h",
+    Array([
+      Integer(+1),
+      Integer(-1),
+      Integer(0),
+      Integer(+18446744073709551615),
+      Integer(-18446744073709551615),
+    ]),
+  ),
+  ("i", Object([("", Str("")), ("\n", Str("\0")), ("a", Str("b"))])),
+])
+{"a":1,"b":2.0,"c":[true,false],"d":["abc",123],"e":[{},{"x":1}],"f":[{"type":"Point"},{"type":"Circle","radius":1.0},{"type":"Polygon","side_length":4.0,"sides":6}],"g":[1.0,0.0,-0.0,-1.0,1.0e10,1.00000001335143196e-10,null,1e309,-1e309],"h":[1,-1,0,18446744073709551615,-18446744073709551615],"i":{"":"","\n":"\u0000","a":"b"}}
+{
+  "a": 1,
+  "b": 2.0,
+  "c": [
+    true,
+    false
+  ],
+  "d": [
+    "abc",
+    123
+  ],
+  "e": [
+    {},
+    {
+      "x": 1
+    }
+  ],
+  "f": [
+    {
+      "type": "Point"
+    },
+    {
+      "type": "Circle",
+      "radius": 1.0
+    },
+    {
+      "type": "Polygon",
+      "side_length": 4.0,
+      "sides": 6
+    }
+  ],
+  "g": [
+    1.0,
+    0.0,
+    -0.0,
+    -1.0,
+    1.0e10,
+    1.00000001335143196e-10,
+    null,
+    1e309,
+    -1e309
+  ],
+  "h": [
+    1,
+    -1,
+    0,
+    18446744073709551615,
+    -18446744073709551615
+  ],
+  "i": {
+    "": "",
+    "\n": "\u0000",
+    "a": "b"
+  }
+}
+Ok(Object([
+  ("a", Integer(+1)),
+  ("b", Float(2.0)),
+  ("c", Array([Boolean(true), Boolean(false)])),
+  ("d", Array([Str("abc"), Integer(+123)])),
+  ("e", Array([Object([]), Object([("x", Integer(+1))])])),
+  (
+    "f",
+    Array([
+      Object([("type", Str("Point"))]),
+      Object([("type", Str("Circle")), ("radius", Float(1.0))]),
+      Object([("type", Str("Polygon")), ("side_length", Float(4.0)), ("sides", Integer(+6))]),
+    ]),
+  ),
+  (
+    "g",
+    Array([
+      Float(1.0),
+      Float(0.0),
+      Float(-0.0),
+      Float(-1.0),
+      Float(1.0e10),
+      Float(1.00000001335143196e-10),
+      Null(),
+      Float(inf),
+      Float(-inf),
+    ]),
+  ),
+  (
+    "h",
+    Array([
+      Integer(+1),
+      Integer(-1),
+      Integer(0),
+      Integer(+18446744073709551615),
+      Integer(-18446744073709551615),
+    ]),
+  ),
+  ("i", Object([("", Str("")), ("\n", Str("\0")), ("a", Str("b"))])),
+]))
+Ok(Stuff({
+  a: 1,
+  b: 2.0,
+  c: [true, false],
+  d: ("abc", 123),
+  e: [{ x: None() }, { x: Some(1) }],
+  f: [Point({}), Circle({ radius: 1.0 }), Polygon({ side_length: 4.0, sides: 6 })],
+  g: [1.0, 0.0, -0.0, -1.0, 1.0e10, 1.00000001e-10, NaN, inf, -inf],
+  h: [+1, -1, 0, +18446744073709551615, -18446744073709551615],
+  i: Map({ "": "", "\n": "\0", "a": "b" }),
+}))
+
+--- whitespace everywhere
+Ok(Array([
+  Object([("a", Str("b\"\\\n\x0c")), ("d", Str(""))]),
+  Integer(+1),
+  Float(2.0),
+  Float(300.0),
+  Integer(-4),
+  Float(-5000000.0),
+  Boolean(true),
+  Boolean(false),
+  Null(),
+]))
+
+--- invalid syntax
+``: unexpected eof 
+`  `: unexpected eof 
+`{`: expected `"`
+`{,`: expected `"`
+`[1,]`: unexpected character
+`[1,]`: unexpected character
+`[1,2]3`: expected eof
+`[1 2]`: expected `,`
+`"`: unexpected eof in string
+`"\`: unexpected eof in escape
+`"\u`: unexpected eof in escape
+`"\z`: invalid escape
+`"""`: expected eof
+`{"a"}`: expected `:`
+`{"a"}`: expected `:`
+`{"a":1 2}`: expected `,`
+`tru`: expected `e`
+`falls`: expected `s`
+`nul`: expected `l`
+`nil`: expected `u`
+
+--- invalid data
+`{}`: expected array
+`[{}]`: missing key "type" at [0]
+`[{"type":""}]`: invalid variant "" at [0]
+`[{"type":"Circle"}]`: missing key "radius" at [0]
+`[{"type":"Circle","radius":false}]`: expected float at [0].radius
+`[{"type":"Point","radius":false}]`: unexpected keys ["radius"] at [0]
+`[{"type":"Polygon","side_length":0,"sides":-1}]`: integer value out of range at [0].sides
+`[{"type":"Polygon","side_length":0,"sides":4294967296}]`: integer value out of range at [0].sides
