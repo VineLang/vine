@@ -1,0 +1,779 @@
+
+use #root::{data::Map, derive::{Enum, Object as Object_, Struct, Tuple, Variant}, ops::Cast};
+
+#[impl(Show)]
+pub enum* Json {
+  Null(),
+  Boolean(Bool),
+  Integer(Int),
+  Float(F64),
+  Str(String),
+  Array(List[Json]),
+  Object(List[(String, Json)]),
+}
+
+pub mod Json {
+  fn escape_string(str: String) -> String {
+    let out = "\"";
+    for char in str {
+      out ++= when {
+        char == '"' { "\\\"" }
+        char == '\\' { "\\\\" }
+        char >= ' ' { String([char]) }
+        char == '\x08' { "\\b" }
+        char == '\x0c' { "\\f" }
+        char == '\n' { "\\n" }
+        char == '\r' { "\\r" }
+        char == '\t' { "\\t" }
+        char < '\x10' { "\\u000{char.as[N32].to_hex_raw()}" }
+        _ { "\\u00{char.as[N32].to_hex_raw()}" }
+      }
+    }
+    out ++ "\""
+  }
+
+  pub fn .to_string(json: Json) -> String {
+    match json {
+      Null() { "null" }
+      Boolean(bool) { bool as String }
+      Integer(int) { int as String }
+      Float(float) {
+        when {
+          float == F64::inf { "1e309" }
+          float == F64::neg_inf { "-1e309" }
+          float.is_nan() { "null" }
+          _ { float as String }
+        }
+      }
+      Str(str) { escape_string(str) }
+      Array(list) {
+        let str = "[";
+        let first = true;
+        for value in list {
+          if !first {
+            str ++= ",";
+          }
+          str ++= value.to_string();
+          first = false;
+        }
+        str ++ "]"
+      }
+      Object(fields) {
+        let str = "\{";
+        let first = true;
+        for (key, value) in fields {
+          if !first {
+            str ++= ",";
+          }
+          str ++= "{escape_string(key)}:{value.to_string()}";
+          first = false;
+        }
+        str ++ "}"
+      }
+    }
+  }
+
+  pub fn .to_string_pretty(json: Json) -> String {
+    json._to_string_pretty(0)
+  }
+
+  fn ._to_string_pretty(json: Json, indent: N32) -> String {
+    match json {
+      Array(list) {
+        assert list.len() != 0 else { "[]" }
+        let str = "[";
+        let first = true;
+        for value in list {
+          if !first {
+            str ++= ",";
+          }
+          str ++= "\n  " ++ "  ".repeat(indent);
+          str ++= value._to_string_pretty(indent + 1);
+          first = false;
+        }
+        str ++ "\n" ++ "  ".repeat(indent) ++ "]"
+      }
+      Object(fields) {
+        assert fields.len() != 0 else { "\{}" }
+        let str = "\{";
+        let first = true;
+        for (key, value) in fields {
+          if !first {
+            str ++= ",";
+          }
+          str ++= "\n  " ++ "  ".repeat(indent);
+          str ++= "{escape_string(key)}: {value._to_string_pretty(indent + 1)}";
+          first = false;
+        }
+        str ++ "\n" ++ "  ".repeat(indent) ++ "}"
+      }
+      json { json.to_string() }
+    }
+  }
+
+  pub fn parse[T; FromJson[T]](str: String) -> Result[T, String] {
+    match FromJson::from_json[T](_parse(str).try) {
+      Ok(value) { Ok(value) }
+      Err(value) { Err(value as String) }
+    }
+  }
+
+  fn _parse(str: String) -> Result[Json, String] {
+    let char;
+
+    let fn advance() {
+      char = str!.pop_front();
+    }
+    advance();
+
+    let fn skip() {
+      while char is Some(c) and c <= ' ' and (c == ' ' or c == '\t' or c == '\n' or c == 'r') {
+        advance();
+      }
+    }
+
+    let fn expect(expected: Char) -> Result[(), String] {
+      assert char == Some(expected) else { Err("expected `{expected}`") }
+      advance()
+      Ok(())
+    }
+
+    let fn parse_str() -> Result[String, String] {
+      skip();
+      expect('\"').try;
+      let str = "";
+      while char != Some('\"') {
+        assert char is Some(char_) else { return Err("unexpected eof in string"); }
+        advance();
+        str!.push_back(when {
+          char_ == '\\' {
+            assert char is Some(char_) else { return Err("unexpected eof in escape"); }
+            advance();
+            when {
+              char_ == '"' or char_ == '\\' { char_ }
+              char_ == 'b' { '\x08' }
+              char_ == 'f' { '\x0c' }
+              char_ == 'n' { '\n' }
+              char_ == 'r' { '\r' }
+              char_ == 't' { '\t' }
+              char_ == 'u' {
+                let code = 0;
+                for _ in 0..4 {
+                  assert char is Some(char_) else { return Err("unexpected eof in escape"); }
+                  advance();
+                  code = code * 16;
+                  code = code << 4
+                    | when {
+                      '0' <= char_ <= '9' { char_ - '0' }
+                      'a' <= char_ <= 'f' { char_ - 'a' + 10 }
+                      'A' <= char_ <= 'F' { char_ - 'A' + 10 }
+                      _ { return Err("invalid hex digit in escape"); }
+                    }
+                  ;
+                }
+                code as Char
+              }
+              _ { return Err("invalid escape"); }
+            }
+          }
+          char_ < ' ' { return Err("unexpected control character in string"); }
+          _ { char_ }
+        })
+      }
+      advance();
+      Ok(str)
+    }
+
+    let fn is_numeric(char: Char) -> Bool {
+      '0' <= char <= '9' or char == '-' or char == '.' or char == '+' or char == 'e'
+    }
+
+    let fn parse_value() -> Result[Json, String] {
+      skip();
+      assert char is Some(char_) else { return Err("unexpected eof "); }
+      when {
+        char_ == '{' {
+          advance();
+          skip();
+          let first = true;
+          let fields = [];
+          while char != Some('}') {
+            if !first {
+              expect(',').try;
+              skip();
+            }
+            let key = parse_str().try;
+            skip();
+            expect(':').try;
+            skip();
+            let value = parse_value().try;
+            fields.push_back((key, value));
+            skip();
+            first = false;
+          }
+          advance();
+          Ok(Json::Object(fields))
+        }
+        char_ == '[' {
+          advance();
+          skip();
+          let first = true;
+          let values = [];
+          while char != Some(']') {
+            if !first {
+              expect(',').try;
+              skip();
+            }
+            values.push_back(parse_value().try);
+            skip();
+            first = false;
+          }
+          advance();
+          Ok(Json::Array(values))
+        }
+        char_ == '"' { Ok(Json::Str(parse_str().try)) }
+        is_numeric(char_) {
+          let num = "";
+          let is_float = false;
+          while char is Some(char_) and is_numeric(char_) {
+            num!.push_back(char_);
+            is_float |= char_ == '.' or char_ == 'e';
+            advance();
+          }
+          if is_float {
+            assert F64::parse(num) is Some(float) else { Err("invalid float") }
+            Ok(Json::Float(float))
+          } else {
+            assert Int::parse(num) is Some(int) else { Err("invalid integer") }
+            Ok(Json::Integer(int))
+          }
+        }
+        char_ == 'n' {
+          advance();
+          expect('u').try;
+          expect('l').try;
+          expect('l').try;
+          Ok(Json::Null())
+        }
+        char_ == 't' {
+          advance();
+          expect('r').try;
+          expect('u').try;
+          expect('e').try;
+          Ok(Json::Boolean(true))
+        }
+        char_ == 'f' {
+          advance();
+          expect('a').try;
+          expect('l').try;
+          expect('s').try;
+          expect('e').try;
+          Ok(Json::Boolean(false))
+        }
+        _ { Err("unexpected character") }
+      }
+    }
+
+    let value = parse_value().try;
+    skip();
+    if char != None() {
+      Err("expected eof")
+    } else {
+      Ok(value)
+    }
+  }
+}
+
+pub trait[T] ToJson {
+  fn .to_json(self: T) -> Json;
+}
+
+pub mod ToJson {
+  pub impl json: ToJson[Json] {
+    fn to_json(self: Json) -> Json {
+      self
+    }
+  }
+
+  #[manual]
+  pub impl cast[T, C; Cast[C, T], ToJson[T]]: ToJson[C] {
+    fn to_json(c: C) -> Json {
+      c.as[T].to_json()
+    }
+  }
+
+  pub impl n32: ToJson[N32] = cast[Int];
+  pub impl n64: ToJson[N64] = cast[Int];
+  pub impl nat: ToJson[Nat] = cast[Int];
+  pub impl i32: ToJson[I32] = cast[Int];
+  pub impl int: ToJson[Int] {
+    fn to_json(int: Int) -> Json {
+      Json::Integer(int)
+    }
+  }
+
+  pub impl f32: ToJson[F32] = cast[F64];
+  pub impl f64: ToJson[F64] {
+    fn to_json(float: F64) -> Json {
+      Json::Float(float)
+    }
+  }
+
+  pub impl char: ToJson[Char] = cast[String];
+  pub impl string: ToJson[String] {
+    fn to_json(str: String) -> Json {
+      Json::Str(str)
+    }
+  }
+
+  pub impl bool: ToJson[Bool] {
+    fn to_json(self: Bool) -> Json {
+      Json::Boolean(self)
+    }
+  }
+
+  pub impl list[T; ToJson[T]]: ToJson[List[T]] {
+    fn to_json(self: List[T]) -> Json {
+      Json::Array(self.map(fn* (value: T) { value.to_json() }))
+    }
+  }
+
+  pub impl map[V; ToJson[V]]: ToJson[Map[String, V]] {
+    fn to_json(map: Map[String, V]) -> Json {
+      let fields = [];
+      for (key, value) in map {
+        fields.push_back((key, value.to_json()))
+      }
+      Json::Object(fields)
+    }
+  }
+
+  pub trait[] ToJsonTuple[T] {
+    fn .to_json_tuple(self: T) -> List[Json];
+  }
+
+  pub mod ToJsonTuple {
+    pub impl nil: ToJsonTuple[()] {
+      fn to_json_tuple(()) -> List[Json] {
+        []
+      }
+    }
+
+    pub impl tuple[T, I, R; Tuple[T, I, R], ToJson[I], ToJsonTuple[R]]: ToJsonTuple[T] {
+      fn to_json_tuple(tuple: T) -> List[Json] {
+        let (init, rest) = tuple as (I, R);
+        [init.to_json()] ++ rest.to_json_tuple()
+      }
+    }
+  }
+
+  pub impl tuple[T; ToJsonTuple[T]]: ToJson[T] {
+    fn to_json(self: T) -> Json {
+      Json::Array(self.to_json_tuple())
+    }
+  }
+
+  pub trait[] ToJsonObject[T] {
+    fn .to_json_object(self: T) -> List[(String, Json)];
+  }
+
+  pub mod ToJsonObject {
+    pub impl nil: ToJsonObject[{}] {
+      fn to_json_object({}) -> List[(String, Json)] {
+        []
+      }
+    }
+
+    pub impl object[O, K, I, R; Object_[O, K, I, R], ToJson[I], ToJsonObject[R]]: ToJsonObject[O] {
+      fn to_json_object(object: O) -> List[(String, Json)] {
+        let (init, rest) = object as (I, R);
+        [(Object_::key[O], init.to_json())] ++ rest.to_json_object()
+      }
+    }
+
+    pub impl object_option[
+      O, K, I, R;
+      Object_[O, K, Option[I], R], ToJson[I], ToJsonObject[R]
+    ]: ToJsonObject[O] {
+      fn to_json_object(object: O) -> List[(String, Json)] {
+        let (init, rest) = object as (Option[I], R);
+        let init = match init {
+          Some(init) { [(Object_::key[O], init.to_json())] }
+          None() { [] }
+        };
+        init ++ rest.to_json_object()
+      }
+    }
+  }
+
+  pub impl object[T; ToJsonObject[T]]: ToJson[T] {
+    fn to_json(self: T) -> Json {
+      Json::Object(self.to_json_object())
+    }
+  }
+
+  #[basic]
+  pub impl struct_[S, C; Struct[S, C], ToJson[C]]: ToJson[S] = cast[C];
+
+  pub trait[] ToJsonVariant[T] {
+    fn .to_json_variant(self: T, variant_names: List[String]) -> Json;
+  }
+
+  pub mod ToJsonVariant {
+    pub impl never: ToJsonVariant[!] {
+      fn to_json_variant(never: !, _: List[String]) -> Json {
+        never as Json
+      }
+    }
+
+    pub impl variant[I, R; ToJsonObject[I], ToJsonVariant[R]]: ToJsonVariant[Variant[I, R]] {
+      fn to_json_variant(variant: Variant[I, R], variant_names: List[String]) -> Json {
+        let (init_name, rest_names) = variant_names.head_tail().assume();
+        match variant {
+          Variant::Init(init) {
+            Json::Object([("type", Json::Str(init_name))] ++ init.to_json_object())
+          }
+          Variant::Rest(rest) { rest.to_json_variant(rest_names) }
+        }
+      }
+    }
+  }
+
+  #[basic]
+  pub impl enum_[E, V; Enum[E, V], ToJsonVariant[V]]: ToJson[E] {
+    fn to_json(self: E) -> Json {
+      self.as[V].to_json_variant(Enum::variant_names[E])
+    }
+  }
+}
+
+pub trait[T] FromJson {
+  fn from_json(json: Json) -> Result[T, JsonError];
+}
+
+pub struct JsonError({ message: String, path: List[JsonKey] });
+
+pub mod JsonError {
+  pub fn new(message: String) -> JsonError {
+    JsonError({ message, path: [] })
+  }
+
+  pub impl to_string: Cast[JsonError, String] {
+    fn cast(JsonError({ message, path })) -> String {
+      if path.len() == 0 {
+        message
+      } else {
+        "{message} at {path.join("")}"
+      }
+    }
+  }
+}
+
+pub enum* JsonKey {
+  Index(N32),
+  Field(String),
+}
+
+pub mod JsonKey {
+  pub impl from_n32: Cast[N32, JsonKey] {
+    fn cast(value: N32) -> JsonKey {
+      JsonKey::Index(value)
+    }
+  }
+
+  pub impl from_string: Cast[String, JsonKey] {
+    fn cast(value: String) -> JsonKey {
+      JsonKey::Field(value)
+    }
+  }
+
+  pub impl to_string: Cast[JsonKey, String] {
+    fn cast(value: JsonKey) -> String {
+      match value {
+        JsonKey::Index(n) { "[{n}]" }
+        JsonKey::Field(str) {
+          let escaped = str.show() as String;
+          if escaped.len() == str.len() + 2 {
+            ".{str}"
+          } else {
+            "[{escaped}]"
+          }
+        }
+      }
+    }
+  }
+}
+
+pub mod FromJson {
+  fn .with_path[T, K?; Cast[K, JsonKey]](
+    result: Result[T, JsonError],
+    key: K,
+  ) -> Result[T, JsonError] {
+    match result {
+      Ok(value) { Ok(value) }
+      Err(JsonError({ message, path })) {
+        Err(JsonError({ message, path: [key as JsonKey] ++ path }))
+      }
+    }
+  }
+
+  pub impl json: FromJson[Json] {
+    fn from_json(self: Json) -> Result[Json, JsonError] {
+      Ok(self)
+    }
+  }
+
+  #[manual]
+  pub impl cast[C, T; Cast[C, T], FromJson[C]]: FromJson[T] {
+    fn from_json(json: Json) -> Result[T, JsonError] {
+      Ok(FromJson::from_json[C](json).try as T)
+    }
+  }
+
+  pub impl n32: FromJson[N32] = from_integer;
+  pub impl n64: FromJson[N64] = from_integer;
+  pub impl nat: FromJson[Nat] = from_integer;
+  pub impl i32: FromJson[I32] = from_integer;
+  pub impl int: FromJson[Int] = from_integer;
+  #[manual]
+  pub impl from_integer[T*; Cast[Int, T], Cast[T, Int]]: FromJson[T] {
+    fn from_json(json: Json) -> Result[T, JsonError] {
+      match json {
+        Json::Integer(int) {
+          let value = int as T;
+          assert int == value as Int else { Err(JsonError::new("integer value out of range")) }
+          Ok(value)
+        }
+        _ { Err(JsonError::new("expected integer")) }
+      }
+    }
+  }
+
+  pub impl f32: FromJson[F32] = cast[F64];
+  pub impl f64: FromJson[F64] {
+    fn from_json(json: Json) -> Result[F64, JsonError] {
+      match json {
+        Json::Float(float) { Ok(float) }
+        Json::Integer(int) {
+          let (sign, value) = int.to_parts();
+          let value = if value.parts_len() > 2 { F64::inf } else { value as N64 as F64 };
+          let value = if sign { -value } else { value };
+          Ok(value)
+        }
+        Json::Null() { Ok(F64::nan) }
+        _ { Err(JsonError::new("expected float")) }
+      }
+    }
+  }
+
+  pub impl string: FromJson[String] {
+    fn from_json(json: Json) -> Result[String, JsonError] {
+      match json {
+        Json::Str(str) { Ok(str) }
+        _ { Err(JsonError::new("expected string")) }
+      }
+    }
+  }
+
+  pub impl char: FromJson[Char] {
+    fn from_json(json: Json) -> Result[Char, JsonError] {
+      match json {
+        Json::Str(str) {
+          assert str.len() == 1 else { Err(JsonError::new("expected string of length 1")) }
+          Ok(str!.pop_front().assume())
+        }
+        _ { Err(JsonError::new("expected string")) }
+      }
+    }
+  }
+
+  pub impl bool: FromJson[Bool] {
+    fn from_json(json: Json) -> Result[Bool, JsonError] {
+      match json {
+        Json::Boolean(bool) { Ok(bool) }
+        _ { Err(JsonError::new("expected boolean")) }
+      }
+    }
+  }
+
+  pub impl list[T?; FromJson[T]]: FromJson[List[T]] {
+    fn from_json(json: Json) -> Result[List[T], JsonError] {
+      match json {
+        Json::Array(list) {
+          let values = [];
+          for (i, json) in list.iter().enumerate() {
+            values.push_back(FromJson::from_json[T](json).with_path(i).try);
+          }
+          Ok(values)
+        }
+        _ { Err(JsonError::new("expected array")) }
+      }
+    }
+  }
+
+  pub impl map[V?; FromJson[V]]: FromJson[Map[String, V]] {
+    fn from_json(json: Json) -> Result[Map[String, V], JsonError] {
+      match json {
+        Json::Object(fields) {
+          let map = Map::empty;
+          for (key, value) in fields {
+            let value = FromJson::from_json[V](value).with_path(key).try;
+            if map.insert(key, value) is Some(_) {
+              return Err(JsonError::new("duplicate key {key.show()}"));
+            }
+          }
+          Ok(map)
+        }
+        _ { Err(JsonError::new("expected object")) }
+      }
+    }
+  }
+
+  pub trait[] FromJsonTuple[T] {
+    const len: N32;
+    fn from_json_tuple(json: List[Json], i: N32) -> Result[T, JsonError];
+  }
+
+  pub mod FromJsonTuple {
+    pub impl nil: FromJsonTuple[()] {
+      const len: N32 = 0;
+      fn from_json_tuple(json: List[Json], i: N32) -> Result[(), JsonError] {
+        if json.len() == 0 {
+          Ok()
+        } else {
+          Err(JsonError::new("expected array of length {i}"))
+        }
+      }
+    }
+
+    pub impl tuple[
+      T, I, R;
+      Tuple[T, I, R], Drop[I], FromJson[I], FromJsonTuple[R]
+    ]: FromJsonTuple[T] {
+      const len: N32 = FromJsonTuple::len[R] + 1;
+      fn from_json_tuple(json: List[Json], i: N32) -> Result[T, JsonError] {
+        match json.head_tail() {
+          Some((init, rest)) {
+            let init = FromJson::from_json[I](init).with_path(i).try;
+            let rest = FromJsonTuple::from_json_tuple[R](rest, i + 1).try;
+            Ok((init, rest) as T)
+          }
+          None() { Err(JsonError::new("expected array of length {i + FromJsonTuple::len[T]}")) }
+        }
+      }
+    }
+  }
+
+  pub impl tuple[T; FromJsonTuple[T]]: FromJson[T] {
+    fn from_json(json: Json) -> Result[T, JsonError] {
+      match json {
+        Json::Array(json) { FromJsonTuple::from_json_tuple[T](json, 0) }
+        _ { Err(JsonError::new("expected array")) }
+      }
+    }
+  }
+
+  pub trait[] FromJsonObject[T] {
+    fn from_json_object(json: Map[String, Json]) -> Result[T, JsonError];
+  }
+
+  pub mod FromJsonObject {
+    pub impl nil: FromJsonObject[{}] {
+      fn from_json_object(json: Map[String, Json]) -> Result[{}, JsonError] {
+        if json.len() == 0 {
+          Ok({})
+        } else {
+          Err(JsonError::new("unexpected keys {
+            json.iter().map(fn* ((k, _)) { k }).collect[List]().show()
+          }"))
+        }
+      }
+    }
+
+    pub impl object[
+      O, K, I, R;
+      Object_[O, K, I, R], Drop[I], FromJson[I], FromJsonObject[R]
+    ]: FromJsonObject[O] {
+      fn from_json_object(json: Map[String, Json]) -> Result[O, JsonError] {
+        match json.remove(&Object_::key[O]) {
+          Some(value) {
+            let init = FromJson::from_json[I](value).with_path(Object_::key[O]).try;
+            let rest = FromJsonObject::from_json_object[R](json).try;
+            Ok((init, rest) as O)
+          }
+          None() { Err(JsonError::new("missing key {Object_::key[O].show()}")) }
+        }
+      }
+    }
+
+    pub impl object_option[
+      O, K, I, R;
+      Object_[O, K, Option[I], R], Drop[I], FromJson[I], FromJsonObject[R]
+    ]: FromJsonObject[O] {
+      fn from_json_object(json: Map[String, Json]) -> Result[O, JsonError] {
+        let init = match json.remove(&Object_::key[O]) {
+          Some(value) { Some(FromJson::from_json[I](value).with_path(Object_::key[O]).try) }
+          None() { None() }
+        };
+        let rest = FromJsonObject::from_json_object[R](json).try;
+        Ok((init, rest) as O)
+      }
+    }
+  }
+
+  pub impl object[T; FromJsonObject[T]]: FromJson[T] {
+    fn from_json(json: Json) -> Result[T, JsonError] {
+      FromJsonObject::from_json_object[T](FromJson::from_json[Map[String, Json]](json).try)
+    }
+  }
+
+  #[basic]
+  pub impl struct_[S, C; Struct[S, C], FromJson[C]]: FromJson[S] = cast[C];
+
+  pub trait[] FromJsonVariant[T] {
+    fn from_json_variant(
+      type_: String,
+      json: Map[String, Json],
+      variant_names: List[String],
+    ) -> Result[T, JsonError];
+  }
+
+  pub mod FromJsonVariant {
+    pub impl never: FromJsonVariant[!] {
+      fn from_json_variant(
+        type_: String,
+        _: Map[String, Json],
+        _: List[String],
+      ) -> Result[!, JsonError] {
+        Err(JsonError::new("invalid variant {type_.show()}"))
+      }
+    }
+
+    pub impl variant[I, R; FromJsonObject[I], FromJsonVariant[R]]: FromJsonVariant[Variant[I, R]] {
+      fn from_json_variant(
+        type_: String,
+        json: Map[String, Json],
+        variant_names: List[String],
+      ) -> Result[Variant[I, R], JsonError] {
+        let (init, rest) = variant_names.head_tail().assume();
+        if type_ == init {
+          Ok(Variant::Init(FromJsonObject::from_json_object[I](json).try))
+        } else {
+          Ok(Variant::Rest(FromJsonVariant::from_json_variant[R](type_, json, rest).try))
+        }
+      }
+    }
+  }
+
+  #[basic]
+  pub impl enum_[E, V; Enum[E, V], FromJsonVariant[V]]: FromJson[E] {
+    fn from_json(json: Json) -> Result[E, JsonError] {
+      let json = FromJson::from_json[Map[String, Json]](json).try;
+      assert json.remove(&"type") is Some(type_) else {
+        Err(JsonError::new("missing key \"type\""))
+      }
+      let type_ = FromJson::from_json[String](type_).with_path("type").try;
+      Ok(FromJsonVariant::from_json_variant[V](type_, json, Enum::variant_names[E]).try as E)
+    }
+  }
+}

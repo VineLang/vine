@@ -30,6 +30,10 @@ pub mod Nat {
     parts.len() == 0
   }
 
+  pub.root fn .parts_len(&Nat(parts)) -> N32 {
+    parts.len()
+  }
+
   pub impl add_n32: Add[Nat, N32, Nat] {
     fn add(Nat(a), n: N32) -> Nat {
       let carry = n;
