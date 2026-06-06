@@ -66,6 +66,7 @@ pub mod Char {
 
   pub fn .escape(char: Char) -> String {
     when {
+      char == '\\' { "\\\\" }
       ' ' <= char <= '~' { "{char}" }
       char == '\0' { "\\0" }
       char == '\t' { "\\t" }
