@@ -19,14 +19,17 @@ pub mod Json {
       out ++= when {
         char == '"' { "\\\"" }
         char == '\\' { "\\\\" }
-        char >= ' ' { String([char]) }
+        ' ' <= char <= '~' { String([char]) }
         char == '\x08' { "\\b" }
         char == '\x0c' { "\\f" }
         char == '\n' { "\\n" }
         char == '\r' { "\\r" }
         char == '\t' { "\\t" }
-        char < '\x10' { "\\u000{char.as[N32].to_hex_raw()}" }
-        _ { "\\u00{char.as[N32].to_hex_raw()}" }
+        char < '\u{10000}' { "\\u{char.as[N32].to_hex_fixed(4)}" }
+        _ {
+          let (high, low) = char.to_surrogate_pair();
+          "\\u{(high as N32).to_hex_fixed(4)}\\u{(low as N32).to_hex_fixed(4)}"
+        }
       }
     }
     out ++ "\""
@@ -138,46 +141,57 @@ pub mod Json {
       Ok(())
     }
 
+    let fn _parse_char() -> Result[Char, String] {
+      assert char is Some(char_) else { return Err("unexpected eof in string"); }
+      advance();
+      Ok(when {
+        char_ == '\\' {
+          assert char is Some(char_) else { return Err("unexpected eof in escape"); }
+          advance();
+          when {
+            char_ == '"' or char_ == '\\' { char_ }
+            char_ == 'b' { '\x08' }
+            char_ == 'f' { '\x0c' }
+            char_ == 'n' { '\n' }
+            char_ == 'r' { '\r' }
+            char_ == 't' { '\t' }
+            char_ == 'u' {
+              let code = 0;
+              for _ in 0..4 {
+                assert char is Some(char_) else { return Err("unexpected eof in escape"); }
+                advance();
+                code = code << 4
+                  | when {
+                    '0' <= char_ <= '9' { char_ - '0' }
+                    'a' <= char_ <= 'f' { char_ - 'a' + 10 }
+                    'A' <= char_ <= 'F' { char_ - 'A' + 10 }
+                    _ { return Err("invalid hex digit in escape"); }
+                  }
+                ;
+              }
+              code as Char
+            }
+            _ { return Err("invalid escape"); }
+          }
+        }
+        char_ < ' ' { return Err("unexpected control character in string"); }
+        _ { char_ }
+      })
+    }
+
     let fn parse_str() -> Result[String, String] {
       skip();
       expect('\"').try;
       let str = "";
       while char != Some('\"') {
-        assert char is Some(char_) else { return Err("unexpected eof in string"); }
-        advance();
-        str!.push_back(when {
-          char_ == '\\' {
-            assert char is Some(char_) else { return Err("unexpected eof in escape"); }
-            advance();
-            when {
-              char_ == '"' or char_ == '\\' { char_ }
-              char_ == 'b' { '\x08' }
-              char_ == 'f' { '\x0c' }
-              char_ == 'n' { '\n' }
-              char_ == 'r' { '\r' }
-              char_ == 't' { '\t' }
-              char_ == 'u' {
-                let code = 0;
-                for _ in 0..4 {
-                  assert char is Some(char_) else { return Err("unexpected eof in escape"); }
-                  advance();
-                  code = code << 4
-                    | when {
-                      '0' <= char_ <= '9' { char_ - '0' }
-                      'a' <= char_ <= 'f' { char_ - 'a' + 10 }
-                      'A' <= char_ <= 'F' { char_ - 'A' + 10 }
-                      _ { return Err("invalid hex digit in escape"); }
-                    }
-                  ;
-                }
-                code as Char
-              }
-              _ { return Err("invalid escape"); }
-            }
-          }
-          char_ < ' ' { return Err("unexpected control character in string"); }
-          _ { char_ }
-        })
+        let char = _parse_char().try;
+        if char.is_surrogate() {
+          assert char.is_high_surrogate() else { return Err("unpaired low surrogate in string"); }
+          let char_ = _parse_char().try;
+          assert char_.is_low_surrogate() else { return Err("unpaired high surrogate in string"); }
+          char = Char::from_surrogate_pair(char, char_);
+        }
+        str!.push_back(char);
       }
       advance();
       Ok(str)
