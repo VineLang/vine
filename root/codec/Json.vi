@@ -558,7 +558,11 @@ pub mod FromJson {
         Json::Float(float) { Ok(float) }
         Json::Integer(int) {
           let (sign, value) = int.to_parts();
-          let value = if value.parts_len() > 2 { F64::inf } else { value as N64 as F64 };
+          let value = if value.is_zero() {
+            0.0[F64]
+          } else {
+            #root::numeric::Float::parse::Rational::from_decimal(value, +0) as F64
+          };
           let value = if sign { -value } else { value };
           Ok(value)
         }
