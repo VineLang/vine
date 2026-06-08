@@ -182,6 +182,11 @@ f64 `-1e400`: Ok(-inf)
 f64 `1E-400`: Ok(0.0)
 f64 `null`: Ok(NaN)
 
+--- string encoding
+"\0\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b\x0c\r\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz\{|}~\u{a9}\u{2328}\u{1f95e}"
+"\u0000\u0001\u0002\u0003\u0004\u0005\u0006\u0007\b\t\n\u000b\f\r\u000e\u000f\u0010\u0011\u0012\u0013\u0014\u0015\u0016\u0017\u0018\u0019\u001a\u001b\u001c\u001d\u001e\u001f !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\u00a9\u2328\ud83e\udd5e"
+true
+
 --- whitespace everywhere
 Ok(Array([
   Object([("a", Str("b\"\\\n\x0c")), ("d", Str(""))]),

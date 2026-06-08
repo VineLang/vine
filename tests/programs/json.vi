@@ -69,6 +69,16 @@ pub fn main(&io: &IO) {
     io.println("f64 `{str}`: {Json::parse[F64](str).show()}")
   }
 
+  io.println("\n--- string encoding")
+  let str = "";
+  for i in 0..127 {
+    str!.push_back(i as Char);
+  }
+  str ++= "\u{a9}\u{2328}\u{1f95e}";
+  io.println("{str.show()}");
+  io.println(str.to_json().to_string());
+  io.println("{Json::parse[String](str.to_json().to_string()) == Ok(str)}");
+
   io.println("\n--- whitespace everywhere");
   io.println("{
     Json::parse[Json](
