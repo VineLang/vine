@@ -127,7 +127,7 @@ pub mod Json {
     advance();
 
     let fn skip() {
-      while char is Some(c) and c <= ' ' and (c == ' ' or c == '\t' or c == '\n' or c == 'r') {
+      while char is Some(c) and c <= ' ' and (c == ' ' or c == '\t' or c == '\n' or c == '\r') {
         advance();
       }
     }
@@ -161,7 +161,6 @@ pub mod Json {
                 for _ in 0..4 {
                   assert char is Some(char_) else { return Err("unexpected eof in escape"); }
                   advance();
-                  code = code * 16;
                   code = code << 4
                     | when {
                       '0' <= char_ <= '9' { char_ - '0' }
@@ -184,8 +183,11 @@ pub mod Json {
       Ok(str)
     }
 
-    let fn is_numeric(char: Char) -> Bool {
-      '0' <= char <= '9' or char == '-' or char == '.' or char == '+' or char == 'e'
+    let fn is_float_char(char: Char) -> Bool {
+      char == '.' or char == 'e' or char == 'E'
+    }
+    let fn is_numeric_char(char: Char) -> Bool {
+      '0' <= char <= '9' or char == '-' or char == '+' or is_float_char(char)
     }
 
     let fn parse_value() -> Result[Json, String] {
@@ -232,12 +234,12 @@ pub mod Json {
           Ok(Json::Array(values))
         }
         char_ == '"' { Ok(Json::Str(parse_str().try)) }
-        is_numeric(char_) {
+        is_numeric_char(char_) {
           let num = "";
           let is_float = false;
-          while char is Some(char_) and is_numeric(char_) {
+          while char is Some(char_) and is_numeric_char(char_) {
             num!.push_back(char_);
-            is_float |= char_ == '.' or char_ == 'e';
+            is_float |= is_float_char(char_);
             advance();
           }
           if is_float {
@@ -334,7 +336,7 @@ pub mod ToJson {
 
   pub impl list[T; ToJson[T]]: ToJson[List[T]] {
     fn to_json(self: List[T]) -> Json {
-      Json::Array(self.map(fn* (value: T) { value.to_json() }))
+      Json::Array(self.map(ToJson::to_json))
     }
   }
 
