@@ -48,6 +48,27 @@ pub fn main(&io: &IO) {
   io.println("{Json::parse[Json](str).show()}");
   io.println("{Json::parse[Stuff](str).show()}");
 
+  io.println("\n--- number parsing edge cases");
+  for str in ["1", "0", "-0", "-1", "4294967296", "18446744073709551616"] {
+    io.println("int `{str}`: {Json::parse[Int](str).show()}")
+    io.println("f64 `{str}`: {Json::parse[F64](str).show()}")
+  }
+  for str in
+    [
+      "4.6e+1",
+      "4.6E+1",
+      "460E-1",
+      "4294967296.0",
+      "18446744073709551616.0",
+      "1e400",
+      "-1e400",
+      "1E-400",
+      "null",
+    ]
+  {
+    io.println("f64 `{str}`: {Json::parse[F64](str).show()}")
+  }
+
   io.println("\n--- whitespace everywhere");
   io.println("{
     Json::parse[Json](
