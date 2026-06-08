@@ -35,52 +35,54 @@ pub mod Json {
     out ++ "\""
   }
 
-  pub fn .to_string(json: Json) -> String {
-    match json {
-      Null() { "null" }
-      Boolean(bool) { bool as String }
-      Integer(int) { int as String }
-      Float(float) {
-        when {
-          float == F64::inf { "1e309" }
-          float == F64::neg_inf { "-1e309" }
-          float.is_nan() { "null" }
-          _ { float as String }
-        }
-      }
-      Str(str) { escape_string(str) }
-      Array(list) {
-        let str = "[";
-        let first = true;
-        for value in list {
-          if !first {
-            str ++= ",";
+  pub impl to_string: Cast[Json, String] {
+    fn cast(json: Json) -> String {
+      match json {
+        Null() { "null" }
+        Boolean(bool) { bool as String }
+        Integer(int) { int as String }
+        Float(float) {
+          when {
+            float == F64::inf { "1e309" }
+            float == F64::neg_inf { "-1e309" }
+            float.is_nan() { "null" }
+            _ { float as String }
           }
-          str ++= value.to_string();
-          first = false;
         }
-        str ++ "]"
-      }
-      Object(fields) {
-        let str = "\{";
-        let first = true;
-        for (key, value) in fields {
-          if !first {
-            str ++= ",";
+        Str(str) { escape_string(str) }
+        Array(list) {
+          let str = "[";
+          let first = true;
+          for value in list {
+            if !first {
+              str ++= ",";
+            }
+            str ++= value as String;
+            first = false;
           }
-          str ++= "{escape_string(key)}:{value.to_string()}";
-          first = false;
+          str ++ "]"
         }
-        str ++ "}"
+        Object(fields) {
+          let str = "\{";
+          let first = true;
+          for (key, value) in fields {
+            if !first {
+              str ++= ",";
+            }
+            str ++= "{escape_string(key)}:{value as String}";
+            first = false;
+          }
+          str ++ "}"
+        }
       }
     }
   }
 
-  pub fn .to_string_pretty(json: Json) -> String {
-    json._to_string_pretty(0)
+  pub fn .pretty(json: Json) -> String {
+    json._pretty(0)
   }
 
-  fn ._to_string_pretty(json: Json, indent: N32) -> String {
+  fn ._pretty(json: Json, indent: N32) -> String {
     match json {
       Array(list) {
         assert list.len() != 0 else { "[]" }
@@ -91,7 +93,7 @@ pub mod Json {
             str ++= ",";
           }
           str ++= "\n  " ++ "  ".repeat(indent);
-          str ++= value._to_string_pretty(indent + 1);
+          str ++= value._pretty(indent + 1);
           first = false;
         }
         str ++ "\n" ++ "  ".repeat(indent) ++ "]"
@@ -105,12 +107,12 @@ pub mod Json {
             str ++= ",";
           }
           str ++= "\n  " ++ "  ".repeat(indent);
-          str ++= "{escape_string(key)}: {value._to_string_pretty(indent + 1)}";
+          str ++= "{escape_string(key)}: {value._pretty(indent + 1)}";
           first = false;
         }
         str ++ "\n" ++ "  ".repeat(indent) ++ "}"
       }
-      json { json.to_string() }
+      json { json as String }
     }
   }
 

@@ -42,9 +42,9 @@ pub fn main(&io: &IO) {
   io.println("\n--- stuff");
   io.println("{stuff.show()}");
   io.println("{stuff.to_json().show()}");
-  io.println("{stuff.to_json().to_string()}");
-  io.println("{stuff.to_json().to_string_pretty()}");
-  let str = stuff.to_json().to_string_pretty();
+  io.println("{stuff.to_json()}");
+  io.println("{stuff.to_json().pretty()}");
+  let str = stuff.to_json().pretty();
   io.println("{Json::parse[Json](str).show()}");
   io.println("{Json::parse[Stuff](str).show()}");
 
@@ -76,8 +76,8 @@ pub fn main(&io: &IO) {
   }
   str ++= "\u{a9}\u{2328}\u{1f95e}";
   io.println("{str.show()}");
-  io.println(str.to_json().to_string());
-  io.println("{Json::parse[String](str.to_json().to_string()) == Ok(str)}");
+  io.println("{str.to_json()}");
+  io.println("{Json::parse[String](str.to_json() as String) == Ok(str)}");
 
   io.println("\n--- whitespace everywhere");
   io.println("{
