@@ -442,13 +442,11 @@ pub mod ToJson {
       }
     }
 
-    pub impl variant[I, R; ToJsonObject[I], ToJsonVariant[R]]: ToJsonVariant[Variant[I, R]] {
+    pub impl variant[I, R; ToJson[I], ToJsonVariant[R]]: ToJsonVariant[Variant[I, R]] {
       fn to_json_variant(variant: Variant[I, R], variant_names: List[String]) -> Json {
         let (init_name, rest_names) = variant_names.head_tail().assume();
         match variant {
-          Variant::Init(init) {
-            Json::Object([("type", Json::Str(init_name))] ++ init.to_json_object())
-          }
+          Variant::Init(init) { Json::Object([(init_name, init.to_json())]) }
           Variant::Rest(rest) { rest.to_json_variant(rest_names) }
         }
       }
@@ -752,34 +750,30 @@ pub mod FromJson {
 
   pub trait[] FromJsonVariant[T] {
     fn from_json_variant(
-      type_: String,
-      json: Map[String, Json],
+      variant: String,
+      content: Json,
       variant_names: List[String],
     ) -> Result[T, JsonError];
   }
 
   pub mod FromJsonVariant {
     pub impl never: FromJsonVariant[!] {
-      fn from_json_variant(
-        type_: String,
-        _: Map[String, Json],
-        _: List[String],
-      ) -> Result[!, JsonError] {
-        Err(JsonError::new("invalid variant {type_.show()}"))
+      fn from_json_variant(variant: String, _: Json, _: List[String]) -> Result[!, JsonError] {
+        Err(JsonError::new("invalid variant {variant.show()}"))
       }
     }
 
-    pub impl variant[I, R; FromJsonObject[I], FromJsonVariant[R]]: FromJsonVariant[Variant[I, R]] {
+    pub impl variant[I, R; FromJson[I], FromJsonVariant[R]]: FromJsonVariant[Variant[I, R]] {
       fn from_json_variant(
-        type_: String,
-        json: Map[String, Json],
+        variant: String,
+        content: Json,
         variant_names: List[String],
       ) -> Result[Variant[I, R], JsonError] {
         let (init, rest) = variant_names.head_tail().assume();
-        if type_ == init {
-          Ok(Variant::Init(FromJsonObject::from_json_object[I](json).try))
+        if variant == init {
+          Ok(Variant::Init(FromJson::from_json[I](content).with_path(variant).try))
         } else {
-          Ok(Variant::Rest(FromJsonVariant::from_json_variant[R](type_, json, rest).try))
+          Ok(Variant::Rest(FromJsonVariant::from_json_variant[R](variant, content, rest).try))
         }
       }
     }
@@ -788,12 +782,10 @@ pub mod FromJson {
   #[basic]
   pub impl enum_[E, V; Enum[E, V], FromJsonVariant[V]]: FromJson[E] {
     fn from_json(json: Json) -> Result[E, JsonError] {
-      let json = FromJson::from_json[Map[String, Json]](json).try;
-      assert json.remove(&"type") is Some(type_) else {
-        Err(JsonError::new("missing key \"type\""))
-      }
-      let type_ = FromJson::from_json[String](type_).with_path("type").try;
-      Ok(FromJsonVariant::from_json_variant[V](type_, json, Enum::variant_names[E]).try as E)
+      assert json is Json::Object(fields) else { Err(JsonError::new("expected object")) }
+      assert fields.len() == 1 else { Err(JsonError::new("expected object with exactly one key")) }
+      let (variant, content) = fields.pop_front().assume();
+      Ok(FromJsonVariant::from_json_variant[V](variant, content, Enum::variant_names[E]).try as E)
     }
   }
 }

@@ -3,7 +3,7 @@ use #root::{codec::Json::{Json, FromJson, ToJson}, data::Map};
 
 #[impl(Show, ToJson, FromJson)]
 enum* Shape {
-  Point({}),
+  Point(F32, F32),
   Circle({ radius: F32 }),
   Polygon({ side_length: F32, sides: N32 }),
 }
@@ -31,7 +31,7 @@ pub fn main(&io: &IO) {
     d: ("abc", 123),
     e: [{ x: None() }, { x: Some(1) }],
     f: [
-      Shape::Point({}),
+      Shape::Point(4.0, 6.0),
       Shape::Circle({ radius: 1.0 }),
       Shape::Polygon({ side_length: 4.0, sides: 6 }),
     ],
@@ -120,12 +120,13 @@ pub fn main(&io: &IO) {
     [
       "\{}",
       "[\{}]",
-      "[\{\"type\":\"\"}]",
-      "[\{\"type\":\"Circle\"}]",
-      "[\{\"type\":\"Circle\",\"radius\":false}]",
-      "[\{\"type\":\"Point\",\"radius\":false}]",
-      "[\{\"type\":\"Polygon\",\"side_length\":0,\"sides\":-1}]",
-      "[\{\"type\":\"Polygon\",\"side_length\":0,\"sides\":4294967296}]",
+      "[\{\"\":\"\"}]",
+      "[\{\"Circle\":\{}}]",
+      "[\{\"Circle\":\{\"radius\":false}}]",
+      "[\{\"Circle\":\{\"radius\":1.0,\"r\":1.0}}]",
+      "[\{\"Point\":[1,2,3]}]",
+      "[\{\"Polygon\":\{\"side_length\":0,\"sides\":-1}}]",
+      "[\{\"Polygon\":\{\"side_length\":0,\"sides\":4294967296}}]",
     ]
   {
     assert Json::parse[List[Shape]](str) is Err(err) else { debug::error("expected error") }

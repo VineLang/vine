@@ -6,7 +6,7 @@ Stuff({
   c: [true, false],
   d: ("abc", 123),
   e: [{ x: None() }, { x: Some(1) }],
-  f: [Point({}), Circle({ radius: 1.0 }), Polygon({ side_length: 4.0, sides: 6 })],
+  f: [Point(4.0, 6.0), Circle({ radius: 1.0 }), Polygon({ side_length: 4.0, sides: 6 })],
   g: [1.0, 0.0, -0.0, -1.0, 1.0e10, 1.00000001e-10, NaN, inf, -inf],
   h: [+1, -1, 0, +18446744073709551615, -18446744073709551615],
   i: Map({ "": "", "\n": "\0", "a": "b" }),
@@ -20,9 +20,9 @@ Object([
   (
     "f",
     Array([
-      Object([("type", Str("Point"))]),
-      Object([("type", Str("Circle")), ("radius", Float(1.0))]),
-      Object([("type", Str("Polygon")), ("side_length", Float(4.0)), ("sides", Integer(+6))]),
+      Object([("Point", Array([Float(4.0), Float(6.0)]))]),
+      Object([("Circle", Object([("radius", Float(1.0))]))]),
+      Object([("Polygon", Object([("side_length", Float(4.0)), ("sides", Integer(+6))]))]),
     ]),
   ),
   (
@@ -51,7 +51,7 @@ Object([
   ),
   ("i", Object([("", Str("")), ("\n", Str("\0")), ("a", Str("b"))])),
 ])
-{"a":1,"b":2.0,"c":[true,false],"d":["abc",123],"e":[{},{"x":1}],"f":[{"type":"Point"},{"type":"Circle","radius":1.0},{"type":"Polygon","side_length":4.0,"sides":6}],"g":[1.0,0.0,-0.0,-1.0,1.0e10,1.00000001335143196e-10,null,1e309,-1e309],"h":[1,-1,0,18446744073709551615,-18446744073709551615],"i":{"":"","\n":"\u0000","a":"b"}}
+{"a":1,"b":2.0,"c":[true,false],"d":["abc",123],"e":[{},{"x":1}],"f":[{"Point":[4.0,6.0]},{"Circle":{"radius":1.0}},{"Polygon":{"side_length":4.0,"sides":6}}],"g":[1.0,0.0,-0.0,-1.0,1.0e10,1.00000001335143196e-10,null,1e309,-1e309],"h":[1,-1,0,18446744073709551615,-18446744073709551615],"i":{"":"","\n":"\u0000","a":"b"}}
 {
   "a": 1,
   "b": 2.0,
@@ -71,16 +71,21 @@ Object([
   ],
   "f": [
     {
-      "type": "Point"
+      "Point": [
+        4.0,
+        6.0
+      ]
     },
     {
-      "type": "Circle",
-      "radius": 1.0
+      "Circle": {
+        "radius": 1.0
+      }
     },
     {
-      "type": "Polygon",
-      "side_length": 4.0,
-      "sides": 6
+      "Polygon": {
+        "side_length": 4.0,
+        "sides": 6
+      }
     }
   ],
   "g": [
@@ -116,9 +121,9 @@ Ok(Object([
   (
     "f",
     Array([
-      Object([("type", Str("Point"))]),
-      Object([("type", Str("Circle")), ("radius", Float(1.0))]),
-      Object([("type", Str("Polygon")), ("side_length", Float(4.0)), ("sides", Integer(+6))]),
+      Object([("Point", Array([Float(4.0), Float(6.0)]))]),
+      Object([("Circle", Object([("radius", Float(1.0))]))]),
+      Object([("Polygon", Object([("side_length", Float(4.0)), ("sides", Integer(+6))]))]),
     ]),
   ),
   (
@@ -153,7 +158,7 @@ Ok(Stuff({
   c: [true, false],
   d: ("abc", 123),
   e: [{ x: None() }, { x: Some(1) }],
-  f: [Point({}), Circle({ radius: 1.0 }), Polygon({ side_length: 4.0, sides: 6 })],
+  f: [Point(4.0, 6.0), Circle({ radius: 1.0 }), Polygon({ side_length: 4.0, sides: 6 })],
   g: [1.0, 0.0, -0.0, -1.0, 1.0e10, 1.00000001e-10, NaN, inf, -inf],
   h: [+1, -1, 0, +18446744073709551615, -18446744073709551615],
   i: Map({ "": "", "\n": "\0", "a": "b" }),
@@ -224,10 +229,11 @@ Ok(Array([
 
 --- invalid data
 `{}`: expected array
-`[{}]`: missing key "type" at [0]
-`[{"type":""}]`: invalid variant "" at [0]
-`[{"type":"Circle"}]`: missing key "radius" at [0]
-`[{"type":"Circle","radius":false}]`: expected float at [0].radius
-`[{"type":"Point","radius":false}]`: unexpected keys ["radius"] at [0]
-`[{"type":"Polygon","side_length":0,"sides":-1}]`: integer value out of range at [0].sides
-`[{"type":"Polygon","side_length":0,"sides":4294967296}]`: integer value out of range at [0].sides
+`[{}]`: expected object with exactly one key at [0]
+`[{"":""}]`: invalid variant "" at [0]
+`[{"Circle":{}}]`: missing key "radius" at [0].Circle
+`[{"Circle":{"radius":false}}]`: expected float at [0].Circle.radius
+`[{"Circle":{"radius":1.0,"r":1.0}}]`: unexpected keys ["r"] at [0].Circle
+`[{"Point":[1,2,3]}]`: expected array of length 2 at [0].Point
+`[{"Polygon":{"side_length":0,"sides":-1}}]`: integer value out of range at [0].Polygon.sides
+`[{"Polygon":{"side_length":0,"sides":4294967296}}]`: integer value out of range at [0].Polygon.sides
