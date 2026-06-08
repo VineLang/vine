@@ -51,7 +51,7 @@ pub fn main(&io: &IO) {
   io.println("\n--- whitespace everywhere");
   io.println("{
     Json::parse[Json](
-      "[ \{ \"a\" : \"b\\\"\\\\\\n\\u000c\" , \"d\" : \"\" } , 1 , 2.0 , 3e2 , -4, -5e+6 , true , false , null ]"
+      "[ \n\r\t \{ \"a\" : \"b\\\"\\\\\\n\\u000c\" , \"d\" : \"\" } , 1 , 2.0 , 3e2 , -4, -5e+6 , true , false , null ]"
     ).show()
   }");
 
