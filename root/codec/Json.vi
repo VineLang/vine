@@ -129,7 +129,6 @@ pub mod Json {
     let fn advance() {
       char = str!.pop_front();
     }
-    advance();
 
     let fn skip() {
       while char is Some(c) and c <= ' ' and (c == ' ' or c == '\t' or c == '\n' or c == '\r') {
@@ -292,6 +291,7 @@ pub mod Json {
       }
     }
 
+    advance();
     let value = parse_value().try;
     skip();
     if char != None() {
