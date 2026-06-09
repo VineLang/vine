@@ -66,15 +66,40 @@ pub mod Char {
 
   pub fn .escape(char: Char) -> String {
     when {
+      char == '\\' { "\\\\" }
       ' ' <= char <= '~' { "{char}" }
       char == '\0' { "\\0" }
       char == '\t' { "\\t" }
       char == '\r' { "\\r" }
       char == '\n' { "\\n" }
-      char as N32 < 16 { "\\x0{char.as[N32].to_hex_raw()}" }
-      char as N32 < 128 { "\\x{char.as[N32].to_hex_raw()}" }
+      char < ' ' { "\\x{char.as[N32].to_hex_fixed(2)}" }
       _ { "\\u\{{char.as[N32].to_hex_raw()}}" }
     }
+  }
+
+  pub fn .is_surrogate(char: Char) -> Bool {
+    char as N32 & 0xf800 == 0xd800
+  }
+
+  pub fn .is_high_surrogate(char: Char) -> Bool {
+    char as N32 & 0xfc00 == 0xd800
+  }
+
+  pub fn .is_low_surrogate(char: Char) -> Bool {
+    char as N32 & 0xfc00 == 0xdc00
+  }
+
+  /// Constructs a character from a UTF16 surrogate pair. `high` must be a high
+  /// surrogate, and `low` must be a low surrogate.
+  pub fn from_surrogate_pair(high: Char, low: Char) -> Char {
+    (0x10000 + ((high as N32 & 0x3ff) << 10 | (low as N32 & 0x3ff))) as Char
+  }
+
+  /// Converts a character to a UTF16 surrogate pair `(high, low)`. `char` must
+  /// be greater than `0x10000`.
+  pub fn .to_surrogate_pair(char: Char) -> (Char, Char) {
+    let n = char as N32 - 0x10000;
+    ((0xd800 | n >> 10) as Char, (0xdc00 | n & 0x3ff) as Char)
   }
 
   pub impl to_string: Cast[Char, String] {

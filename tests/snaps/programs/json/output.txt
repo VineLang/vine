@@ -1,0 +1,239 @@
+
+--- stuff
+Stuff({
+  a: 1,
+  b: 2.0,
+  c: [true, false],
+  d: ("abc", 123),
+  e: [{ x: None() }, { x: Some(1) }],
+  f: [Point(4.0, 6.0), Circle({ radius: 1.0 }), Polygon({ side_length: 4.0, sides: 6 })],
+  g: [1.0, 0.0, -0.0, -1.0, 1.0e10, 1.00000001e-10, NaN, inf, -inf],
+  h: [+1, -1, 0, +18446744073709551615, -18446744073709551615],
+  i: Map({ "": "", "\n": "\0", "a": "b" }),
+})
+Object([
+  ("a", Integer(+1)),
+  ("b", Float(2.0)),
+  ("c", Array([Boolean(true), Boolean(false)])),
+  ("d", Array([Str("abc"), Integer(+123)])),
+  ("e", Array([Object([]), Object([("x", Integer(+1))])])),
+  (
+    "f",
+    Array([
+      Object([("Point", Array([Float(4.0), Float(6.0)]))]),
+      Object([("Circle", Object([("radius", Float(1.0))]))]),
+      Object([("Polygon", Object([("side_length", Float(4.0)), ("sides", Integer(+6))]))]),
+    ]),
+  ),
+  (
+    "g",
+    Array([
+      Float(1.0),
+      Float(0.0),
+      Float(-0.0),
+      Float(-1.0),
+      Float(1.0e10),
+      Float(1.00000001335143196e-10),
+      Float(NaN),
+      Float(inf),
+      Float(-inf),
+    ]),
+  ),
+  (
+    "h",
+    Array([
+      Integer(+1),
+      Integer(-1),
+      Integer(0),
+      Integer(+18446744073709551615),
+      Integer(-18446744073709551615),
+    ]),
+  ),
+  ("i", Object([("", Str("")), ("\n", Str("\0")), ("a", Str("b"))])),
+])
+{"a":1,"b":2.0,"c":[true,false],"d":["abc",123],"e":[{},{"x":1}],"f":[{"Point":[4.0,6.0]},{"Circle":{"radius":1.0}},{"Polygon":{"side_length":4.0,"sides":6}}],"g":[1.0,0.0,-0.0,-1.0,1.0e10,1.00000001335143196e-10,null,1e309,-1e309],"h":[1,-1,0,18446744073709551615,-18446744073709551615],"i":{"":"","\n":"\u0000","a":"b"}}
+{
+  "a": 1,
+  "b": 2.0,
+  "c": [
+    true,
+    false
+  ],
+  "d": [
+    "abc",
+    123
+  ],
+  "e": [
+    {},
+    {
+      "x": 1
+    }
+  ],
+  "f": [
+    {
+      "Point": [
+        4.0,
+        6.0
+      ]
+    },
+    {
+      "Circle": {
+        "radius": 1.0
+      }
+    },
+    {
+      "Polygon": {
+        "side_length": 4.0,
+        "sides": 6
+      }
+    }
+  ],
+  "g": [
+    1.0,
+    0.0,
+    -0.0,
+    -1.0,
+    1.0e10,
+    1.00000001335143196e-10,
+    null,
+    1e309,
+    -1e309
+  ],
+  "h": [
+    1,
+    -1,
+    0,
+    18446744073709551615,
+    -18446744073709551615
+  ],
+  "i": {
+    "": "",
+    "\n": "\u0000",
+    "a": "b"
+  }
+}
+Ok(Object([
+  ("a", Integer(+1)),
+  ("b", Float(2.0)),
+  ("c", Array([Boolean(true), Boolean(false)])),
+  ("d", Array([Str("abc"), Integer(+123)])),
+  ("e", Array([Object([]), Object([("x", Integer(+1))])])),
+  (
+    "f",
+    Array([
+      Object([("Point", Array([Float(4.0), Float(6.0)]))]),
+      Object([("Circle", Object([("radius", Float(1.0))]))]),
+      Object([("Polygon", Object([("side_length", Float(4.0)), ("sides", Integer(+6))]))]),
+    ]),
+  ),
+  (
+    "g",
+    Array([
+      Float(1.0),
+      Float(0.0),
+      Float(-0.0),
+      Float(-1.0),
+      Float(1.0e10),
+      Float(1.00000001335143196e-10),
+      Null(),
+      Float(inf),
+      Float(-inf),
+    ]),
+  ),
+  (
+    "h",
+    Array([
+      Integer(+1),
+      Integer(-1),
+      Integer(0),
+      Integer(+18446744073709551615),
+      Integer(-18446744073709551615),
+    ]),
+  ),
+  ("i", Object([("", Str("")), ("\n", Str("\0")), ("a", Str("b"))])),
+]))
+Ok(Stuff({
+  a: 1,
+  b: 2.0,
+  c: [true, false],
+  d: ("abc", 123),
+  e: [{ x: None() }, { x: Some(1) }],
+  f: [Point(4.0, 6.0), Circle({ radius: 1.0 }), Polygon({ side_length: 4.0, sides: 6 })],
+  g: [1.0, 0.0, -0.0, -1.0, 1.0e10, 1.00000001e-10, NaN, inf, -inf],
+  h: [+1, -1, 0, +18446744073709551615, -18446744073709551615],
+  i: Map({ "": "", "\n": "\0", "a": "b" }),
+}))
+
+--- number parsing edge cases
+int `1`: Ok(+1)
+f64 `1`: Ok(1.0)
+int `0`: Ok(0)
+f64 `0`: Ok(0.0)
+int `-0`: Ok(0)
+f64 `-0`: Ok(0.0)
+int `-1`: Ok(-1)
+f64 `-1`: Ok(-1.0)
+int `4294967296`: Ok(+4294967296)
+f64 `4294967296`: Ok(4.294967296e9)
+int `18446744073709551616`: Ok(+18446744073709551616)
+f64 `18446744073709551616`: Ok(1.844674407370955162e19)
+f64 `4.6e+1`: Ok(46.0)
+f64 `4.6E+1`: Ok(46.0)
+f64 `460E-1`: Ok(46.0)
+f64 `4294967296.0`: Ok(4.294967296e9)
+f64 `18446744073709551616.0`: Ok(1.844674407370955162e19)
+f64 `1e400`: Ok(inf)
+f64 `-1e400`: Ok(-inf)
+f64 `1E-400`: Ok(0.0)
+f64 `null`: Ok(NaN)
+
+--- string encoding
+"\0\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b\x0c\r\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz\{|}~\u{a9}\u{2328}\u{1f95e}"
+"\u0000\u0001\u0002\u0003\u0004\u0005\u0006\u0007\b\t\n\u000b\f\r\u000e\u000f\u0010\u0011\u0012\u0013\u0014\u0015\u0016\u0017\u0018\u0019\u001a\u001b\u001c\u001d\u001e\u001f !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\u00a9\u2328\ud83e\udd5e"
+true
+
+--- whitespace everywhere
+Ok(Array([
+  Object([("a", Str("b\"\\\n\x0c")), ("d", Str(""))]),
+  Integer(+1),
+  Float(2.0),
+  Float(300.0),
+  Integer(-4),
+  Float(-5000000.0),
+  Boolean(true),
+  Boolean(false),
+  Null(),
+]))
+
+--- invalid syntax
+``: unexpected eof 
+`  `: unexpected eof 
+`{`: expected `"`
+`{,`: expected `"`
+`[1,]`: unexpected character
+`[1,]`: unexpected character
+`[1,2]3`: expected eof
+`[1 2]`: expected `,`
+`"`: unexpected eof in string
+`"\`: unexpected eof in escape
+`"\u`: unexpected eof in escape
+`"\z`: invalid escape
+`"""`: expected eof
+`{"a"}`: expected `:`
+`{"a"}`: expected `:`
+`{"a":1 2}`: expected `,`
+`tru`: expected `e`
+`falls`: expected `s`
+`nul`: expected `l`
+`nil`: expected `u`
+
+--- invalid data
+`{}`: expected array
+`[{}]`: expected object with exactly one key at [0]
+`[{"":""}]`: invalid variant "" at [0]
+`[{"Circle":{}}]`: missing key "radius" at [0].Circle
+`[{"Circle":{"radius":false}}]`: expected float at [0].Circle.radius
+`[{"Circle":{"radius":1.0,"r":1.0}}]`: unexpected keys ["r"] at [0].Circle
+`[{"Point":[1,2,3]}]`: expected array of length 2 at [0].Point
+`[{"Polygon":{"side_length":0,"sides":-1}}]`: integer value out of range at [0].Polygon.sides
+`[{"Polygon":{"side_length":0,"sides":4294967296}}]`: integer value out of range at [0].Polygon.sides

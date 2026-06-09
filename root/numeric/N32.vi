@@ -159,6 +159,17 @@ pub mod N32 {
     "0b" ++ n.to_binary_raw()
   }
 
+  pub fn .to_hex_fixed(n: N32, digits: N32) -> String {
+    let chars = [];
+    for _ in 0..digits {
+      let nibble = n & 15;
+      let nibble = if nibble < 10 { '0' + nibble } else { 'a' - 10 + nibble };
+      chars.push_front(nibble);
+      n >>= 4;
+    }
+    String(chars)
+  }
+
   pub fn .to_hex_raw(n: N32) -> String {
     let chars = [];
     loop {

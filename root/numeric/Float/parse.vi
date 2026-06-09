@@ -81,9 +81,9 @@ pub mod parse[
     }
   }
 
-  struct Rational({ num: Nat, den: Nat, exp: I32 });
+  pub.root struct Rational({ num: Nat, den: Nat, exp: I32 });
 
-  mod Rational[...] {
+  pub.root mod Rational[...] {
     pub fn from_decimal(mantissa: Nat, exp10: I32) -> Rational {
       if exp10 >= +0 {
         Rational({ num: mantissa * 5[Nat] ** (exp10 as N32), den: 1[Nat], exp: exp10 })
