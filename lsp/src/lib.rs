@@ -312,7 +312,12 @@ impl<H: Hooks> LanguageServer for Backend<H> {
           // TODO(#411): handle properly
           PositionEncodingKind::UTF16
         }),
-        text_document_sync: Some(TextDocumentSyncCapability::Kind(TextDocumentSyncKind::FULL)),
+        text_document_sync: Some(TextDocumentSyncCapability::Options(TextDocumentSyncOptions {
+          open_close: Some(true),
+          change: Some(TextDocumentSyncKind::FULL),
+          save: Some(TextDocumentSyncSaveOptions::Supported(true)),
+          ..Default::default()
+        })),
         document_formatting_provider: Some(OneOf::Left(true)),
         workspace: Some(WorkspaceServerCapabilities {
           workspace_folders: Some(WorkspaceFoldersServerCapabilities {
