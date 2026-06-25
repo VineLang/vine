@@ -21,7 +21,11 @@ use ivy::{
     common::{chain_binary, elide_unary, map_name, replace_name, replace_nilary, replace_path},
   },
 };
-use vine_util::{exact_size, nat::Nat, register::Register};
+use vine_util::{
+  exact_size,
+  nat::Nat,
+  register::{Register, Registry},
+};
 
 use crate::compiler::Guide;
 
@@ -373,17 +377,29 @@ pub fn arithmetic<'r>(vi: &'r Guide, table: &mut Table) -> impl use<'r> + Regist
     }
   }
 
-  struct Registry<'a> {
-    table: &'a mut Table,
-    fns: &'a mut HashMap<NameId, Box<dyn Fn(&mut Engine, &Guide, NetId, NodeId) -> bool>>,
+  type Fns = HashMap<NameId, Box<dyn Fn(&mut Engine, &Guide, NetId, NodeId) -> bool>>;
+
+  struct Arithmetic;
+  impl Registry for Arithmetic {
+    type Mut<'r>
+      = (&'r mut Fns, &'r mut Table)
+    where
+      Self: 'r;
+    fn fork<'a>((registry, table): &'a mut Self::Mut<'_>) -> Self::Mut<'a> {
+      (registry, table)
+    }
   }
 
   impl<const N: usize, const M: usize, I: Inputs<N>, O: Outputs<M>> Define<I, O, [[(); N]; M]>
-    for Registry<'_>
+    for Arithmetic
   {
-    fn define(&mut self, name: &'static str, f: impl 'static + Send + Sync + Fn(I) -> O) {
-      let name = self.table.add_path_name(name);
-      self.fns.insert(
+    fn define(
+      (fns, table): Self::Mut<'_>,
+      name: &'static str,
+      f: impl 'static + Send + Sync + Fn(I) -> O,
+    ) {
+      let name = table.add_path_name(name);
+      fns.insert(
         name,
         Box::new(move |engine, vi, net, node| {
           let name = engine.name(node);
@@ -408,16 +424,15 @@ pub fn arithmetic<'r>(vi: &'r Guide, table: &mut Table) -> impl use<'r> + Regist
   }
 
   let mut fns = HashMap::new();
-  let mut registry = Registry { table, fns: &mut fns };
-  arithmetic(()).register(&mut registry);
-  registry.define("vi:bool:and", |(a, b): (bool, bool)| a & b);
-  registry.define("vi:bool:or", |(a, b): (bool, bool)| a | b);
-  registry.define("vi:bool:xor", |(a, b): (bool, bool)| a ^ b);
-  registry.define("vi:bool:eq", |(a, b): (bool, bool)| a == b);
-  registry.define("vi:bool:le", |(a, b): (bool, bool)| a <= b);
-  registry.define("vi:bool:lt", |(a, b): (bool, bool)| !a & b);
-  registry.define("vi:bool:not", |a: bool| !a);
-  registry.define("vi:bool:to_n32", |a: bool| a as u32);
+  Register::<Arithmetic>::register(arithmetic(()), (&mut fns, table));
+  Arithmetic::define((&mut fns, table), "vi:bool:and", |(a, b): (bool, bool)| a & b);
+  Arithmetic::define((&mut fns, table), "vi:bool:or", |(a, b): (bool, bool)| a | b);
+  Arithmetic::define((&mut fns, table), "vi:bool:xor", |(a, b): (bool, bool)| a ^ b);
+  Arithmetic::define((&mut fns, table), "vi:bool:eq", |(a, b): (bool, bool)| a == b);
+  Arithmetic::define((&mut fns, table), "vi:bool:le", |(a, b): (bool, bool)| a <= b);
+  Arithmetic::define((&mut fns, table), "vi:bool:lt", |(a, b): (bool, bool)| !a & b);
+  Arithmetic::define((&mut fns, table), "vi:bool:not", |a: bool| !a);
+  Arithmetic::define((&mut fns, table), "vi:bool:to_n32", |a: bool| a as u32);
 
   Rewrite([vi.ext], move |engine, _, net, node| {
     let name = engine.name(node);

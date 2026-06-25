@@ -10,7 +10,7 @@ use vine_util::{
   exact_size,
   idx::{IdxSlab, IdxVec},
   new_idx,
-  register::Register,
+  register::{Register, Registry},
 };
 
 use crate::{
@@ -592,6 +592,16 @@ pub struct Rules<'a> {
     PathId,
     Vec<Rc<dyn 'a + Fn(&mut Engine, &mut Table, NetId, NodeId) -> bool /* applied */>>,
   >,
+}
+
+impl Registry for Rules<'_> {
+  type Mut<'a>
+    = &'a mut Self
+  where
+    Self: 'a;
+  fn fork<'a>(ref_: &'a mut Self::Mut<'_>) -> Self::Mut<'a> {
+    ref_
+  }
 }
 
 impl<'a> Rules<'a> {

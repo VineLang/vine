@@ -5,7 +5,10 @@ use std::{
 };
 
 use ivm::{
-  host::ext::{ExtFn, ExtTyBoxed, HostTable},
+  host::{
+    Host,
+    ext::{ExtFn, ExtTyBoxed},
+  },
   runtime::{
     Runtime,
     ext::Boxed,
@@ -105,7 +108,7 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
     let slot_ext_ty = self.host.get_ext_ty().unwrap();
     self.rt.link_wire(slot_, Port::new_ext_val(slot_ext_ty.wrap_static(Boxed::new(slot.clone()))));
 
-    self.rt.normalize();
+    self.rt.normalize(());
 
     let string = slot.0.lock().unwrap().take();
 
@@ -120,7 +123,7 @@ impl<'ivm> ExtTyBoxed<'ivm> for Slot {
   type With<'x> = Slot;
 }
 
-pub fn extrinsics<'ivm, 'r>() -> impl Register<HostTable<'ivm, 'r>> {
+pub fn extrinsics<'ivm>() -> impl Register<Host<'ivm>> {
   ExtFn("vi:repl:show", |(slot, str): (Slot, String)| {
     *slot.0.lock().unwrap() = Some(str);
   })

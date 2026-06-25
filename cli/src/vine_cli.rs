@@ -30,6 +30,7 @@ use ivy::{
 };
 use notify::{RecommendedWatcher, RecursiveMode, Watcher};
 use rustyline::DefaultEditor;
+use url::Url;
 use vine::{
   backend::{BackendConfig, Target, backend, vi_to_ivm},
   compiler::Compiler,
@@ -37,6 +38,7 @@ use vine::{
   structures::{
     ast::Ident,
     content::{Color, Element, Length, Output, Surround, Writer},
+    diag::Color as DiagColor,
     resolutions::FragmentId,
   },
   tools::{
@@ -45,7 +47,7 @@ use vine::{
     repl::{self, Repl},
   },
 };
-use vine_lsp::lsp;
+use vine_lsp::{Doc, lsp_stdio};
 use vine_util::idx::IdxVec;
 
 use crate::common::RunArgs;
@@ -270,14 +272,14 @@ impl VineTestCommand {
       compiler.insert_main_net(table, &mut nets, test_id, &translator);
 
       eprint!("{grey}test{reset} {bold}{path}{reset} {grey}...{reset} ");
-      let (result, output) = self.run_args.run_capture(table, &nets);
-      if result.success() {
+      let (_, flags, output) = self.run_args.run_capture(table, &nets);
+      if flags.success() {
         eprintln!("{green}ok{reset}");
       } else {
         failed = true;
         eprintln!("{red}FAILED{reset}");
       }
-      if self.no_capture || !result.success() {
+      if self.no_capture || !flags.success() {
         io::stderr().write_all(&output)?;
         eprintln!();
       }
@@ -452,19 +454,7 @@ impl VineReplCommand {
     let mut host = Host::new(&mut ivm);
 
     use ivm::host::ext::common;
-    host.register(
-      table,
-      (
-        common::fundamental(),
-        common::arithmetic(),
-        common::io_meta(),
-        common::io_stdio(),
-        common::io_args(&self.args),
-        common::io_error(),
-        common::io_file(),
-        repl::extrinsics(),
-      ),
-    );
+    host.register(table, (common::all(&self.args, io::stdin, io::stdout), repl::extrinsics()));
 
     let mut runtime = host.init(&mut heap);
 
@@ -686,8 +676,38 @@ impl VineLspCommand {
   pub fn execute(self) -> Result<()> {
     let mut compiler = Compiler::default();
     let file_paths = self.check.libs.initialize(&mut compiler);
-    lsp(compiler, file_paths, self.check.entrypoints);
+    let hooks = VineCliLspHooks::new(self.check.entrypoints);
+    lsp_stdio(compiler, file_paths, hooks);
     Ok(())
+  }
+}
+
+struct VineCliLspHooks {
+  entrypoints: Vec<String>,
+}
+
+impl VineCliLspHooks {
+  fn new(entrypoints: Vec<String>) -> Self {
+    Self { entrypoints }
+  }
+}
+
+impl vine_lsp::Hooks for VineCliLspHooks {
+  fn load_modules(
+    &self,
+    compiler: &mut Compiler,
+    file_paths: &mut IdxVec<FileId, PathBuf>,
+    _docs: &HashMap<Url, Doc>,
+  ) {
+    let mut loader = Loader::new(compiler, RealFS, Some(file_paths));
+    for glob in &self.entrypoints {
+      for entry in glob::glob(glob).unwrap() {
+        let path = entry.unwrap();
+        if let Some(name) = RealFS::detect_name(&path) {
+          loader.load_mod(name, path);
+        }
+      }
+    }
   }
 }
 
@@ -739,39 +759,29 @@ fn print_diags(compiler: &Compiler) {
 }
 
 fn _print_diags(mut w: impl io::Write + IsTerminal, compiler: &Compiler) -> io::Result<()> {
-  let Colors { reset, bold, underline, grey, red, yellow, .. } = colors(&w);
+  let Colors { reset, bold, underline, grey, red, yellow, green } = colors(&w);
 
-  let errors = compiler.diags.errors.iter().map(|x| (red, "error", x));
-  let warnings = compiler.diags.warnings.iter().map(|x| (yellow, "warning", x));
-
-  for (color, severity, diag) in errors.chain(warnings) {
-    let Some(span) = diag.span() else { continue };
-    writeln!(w, "{color}{severity}{grey}:{reset} {bold}{diag}{reset}")?;
-    if let Some(span_str) = compiler.show_span(span) {
-      let file = &compiler.files[span.file];
-      let start = file.get_pos(span.start);
-      let end = file.get_pos(span.end);
-      let line_width = (end.line + 1).ilog10() as usize + 1;
-      writeln!(w, " {:>line_width$}{grey} @ {span_str}", "")?;
-      for line in start.line..=end.line {
-        let line_start = file.line_starts[line];
-        let line_end = file.line_starts.get(line + 1).copied().unwrap_or(file.src.len());
-        let line_str = &file.src[line_start..line_end];
-        let line_str =
-          line_str.strip_suffix("\r\n").or(line_str.strip_suffix("\n")).unwrap_or(line_str);
-        let start = if line == start.line { start.col } else { 0 };
-        let end = if line == end.line { end.col } else { line_str.len() };
-        writeln!(
-          w,
-          " {grey}{:>line_width$} |{reset} {}{color}{underline}{}{reset}{}",
-          line + 1,
-          &line_str[..start],
-          &line_str[start..end],
-          &line_str[end..],
-        )?;
+  for diag_lines in compiler.format_diags() {
+    for diag_span in diag_lines {
+      if diag_span.bold {
+        write!(w, "{bold}")?;
+      }
+      match diag_span.color {
+        Some(DiagColor::Grey) => write!(w, "{grey}")?,
+        Some(DiagColor::Red) => write!(w, "{red}")?,
+        Some(DiagColor::Yellow) => write!(w, "{yellow}")?,
+        Some(DiagColor::Green) => write!(w, "{green}")?,
+        _ => (),
+      }
+      if diag_span.underline {
+        write!(w, "{underline}")?;
+      }
+      write!(w, "{}", diag_span.content)?;
+      if diag_span.is_styled() {
+        write!(w, "{reset}")?;
       }
     }
-    writeln!(w,)?;
+    writeln!(w)?;
   }
 
   Ok(())

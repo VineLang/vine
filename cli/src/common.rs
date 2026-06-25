@@ -1,20 +1,13 @@
-use std::{
-  collections::HashMap,
-  io::{self, Read, Write},
-  process::exit,
-  sync::{Mutex, MutexGuard},
-};
+use std::{collections::HashMap, io, process::exit};
 
 use clap::Args;
 use ivm::{
-  host::{Host, IVM, ext::common::IO},
-  program::Program,
-  runtime::{
-    flags::Flags,
-    heap::Heap,
-    port::{Port, Tag},
-    stats::Stats,
+  host::{
+    Host, IVM,
+    ext::common,
+    runner::{CaptureOutput, Runner},
   },
+  runtime::{flags::Flags, heap::Heap, stats::Stats},
 };
 use ivy::{
   name::{NameId, Table},
@@ -37,148 +30,58 @@ pub struct RunArgs {
 }
 
 impl RunArgs {
-  /// Run the nets forwarding stdout and stderr, exiting if any errors occur.
+  /// Run the nets forwarding stdin and stdout, exiting if any errors occur.
   pub fn run(&self, table: &mut Table, nets: &HashMap<NameId, FlatNet>, debug_hint: bool) {
-    self.run_with(table, nets, io::stdin, io::stdout).report(debug_hint);
-  }
-
-  /// Run the nets capturing any stdout and stderr.
-  pub fn run_capture(
-    &self,
-    table: &mut Table,
-    nets: &HashMap<NameId, FlatNet>,
-  ) -> (RunResult, Vec<u8>) {
-    pub struct SharedWriter<'a>(pub MutexGuard<'a, Vec<u8>>);
-
-    impl Write for SharedWriter<'_> {
-      fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
-        self.0.extend_from_slice(buf);
-        Ok(buf.len())
-      }
-
-      fn flush(&mut self) -> io::Result<()> {
-        Ok(())
-      }
-    }
-
-    let input: &[u8] = &[];
-    let output = Mutex::default();
-    let result = self.run_with(table, nets, || input, || SharedWriter(output.lock().unwrap()));
-
-    (result, output.into_inner().unwrap())
-  }
-
-  pub fn run_with<R: Read, W: Write>(
-    &self,
-    table: &mut Table,
-    nets: &HashMap<NameId, FlatNet>,
-    stdin: impl Copy + Fn() -> R + Send + Sync,
-    stdout: impl Copy + Fn() -> W + Send + Sync,
-  ) -> RunResult {
-    let mut heap = match self.heap {
-      Some(size) => Heap::with_size(size).expect("heap allocation failed"),
-      None => Heap::new(),
-    };
-
+    let mut heap = self.heap();
     let mut ivm = IVM::new();
     let mut host = Host::new(&mut ivm);
+    let extrinsics = common::all(&self.args, io::stdin, io::stdout);
+    let runner = Runner::new(&mut heap, &mut host, extrinsics, table, nets);
 
-    let io = host.register_ext_ty::<IO>();
+    let (mut stats, flags) = runner.normalize(self.breadth_first, self.workers, ());
 
-    use ivm::host::ext::common;
-    host.register(
-      table,
-      (
-        common::fundamental(),
-        common::arithmetic(),
-        common::io_meta(),
-        common::io_stdio_with(stdin, stdout),
-        common::io_args(&self.args),
-        common::io_error(),
-        common::io_file(),
-      ),
-    );
-
-    let program = Program::new(&host, table, nets);
-    let main = table.add_path_name("iv:main");
-
-    let mut runtime = host.init(&mut heap);
-
-    let main = program.graft(main).expect("missing main");
-    let node = unsafe { runtime.new_node(Tag::Comb, 0) };
-    runtime.link_wire(node.1, Port::new_ext_val(io.wrap_static(IO)));
-    runtime.link(Port::new_graft(main), node.0);
-
-    if self.breadth_first {
-      runtime.normalize_breadth_first();
-    } else if self.workers > 0 {
-      runtime.normalize_parallel(self.workers)
-    } else {
-      runtime.normalize();
+    if !flags.success() {
+      eprintln!("\n{}", flags.error_message(debug_hint));
     }
 
-    let out = runtime.follow(Port::new_wire(node.2));
-    if self.no_perf {
-      runtime.stats.clear_perf();
-    }
-
-    RunResult {
-      stats: (!self.no_stats).then_some(runtime.stats),
-      flags: runtime.flags,
-      no_io: out.tag() != Tag::ExtVal || unsafe { out.as_ext_val() }.ty_id() != io.id(),
-      vicious: runtime.stats.mem_free < runtime.stats.mem_alloc,
-    }
-  }
-}
-
-pub struct RunResult {
-  pub stats: Option<Stats>,
-  pub flags: Flags,
-  pub no_io: bool,
-  pub vicious: bool,
-}
-
-impl RunResult {
-  pub fn report(&self, debug_hint: bool) {
-    let RunResult {
-      stats,
-      no_io,
-      vicious,
-      flags: Flags { ext_copy, ext_erase, ext_generic, invalid_interaction },
-    } = *self;
-    if no_io {
-      eprintln!("\nError: the net did not return its `IO` handle");
-      if debug_hint {
-        eprintln!("  hint: try running the program in `--debug` mode to see error messages");
+    if !self.no_stats {
+      if self.no_perf {
+        stats.clear_perf();
       }
-    }
-    if vicious {
-      eprintln!("\nError: the net created a vicious circle");
-    }
-    if ext_copy {
-      eprintln!("\nError: a linear extrinsic was copied");
-    }
-    if ext_erase {
-      eprintln!("\nError: a linear extrinsic was erased");
-    }
-    if ext_generic {
-      eprintln!("\nError: an extrinsic function encountered an unspecified error");
-    }
-    if invalid_interaction {
-      eprintln!("\nError: an invalid interaction was performed");
+      eprintln!("{stats}");
     }
 
-    if let Some(stats) = &stats {
-      eprintln!("{}", stats);
-    }
-
-    if !self.success() {
+    if !flags.success() {
       exit(1);
     }
   }
 
-  pub fn success(&self) -> bool {
-    !self.no_io && !self.vicious && self.flags.success()
+  /// Run the nets with empty stdin and capturing any stdout.
+  pub fn run_capture(
+    &self,
+    table: &mut Table,
+    nets: &HashMap<NameId, FlatNet>,
+  ) -> (Stats, Flags, Vec<u8>) {
+    let capture = CaptureOutput::default();
+    let mut heap = self.heap();
+    let mut ivm = IVM::new();
+
+    let (stats, flags) = {
+      let mut host = Host::new(&mut ivm);
+      let extrinsics = capture.extrinsics(&self.args);
+      let runner = Runner::new(&mut heap, &mut host, extrinsics, table, nets);
+
+      runner.normalize(self.breadth_first, self.workers, ())
+    };
+
+    (stats, flags, capture.into_output())
+  }
+
+  fn heap(&self) -> Box<Heap> {
+    match self.heap {
+      Some(size) => Heap::with_size(size).expect("heap allocation failed"),
+      None => Heap::new(),
+    }
   }
 }
 

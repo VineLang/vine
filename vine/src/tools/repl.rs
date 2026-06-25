@@ -318,12 +318,12 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
 
     let name = self.table.add_path_name(format!(":<repl>:{}", self.line));
     self.rt.graft(self.program.graft(name).unwrap(), Port::new_wire(root));
-    self.rt.normalize();
+    self.rt.normalize(());
 
     let mut result = Port::new_wire(result);
     let output = self.show(ty, &mut result);
     self.rt.link_wire(destroy, result);
-    self.rt.normalize();
+    self.rt.normalize(());
 
     if output != "()" {
       println!("{output}");
