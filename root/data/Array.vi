@@ -350,6 +350,15 @@ pub mod Array {
     }
   }
 
+  pub fn .even_odd[T](Array[T](len, node)) -> (Array[T], Array[T]) {
+    if len < 2 {
+      (Array(len, node), Array::empty)
+    } else {
+      let safe Node::branch(left, right) = safe node.data;
+      (Array((len + 1) / 2, safe Nullable::data(left)), Array(len / 2, safe Nullable::data(right)))
+    }
+  }
+
   pub impl [T; Eq[T]]: Eq[Array[T]] {
     fn eq(&Array[T](len, node), &Array[T](len_other, other)) -> Bool {
       len == len_other and (len == 0 or Node::eq(len, safe &node.data, safe &other.data))

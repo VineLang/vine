@@ -1,0 +1,100 @@
+
+/// Static lookup tables with `O(log(n))` lookup.
+/// ```vi
+/// use #root::data::Lookup;
+/// 
+/// fn primes(_: Lookup::Size8) -> List[N32] {
+///   [2, 3, 5, 7, 11, 13]
+/// }
+/// 
+/// primes.lookup(2) // 5
+/// ```
+///
+/// Functions of the form `fn (Lookup::SizeN) -> List[T]` implement the
+/// `Lookup` trait, allowing `O(log(n))` lookup via the `lookup` method.
+///
+/// The `Lookup::SizeN` parameter provides a power-of-two upper bound on the
+/// length of the list; it is an error if the list exceeds this length.
+mod;
+
+pub trait[L] Lookup[N, T] {
+  const table: List[T];
+}
+
+pub impl fn_[F, N, T; fn F(N) -> List[T], Default[F], Size[N]]: Lookup[F, N, T] {
+  const table: List[T] = _[F](Size::value[N]);
+}
+
+pub fn .lookup[L?, N, T; Lookup[L, N, T], Size[N], Drop[T]](_: L, index: N32) -> T {
+  assert Lookup::table[L].len() <= Size::max_size[N] else {
+    debug::error("lookup table size exceeds given upper bound")
+  }
+  Size::select[N; _, table[L]](index)
+}
+
+#[manual]
+impl table[L, N, T; Lookup[L, N, T]]: Const[Array[T]] {
+  const value: Array[T] = Lookup::table[L] as Array;
+}
+
+pub trait[N] Size {
+  const value: N;
+  const max_size: N32;
+  fn select[T; Const[Array[T]], Drop[T]](index: N32) -> T;
+}
+
+pub struct* Z();
+pub mod Z {
+  pub impl : Size[Z] {
+    const value: Z = Z();
+    const max_size: N32 = 1;
+    fn select[T; Const[Array[T]], Drop[T]](_: N32) -> T {
+      let array = Const::value[Array[T]];
+      let value = array.pop_back().assume();
+      value
+    }
+  }
+}
+
+pub struct* S[T]();
+pub mod S {
+  pub impl [N; Size[N]]: Size[S[N]] {
+    const value: S[N] = S();
+    const max_size: N32 = Size::max_size[N] * 2;
+    fn select[T; Const[Array[T]], Drop[T]](index: N32) -> T {
+      if index & 1 == 0 {
+        Size::select[N; _, even](index >> 1)
+      } else {
+        Size::select[N; _, odd](index >> 1)
+      }
+    }
+  }
+
+  #[manual]
+  impl even[T; Const[Array[T]], Drop[T]]: Const[Array[T]] {
+    const value: Array[T] = Const::value[Array[T]].even_odd().0;
+  }
+
+  #[manual]
+  impl odd[T; Const[Array[T]], Drop[T]]: Const[Array[T]] {
+    const value: Array[T] = Const::value[Array[T]].even_odd().1;
+  }
+}
+
+pub type Size1 = Z;
+pub type Size2 = S[Size1];
+pub type Size4 = S[Size2];
+pub type Size8 = S[Size4];
+pub type Size16 = S[Size8];
+pub type Size32 = S[Size16];
+pub type Size64 = S[Size32];
+pub type Size128 = S[Size64];
+pub type Size256 = S[Size128];
+pub type Size512 = S[Size256];
+pub type Size1024 = S[Size512];
+pub type Size2048 = S[Size1024];
+pub type Size4096 = S[Size2048];
+
+trait[] Const[T] {
+  const value: T;
+}
