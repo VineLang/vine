@@ -19,5 +19,3 @@ pub fn test_capture_failed(&io: &IO) {
   io.println("This should always be printed because of failure");
   debug::error("This message should also be printed")
 }
-
-pub fn main(&_io: &IO) {}
