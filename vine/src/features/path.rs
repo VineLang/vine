@@ -21,7 +21,7 @@ use crate::{
 };
 
 impl Parser<'_> {
-  pub(crate) fn parse_path(&mut self) -> Result<Path, Diag> {
+  pub fn parse_path(&mut self) -> Result<Path, Diag> {
     let span = self.start_span();
     let absolute = self.eat(Token::Hash)?;
     let segments = self.parse_delimited(PATH, Self::parse_ident)?;

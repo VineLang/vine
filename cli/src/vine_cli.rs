@@ -137,11 +137,14 @@ pub struct CompileArgs {
   debug: bool,
   #[arg(long, num_args = 2, value_names = ["KEY", "VALUE"])]
   config: Vec<String>,
+  #[arg(long = "main", default_value = "main")]
+  main_path: Option<MainPath>,
 }
 
 impl CompileArgs {
   fn initialize(self) -> Compiler {
-    let mut compiler = Compiler::new(self.debug, build_config(self.config));
+    let mut compiler =
+      Compiler::new(self.debug, self.main_path.map(|p| p.segments), build_config(self.config));
     self.libs.initialize(&mut compiler);
 
     let mut loader = Loader::new(&mut compiler, RealFS, None);
@@ -458,7 +461,7 @@ impl VineReplCommand {
 
     let mut runtime = host.init(&mut heap);
 
-    let mut compiler = Compiler::new(!self.no_debug, build_config(self.config));
+    let mut compiler = Compiler::new(!self.no_debug, None, build_config(self.config));
     self.libs.initialize(&mut compiler);
     let mut repl = match Repl::new(table, &host, &mut runtime, &mut compiler) {
       Ok(repl) => repl,
@@ -868,6 +871,52 @@ impl TypedValueParser for ParseSource {
       }
     }
   }
+}
+
+#[derive(Clone, Debug)]
+struct MainPath {
+  segments: Vec<Ident>,
+}
+
+impl ValueParserFactory for MainPath {
+  type Parser = ParseMainPath;
+  fn value_parser() -> Self::Parser {
+    ParseMainPath
+  }
+}
+
+#[derive(Clone)]
+struct ParseMainPath;
+
+impl TypedValueParser for ParseMainPath {
+  type Value = MainPath;
+
+  fn parse_ref(
+    &self,
+    cmd: &clap::Command,
+    _: Option<&clap::Arg>,
+    value: &OsStr,
+  ) -> Result<Self::Value, clap::Error> {
+    parse_main_path(value).map_err(|e| {
+      clap::Error::raw(ErrorKind::ValueValidation, format!("invalid main path: {e}")).with_cmd(cmd)
+    })
+  }
+}
+
+fn parse_main_path(value: &OsStr) -> Result<MainPath, String> {
+  use vine::components::{lexer::Lexer, parser::Parser};
+
+  let value = value.to_str().ok_or("not valid unicode")?;
+  let mut parser = Parser::new(Lexer::new(FileId(usize::MAX), value)).map_err(|e| e.to_string())?;
+  let path = parser.parse_path().map_err(|e| e.to_string())?;
+  if path.absolute {
+    Err("path must be relative")?
+  }
+  if path.generics.is_some() {
+    Err("path cannot have generics")?
+  }
+
+  Ok(MainPath { segments: path.segments })
 }
 
 fn build_config(args: Vec<String>) -> HashMap<String, String> {

@@ -73,6 +73,7 @@ impl Compiler {
   pub fn revert(&mut self, checkpoint: &Checkpoint) {
     let Compiler {
       debug: _,
+      main_segments: _,
       loaded: _,
       config: _,
       files,
