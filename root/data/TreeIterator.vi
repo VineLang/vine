@@ -1,0 +1,100 @@
+
+// Cases to handle:
+// - *     -> List   should work, as List can be gathered from any kind of tree
+// - Range -> Array  should fail, as Range cannot implement CompleteTreeIterator
+// - Range -> Set    can work, if we can express that Range can be scattered as
+//                   a sorted tree
+// - List  -> Set    should fail, as List is not necessarily sorted
+//
+// Different constraints:
+// - ordering: some scatters produce elements in an order (e.g. Set)
+// - structure: some scatters produce elements in a structure (e.g Array)
+//
+// T occurrences:
+// - Array[T] has T's at the leaves
+// - Set[T] has T's at the nodes
+
+pub trait[T] TreeIterator[N, L] {
+  fn .branch(iter: T) -> Option[Tree[T, N, L]];
+}
+
+pub enum Tree[T, N, L] {
+  Node(T, T, N),
+  Leaf(L),
+}
+
+pub mod TreeIterator[T, N, L] {
+  pub fn .map_nodes[... U, F*; fn F(N) -> U](iter: T, f: F) -> MapN[T, F] {
+    MapN(iter, f)
+  }
+
+  pub fn .map_leaves[... U, F*; fn F(L) -> U](iter: T, f: F) -> MapL[T, F] {
+    MapL(iter, f)
+  }
+
+  pub struct? MapN[S, F](pub (S, F));
+
+  pub struct? MapL[S, F](pub (S, F));
+
+  pub mod MapN[... U, F*; fn F(N) -> U] {
+    pub impl [... ; TreeIterator[T, N, L]]: TreeIterator[MapN[T, F], U, L] {
+      fn branch(MapN[T, F](iter, f)) -> Option[Tree[MapN[T, F], U, L]] {
+        Option::map(iter.branch(), fn? (t) { Tree::map_nodes(t, f) })
+      }
+    }
+
+    pub impl [... ; BalancedTreeIterator[T, N, L]]: safe BalancedTreeIterator[MapN[T, F], U, L] {}
+    pub impl [... ; CompleteTreeIterator[T, N, L]]: safe CompleteTreeIterator[MapN[T, F], U, L] {}
+  }
+
+  pub mod MapL[... U, F*; fn F(L) -> U] {
+    pub impl [... ; TreeIterator[T, N, L]]: TreeIterator[MapL[T, F], N, U] {
+      fn branch(MapL[T, F](iter, f)) -> Option[Tree[MapL[T, F], N, U]] {
+        Option::map(iter.branch(), fn? (t) { Tree::map_leaves(t, f) })
+      }
+    }
+
+    pub impl [... ; BalancedTreeIterator[T, N, L]]: safe BalancedTreeIterator[MapL[T, F], N, U] {}
+    pub impl [... ; CompleteTreeIterator[T, N, L]]: safe CompleteTreeIterator[MapL[T, F], N, U] {}
+  }
+}
+
+pub mod Tree[T, N, L] {
+  use TreeIterator::{MapL, MapN};
+
+  pub fn .map_nodes[... U, F*; fn F(N) -> U](s: Tree[T, N, L], f: F) -> Tree[MapN[T, F], U, L] {
+    match s {
+      Tree::Node(l, r, n) { Tree::Node(MapN(l, f), MapN(r, f), f(n)) }
+      Tree::Leaf(l) { Tree::Leaf(l) }
+    }
+  }
+
+  pub fn .map_leaves[... U, F*; fn F(L) -> U](s: Tree[T, N, L], f: F) -> Tree[MapL[T, F], N, U] {
+    match s {
+      Tree::Node(l, r, n) { Tree::Node(MapL(l, f), MapL(r, f), n) }
+      Tree::Leaf(l) { Tree::Leaf(f(l)) }
+    }
+  }
+}
+
+pub unsafe trait[T] BalancedTreeIterator[N, L] {}
+pub unsafe trait[T] CompleteTreeIterator[N, L] {}
+
+pub trait[G] Gather[T, N, L] {
+  const empty: G;
+
+  fn node(left: G, right: G, node_value: N) -> G;
+  fn leaf(leaf_value: L) -> G;
+}
+
+pub mod Gather[G, T, N, L] {
+  pub fn .gather[... ; Gather[G, T, N, L], TreeIterator[T, N, L]](iter: T) -> G {
+    match iter.branch() {
+      None() { Gather::empty[G] }
+      Some(Tree::Node(left, right, value)) {
+        Gather::node[G](left.gather[G](), right.gather[G](), value)
+      }
+      Some(Tree::Leaf(value)) { Gather::leaf[G](value) }
+    }
+  }
+}

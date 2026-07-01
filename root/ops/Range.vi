@@ -1,5 +1,6 @@
 
 use data::Iterator::{Iterator, Iterate};
+use data::TreeIterator::{TreeIterator, BalancedTreeIterator, Tree};
 
 pub trait[B] Bound[T] {
   fn .left_of(self: &B, value: &T) -> Bool;
@@ -81,6 +82,59 @@ pub mod Range {
     pub impl n64: Step[N64] {
       fn step(x: N64) -> N64 {
         x + 1[N64]
+      }
+    }
+  }
+
+  pub trait[T] Mid {
+    fn .mid(lo: T, hi: T) -> T;
+  }
+
+  pub mod Mid {
+    pub impl n32: Mid[N32] {
+      fn mid(lo: N32, hi: N32) -> N32 {
+        lo + (hi - lo) / 2
+      }
+    }
+
+    pub impl i32: Mid[I32] {
+      fn mid(lo: I32, hi: I32) -> I32 {
+        lo + (hi - lo) / +2
+      }
+    }
+
+    pub impl n64: Mid[N64] {
+      fn mid(lo: N64, hi: N64) -> N64 {
+        lo + (hi - lo) / 2
+      }
+    }
+  }
+
+  pub fn .tree_iter[T*; Eq[T], Mid[T]](
+    Range[Inclusive[T], Exclusive[T]](start, end)
+  ) -> TreeIter[T] {
+    TreeIter(start, end)
+  }
+
+  pub struct* TreeIter[T](Inclusive[T], Exclusive[T]);
+
+  pub mod TreeIter[T*; Eq[T], Mid[T]] {
+    pub impl [...]: safe BalancedTreeIterator[TreeIter[T], (), T] {}
+
+    pub impl [...]: TreeIterator[TreeIter[T], (), T] {
+      fn branch(TreeIter[T](Inclusive(start), Exclusive(end))) -> Option[Tree[TreeIter[T], (), T]] {
+        let empty = start == end;
+        let mid = Mid::mid(start, end);
+
+        when {
+          empty { None() }
+          mid == start { Some(Tree::Leaf(start)) }
+          _ {
+            let left = TreeIter(Inclusive(start), Exclusive(mid));
+            let right = TreeIter(Inclusive(mid), Exclusive(end));
+            Some(Tree::Node(left, right, ()))
+          }
+        }
       }
     }
   }

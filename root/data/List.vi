@@ -2,6 +2,7 @@
 use data::Iterator::{Iterator, Collect, Iterate};
 use ops::{Cast, Concat, Range::{Range, Bound}};
 use util::{duplicate, erase};
+use data::TreeIterator::{TreeIterator, Gather};
 
 /// A linear collection of `T`.
 ///
@@ -55,6 +56,18 @@ pub mod List {
       back.push(value);
     }
     List(len, front, back)
+  }
+
+  pub impl gather[T, I; TreeIterator[I, (), T]]: Gather[List[T], I, (), T] {
+    const empty: List[T] = List::empty;
+
+    fn node(left: List[T], right: List[T], ()) -> List[T] {
+      left ++ right
+    }
+
+    fn leaf(value: T) -> List[T] {
+      [value]
+    }
   }
 
   /// Create a list with the given length, where each value is produced

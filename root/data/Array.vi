@@ -3,6 +3,7 @@ use List::Stream;
 use logical::Nullable;
 use ops::{Cast, Index::{Index, IndexPlace, IndexSpace, IndexValue}};
 use util::{duplicate, erase};
+use data::TreeIterator::{CompleteTreeIterator, Gather, Tree};
 
 /// A contiguous, indexed collection of `T`.
 ///
@@ -34,6 +35,49 @@ pub mod Array {
       Array::empty
     } else {
       Array(len, safe Nullable::data(Node::new(len, value)))
+    }
+  }
+
+  pub fn .tree_iter[T](self: Array[T]) -> TreeIter[T] {
+    TreeIter(self)
+  }
+
+  pub struct? TreeIter[T](Array[T]);
+
+  pub mod TreeIter[T] {
+    pub impl [...]: safe CompleteTreeIterator[TreeIter[T], (), T] {}
+
+    pub impl [...]: TreeIterator[TreeIter[T], (), T] {
+      fn branch(TreeIter[T](Array(len, node))) -> Option[Tree[TreeIter[T], (), T]] {
+        when {
+          len == 0 {
+            safe node.null;
+            None()
+          }
+          len == 1 {
+            let safe Node::leaf(value) = safe node.data;
+            Some(Tree::Leaf(value))
+          }
+          _ {
+            let safe Node::branch(left, right) = safe node.data;
+            let left = TreeIter(Array((len + 1) / 2, safe Nullable::data(left)));
+            let right = TreeIter(Array(len / 2, safe Nullable::data(right)));
+            Some(Tree::Node(left, right, ()))
+          }
+        }
+      }
+    }
+  }
+
+  pub impl gather[T, I; CompleteTreeIterator[I, (), T]]: Gather[Array[T], I, (), T] {
+    const empty: Array[T] = Array::empty;
+
+    fn node(Array[T](len1, node1), Array[T](len2, node2), ()) -> Array[T] {
+      Array(len1 + len2, safe Nullable::data(Node::branch(node1.data, node2.data)))
+    }
+
+    fn leaf(value: T) -> Array[T] {
+      Array::single(value)
     }
   }
 

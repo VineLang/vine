@@ -11,3 +11,5 @@ pub mod Set;
 pub mod Heap;
 
 pub mod Iterator;
+
+pub mod TreeIterator;

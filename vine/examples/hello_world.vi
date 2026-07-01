@@ -1,4 +1,41 @@
 
+use #root::data::Array;
+use #root::data::TreeIterator::{TreeIterator, Gather};
+
 pub fn main(&io: &IO) {
-  io.println("Hello, world!");
+  // Should work b/c Range::scatter_complete implements Split[(), T] which Array[T] can gather
+  // Range::scatter_complete implements CompleteSplit[_, (), T]
+  // (0..1000).scatter_complete().gather_leaves[Array]();
+
+  // Should work (and be efficient) b/c List can gather anything.
+  // Range::scatter_complete implements BalancedSplit[_, (), T]
+  // (0..1000).scatter_balanced().gather_leaves[List]();
+
+  // Should work (but be less efficient (?)) b/c List can gather anything.
+  // Range::scatter_complete implements OrderedSplit[_, T]
+  // (0..1000).scatter_ordered().gather_nodes[List]();
+
+  // Should work b/c Set can gather ordered nodes.
+  // (0..1000).scatter_ordered().gather_nodes[Set]();
+
+  // Should(?) work b/c Set can gather ordered nodes.
+  // (0..1000).scatter_ordered().gather_nodes[Set]();
+
+  let nums = black_box((0..10000).collect[List]());
+  // let x = nums.tree_iter().map_leaves(fn* (n: N32) -> N32 { n * 2 }).gather[Array]();
+  // let y = nums.tree_iter().gather[List]();
+  // let z = nums as List;
+  // let x = nums.map_unordered(fn* (n: N32) -> N32 { n * 2 });
+
+  // let w = (0..black_box(10000)).collect[List]();
+  // let w = (0..black_box(10000)).tree_iter().gather[List]();
+
+  // io.println("{w.show()}")
+
+  // should work b/c Map[Array::Scatter[..], T -> U] should implement Gather[Array[U]];
+  // nums.scatter().map(fn (n: N32) -> F32 { n.as[F32] }).gather[Array]();
+
+  // io.println("{x.show()}");
+
+  io.println("{nums.len()}");
 }
