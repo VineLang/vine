@@ -106,6 +106,13 @@ impl<I> Net<I> {
       where
         F: FnMut(&mut FlatNet, I, Wire),
       {
+        vine_util::ensure_sufficient_stack(|| self._expr(expr))
+      }
+
+      fn _expr<I>(&mut self, expr: Expr<I>) -> Result<Wire, Diag>
+      where
+        F: FnMut(&mut FlatNet, I, Wire),
+      {
         Ok(match expr {
           Expr::Node(name, children) => {
             let pri = self.net.wire();

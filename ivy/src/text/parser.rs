@@ -77,6 +77,10 @@ impl<'t, 'src, I, F: FnMut(&mut ParserState<'src, Lexer<'src>>) -> Result<I, Dia
   }
 
   pub fn parse_expr(&mut self) -> Result<Expr<I>, Diag> {
+    vine_util::ensure_sufficient_stack(|| self._parse_expr())
+  }
+
+  pub fn _parse_expr(&mut self) -> Result<Expr<I>, Diag> {
     let mut expr = self.parse_expr_prefix()?;
     while self.check(Token::OpenBrace) {
       let stmts = self.parse_delimited(BRACE, Self::parse_stmt)?;
