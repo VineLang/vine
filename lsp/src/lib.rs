@@ -54,11 +54,11 @@ impl<H: Hooks> Backend<H> {
 
     let mut diags_by_file = IdxVec::repeat((vec![], vec![]), lsp.compiler.files.len());
     for diag in &lsp.compiler.diags.errors {
-      let Some(span) = diag.span() else { continue };
+      let Some(span) = diag.span().and_then(Span::some) else { continue };
       diags_by_file[span.file].0.push(diag);
     }
     for diag in &lsp.compiler.diags.warnings {
-      let Some(span) = diag.span() else { continue };
+      let Some(span) = diag.span().and_then(Span::some) else { continue };
       diags_by_file[span.file].1.push(diag);
     }
 

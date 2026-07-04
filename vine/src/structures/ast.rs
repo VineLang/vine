@@ -592,6 +592,10 @@ impl PartialOrd for Span {
 
 impl Span {
   pub const NONE: Span = Span { file: FileId(usize::MAX), start: 0, end: 0 };
+
+  pub fn some(self) -> Option<Span> {
+    (self != Self::NONE).then_some(self)
+  }
 }
 
 impl Display for Path {
