@@ -1,0 +1,6 @@
+
+// @build --opt-all
+
+pub fn main(_: &IO) {
+  black_box((0..10000).collect[List]());
+}
