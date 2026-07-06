@@ -33,6 +33,7 @@ pub fn all<'ivm, R: Read, W: Write>(
   stdout: impl Copy + Fn() -> W + Send + Sync + 'ivm,
 ) -> impl Register<Host<'ivm>> {
   (
+    super::atomic::atomic(),
     fundamental(),
     arithmetic(),
     io_meta(),

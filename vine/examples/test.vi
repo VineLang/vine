@@ -1,0 +1,18 @@
+
+use #root::{Atomic, rng::Pcg32};
+
+pub fn main(&io: &IO) {
+  let rng = Pcg32::seeded("seceded");
+  let counter = Atomic::new(&0);
+
+  for i in 0..46 {
+    let n = 0;
+    for _ in 0..rng.gen_n32() % 1000 {
+      n += 1;
+    }
+    counter.fork().access(n, fn (n: N32, &counter: &N32) {
+      io.println("{i}, {n}, {counter}");
+      counter += 1;
+    })
+  }
+}

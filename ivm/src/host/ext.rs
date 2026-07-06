@@ -7,6 +7,7 @@ use std::{
 use ivy::name::{NameId, Table};
 use vine_util::register::{Register, Registry};
 
+pub mod atomic;
 pub mod common;
 
 use crate::{

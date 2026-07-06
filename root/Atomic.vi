@@ -1,0 +1,131 @@
+
+pub struct Atomic[T](&Token[T]);
+
+pub mod Atomic {
+  pub impl [T]: Drop[Atomic[T]];
+  pub impl [T]: Fork[Atomic[T]] {
+    fn fork(&self: &Atomic[T]) -> Atomic[T] {
+      let Atomic[T](&token) = self;
+      let (a, b) = token.split();
+      let out;
+      (self, out) = (Atomic(&a), Atomic(&b))
+      token = Token::merge(a, b);
+      out
+    }
+  }
+
+  pub fn new[T](&value: &T) -> Atomic[T] {
+    let token = Token::new(value);
+    let atomic = Atomic(&token);
+    value = token.end();
+    atomic
+  }
+
+  pub fn .access[T, C, F, R; Await[C], fn F(C, &T) -> R](&Atomic[T](&token), ctx: C, f: F) -> R {
+    let output;
+    ctx.await(fn (ctx) { output = f(ctx, token.access()); })
+    output
+  }
+
+  pub fn .read[T+](&self: &Atomic[T]) -> T {
+    self.access((), fn ((), &value) { value })
+  }
+}
+
+type Token[T];
+
+mod Token {
+  pub fn new[T](value: T) -> Token[T] {
+    safe $ivy { ivm:nil = vi:ext#1[ivm:atomic:new](^ ${value}) }
+  }
+
+  pub fn .end[T](token: Token[T]) -> T {
+    safe $ivy { ${token} = vi:ext#1[ivm:atomic:end](^) }
+  }
+
+  pub fn .split[T](token: Token[T]) -> (Token[T], Token[T]) {
+    safe $ivy { ${token} = vi:ext#1[ivm:atomic:token:split](^0 ^1) }
+  }
+
+  pub fn merge[T](a: Token[T], b: Token[T]) -> Token[T] {
+    safe $ivy { ${a} = vi:ext#2[ivm:atomic:token:merge](${b} ^) }
+  }
+
+  pub fn .access[T](&token: &Token[T]) -> &T {
+    let loop value;
+    safe $ivy { ${token} = vi:ext#1[ivm:atomic:token:access](${~token} ${value} ${~value}) };
+    &value
+  }
+}
+
+use #root::derive::Composite;
+
+pub trait[T] Await {
+  fn _await[F; fn F(T)](value: T, f: F);
+}
+
+pub mod Await {
+  pub fn .await[T, F, R; Await[T], fn F(T) -> R](value: T, f: F) -> R {
+    let result;
+    _await(value, fn (value) { result = f(value) });
+    result
+  }
+
+  pub impl tuple_nil: Await[()] {
+    fn _await[F; fn F(())]((), f: F) {
+      f(())
+    }
+  }
+
+  pub impl object_nil: Await[{}] {
+    fn _await[F; fn F({})]({}, f: F) {
+      f({})
+    }
+  }
+
+  pub impl composite[C, K, I, R; Composite[C, K, I, R], Await[I], Await[R]]: Await[C] {
+    fn _await[F; fn F(C)](value: C, f: F) {
+      let (init, rest) = value as (I, R);
+      init.await(fn (init) { rest.await(fn (rest) { f((init, rest) as C) }) });
+    }
+  }
+
+  pub impl n32: Await[N32] {
+    fn _await[F; fn F(N32)](value: N32, f: F) {
+      if value == 0 {
+        f(value)
+      } else {
+        f(value)
+      }
+    }
+  }
+
+  pub impl bool: Await[Bool] {
+    fn _await[F; fn F(Bool)](value: Bool, f: F) {
+      if value {
+        f(value)
+      } else {
+        f(value)
+      }
+    }
+  }
+
+  pub impl io: Await[IO] {
+    fn _await[F; fn F(IO)](io: IO, f: F) {
+      if io.forever() {
+        f(io)
+      } else {
+        f(io)
+      }
+    }
+  }
+
+  pub impl ref[T; Await[T]]: Await[&T] {
+    fn _await[F; fn F(&T)](&value: &T, f: F) {
+      value = value.await(fn (value) {
+        f(&value);
+        value
+      });
+    }
+  }
+}
