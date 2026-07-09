@@ -52,6 +52,7 @@ fn main() {
       "cos" => (args[0].cos(), 1),
       "atan" => (args[0].atan(), 1),
 
+      "pow" => (args[0].powf(args[1]), 1),
       "atan2" => (args[0].atan2(args[1]), 1),
 
       "pi" => (std::f64::consts::PI, 0),

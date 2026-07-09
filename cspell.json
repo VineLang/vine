@@ -7,6 +7,7 @@
     "carnegieplein",
     "centimanes",
     "cmps",
+    "coefs",
     "codepoint",
     "combinators",
     "condvar",
@@ -29,6 +30,7 @@
     "impls",
     "indexmap",
     "ipio",
+    "ivln",
     "itertools",
     "jsum",
     "lemire",
@@ -41,6 +43,7 @@
     "nohash",
     "nonoverlapping",
     "nums",
+    "ovfl",
     "pathfind",
     "peekable",
     "polyformic",
@@ -64,6 +67,7 @@
     "tarjan's",
     "tput",
     "tripterygium",
+    "uflow",
     "underflows",
     "uninit",
     "unpair",
@@ -76,7 +80,8 @@
     "whnf",
     "wilfordii",
     "woah",
-    "xoring"
+    "xoring",
+    "yisint"
   ],
   "dictionaries": [
     "rust"

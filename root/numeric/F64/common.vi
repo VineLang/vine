@@ -62,7 +62,7 @@ pub fn apply_exponent(frac: F64, exp: I32) -> F64 {
     // denormalize
     exp += +53
     // 2**-53
-    m = 1.0[F64] / (1 << 53) as F64
+    m = 1.0[F64] / (1[N64] << 53) as F64
   }
   x &= !(exp_mask as N64 << num_mantissa_bits);
   x |= (exp + max_exponent) as N32 as N64 << num_mantissa_bits;

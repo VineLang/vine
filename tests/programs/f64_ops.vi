@@ -55,6 +55,8 @@ pub fn main(&io: &IO) {
     io.println("atan {f.to_bits()} {f.atan().to_bits()}");
 
     let x = F64::from_bits(N64(rng.gen_n32(), rng.gen_n32()));
+    io.println("pow {f.to_bits()} {x.to_bits()} {(f ** x).to_bits()}");
+    io.println("pow {x.to_bits()} {f.to_bits()} {(x ** f).to_bits()}");
     io.println("atan2 {f.to_bits()} {x.to_bits()} {f.atan2(x).to_bits()}");
     io.println("atan2 {x.to_bits()} {f.to_bits()} {x.atan2(f).to_bits()}");
 

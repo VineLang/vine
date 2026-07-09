@@ -14,6 +14,7 @@ pub mod F64 {
   pub mod atan;
   pub mod atan2;
 
+  mod pow;
   mod k_sin;
   mod k_cos;
   mod rem_pio2;
@@ -72,6 +73,12 @@ pub mod F64 {
       } else {
         base ** (exp as N32)
       }
+    }
+  }
+
+  pub impl pow_f64: Pow[F64, F64, F64] {
+    fn pow(base: F64, exp: F64) -> F64 {
+      F64::pow(base, exp)
     }
   }
 
