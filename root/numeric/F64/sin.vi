@@ -1,0 +1,40 @@
+
+// Adapted from https://github.com/rust-lang/compiler-builtins/blob/libm-v0.2.16/libm/src/math/sin.rs
+//
+// origin: FreeBSD /usr/src/lib/msun/src/s_sin.c
+//
+// ====================================================
+// Copyright (C) 1993 by Sun Microsystems, Inc. All rights reserved.
+//
+// Developed at SunPro, a Sun Microsystems, Inc. business.
+// Permission to use, copy, modify, and distribute this
+// software is freely granted, provided that this notice
+// is preserved.
+// ====================================================
+
+/// The sine of `x` (f64).
+///
+/// `x` is specified in radians.
+pub fn .sin(x: F64) -> F64 {
+  let ix = x.to_bits().1 & 0x7fffffff;
+
+  if ix <= 0x3fe921fb {
+    if ix < 0x3e500000 {
+      return x;
+    }
+    return k_sin(x, 0.0[F64], +0);
+  }
+
+  if ix >= 0x7ff00000 {
+    return x - x;
+  }
+
+  let (n, y0, y1) = rem_pio2(x);
+  let m = n & +3;
+  when {
+    m == +0 { k_sin(y0, y1, +1) }
+    m == +1 { k_cos(y0, y1) }
+    m == +2 { -k_sin(y0, y1, +1) }
+    _ { -k_cos(y0, y1) }
+  }
+}

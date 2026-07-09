@@ -1,0 +1,36 @@
+
+// Adapted from https://github.com/rust-lang/compiler-builtins/blob/libm-v0.2.16/libm/src/math/k_sin.rs
+//
+// origin: FreeBSD /usr/src/lib/msun/src/k_sin.c
+//
+// ====================================================
+// Copyright (C) 1993 by Sun Microsystems, Inc. All rights reserved.
+//
+// Developed at SunSoft, a Sun Microsystems, Inc. business.
+// Permission to use, copy, modify, and distribute this
+// software is freely granted, provided that this notice
+// is preserved.
+// ====================================================
+
+const s1: F64 = -1.66666666666666324348e-01[F64];
+const s2: F64 = 8.33333333332248946124e-03[F64];
+const s3: F64 = -1.98412698298579493134e-04[F64];
+const s4: F64 = 2.75573137070700676789e-06[F64];
+const s5: F64 = -2.50507602534068634195e-08[F64];
+const s6: F64 = 1.58969099521155010221e-10[F64];
+
+// kernel sin function on ~[-pi/4, pi/4] (except on -0), pi/4 ~ 0.7854
+// Input x is assumed to be bounded by ~pi/4 in magnitude.
+// Input y is the tail of x.
+// Input iy indicates whether y is 0. (if iy=0, y assume to be 0).
+pub.F64 fn k_sin(x: F64, y: F64, iy: I32) -> F64 {
+  let z = x * x;
+  let w = z * z;
+  let r = s2 + z * (s3 + z * s4) + z * w * (s5 + z * s6);
+  let v = z * x;
+  if iy == +0 {
+    x + v * (s1 + z * r)
+  } else {
+    x - ((z * (0.5[F64] * y - v * r) - y) - v * s1)
+  }
+}

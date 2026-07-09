@@ -9,10 +9,21 @@ mod common;
 pub mod F64 {
   pub mod exp;
   pub mod ln;
+  pub mod sin;
+  pub mod cos;
+  pub mod atan;
+  pub mod atan2;
+
+  mod k_sin;
+  mod k_cos;
+  mod rem_pio2;
+  mod rem_pio2_large;
 
   pub const nan: F64 = F32::nan as F64;
   pub const inf: F64 = F32::inf as F64;
   pub const neg_inf: F64 = F32::neg_inf as F64;
+  pub const pi: F64 = 3.141592653589793[F64];
+  pub const epsilon: F64 = 2.2204460492503131E-16[F64];
 
   pub impl : Default[F64] {
     const default: F64 = 0.0[F64];
@@ -171,11 +182,8 @@ pub mod F64 {
   }
 
   pub fn .abs(f: F64) -> F64 {
-    if f < (0.0 as F64) {
-      -f
-    } else {
-      f
-    }
+    let N64(lo, hi) = f.to_bits();
+    F64::from_bits(N64(lo, hi & 0x7fffffff))
   }
 
   pub impl show: Show[F64] {
