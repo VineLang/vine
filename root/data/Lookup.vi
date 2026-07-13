@@ -2,11 +2,11 @@
 /// Static lookup tables with `O(log(n))` lookup.
 /// ```vi
 /// use #root::data::Lookup;
-/// 
+///
 /// fn primes(_: Lookup::Size8) -> List[N32] {
 ///   [2, 3, 5, 7, 11, 13]
 /// }
-/// 
+///
 /// primes.lookup(2) // 5
 /// ```
 ///
