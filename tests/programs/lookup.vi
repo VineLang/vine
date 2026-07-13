@@ -6,6 +6,6 @@ pub fn main(&io: &IO) {
   io.println("{squares.lookup(6)}");
 }
 
-fn squares(_: Lookup::Size512) -> List[N32] {
-  (0..512).map(fn* (x: N32) { x * x }).collect[List]()
+fn squares() -> Lookup::Size512[N32] {
+  Lookup((0..512).map(fn* (x: N32) { x * x }).collect[List]())
 }

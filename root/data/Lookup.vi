@@ -21,8 +21,10 @@ pub trait[L] Lookup[N, T] {
   const table: List[T];
 }
 
-pub impl fn_[F, N, T; fn F(N) -> List[T], Default[F], Size[N]]: Lookup[F, N, T] {
-  const table: List[T] = _[F](Size::value[N]);
+pub struct Lookup[N, T](pub List[T]);
+
+pub impl fn_[F, N, T; fn F() -> Lookup[N, T], Default[F], Size[N]]: Lookup[F, N, T] {
+  const table: List[T] = _[F]()!;
 }
 
 pub fn .lookup[L?, N, T; Lookup[L, N, T], Size[N], Drop[T]](_: L, index: N32) -> T {
@@ -38,7 +40,6 @@ impl table[L, N, T; Lookup[L, N, T]]: Const[Array[T]] {
 }
 
 pub trait[N] Size {
-  const value: N;
   const max_size: N32;
   fn select[T; Const[Array[T]], Drop[T]](index: N32) -> T;
 }
@@ -46,7 +47,6 @@ pub trait[N] Size {
 pub struct* Z();
 pub mod Z {
   pub impl : Size[Z] {
-    const value: Z = Z();
     const max_size: N32 = 1;
     fn select[T; Const[Array[T]], Drop[T]](_: N32) -> T {
       let array = Const::value[Array[T]];
@@ -59,7 +59,6 @@ pub mod Z {
 pub struct* S[T]();
 pub mod S {
   pub impl [N; Size[N]]: Size[S[N]] {
-    const value: S[N] = S();
     const max_size: N32 = Size::max_size[N] * 2;
     fn select[T; Const[Array[T]], Drop[T]](index: N32) -> T {
       if index & 1 == 0 {
@@ -81,19 +80,33 @@ pub mod S {
   }
 }
 
-pub type Size1 = Z;
-pub type Size2 = S[Size1];
-pub type Size4 = S[Size2];
-pub type Size8 = S[Size4];
-pub type Size16 = S[Size8];
-pub type Size32 = S[Size16];
-pub type Size64 = S[Size32];
-pub type Size128 = S[Size64];
-pub type Size256 = S[Size128];
-pub type Size512 = S[Size256];
-pub type Size1024 = S[Size512];
-pub type Size2048 = S[Size1024];
-pub type Size4096 = S[Size2048];
+type _1 = Z;
+type _2 = S[_1];
+type _4 = S[_2];
+type _8 = S[_4];
+type _16 = S[_8];
+type _32 = S[_16];
+type _64 = S[_32];
+type _128 = S[_64];
+type _256 = S[_128];
+type _512 = S[_256];
+type _1024 = S[_512];
+type _2048 = S[_1024];
+type _4096 = S[_2048];
+
+pub type Size1[T] = Lookup[_1, T];
+pub type Size2[T] = Lookup[_2, T];
+pub type Size4[T] = Lookup[_4, T];
+pub type Size8[T] = Lookup[_8, T];
+pub type Size16[T] = Lookup[_16, T];
+pub type Size32[T] = Lookup[_32, T];
+pub type Size64[T] = Lookup[_64, T];
+pub type Size128[T] = Lookup[_128, T];
+pub type Size256[T] = Lookup[_256, T];
+pub type Size512[T] = Lookup[_512, T];
+pub type Size1024[T] = Lookup[_1024, T];
+pub type Size2048[T] = Lookup[_2048, T];
+pub type Size4096[T] = Lookup[_4096, T];
 
 trait[] Const[T] {
   const value: T;
