@@ -40,6 +40,10 @@ impl Finder<'_> {
       let types = types.clone();
       found.push(TypeCtx { types, inner: TirImpl::Synthetic(SyntheticImpl::DefaultNil) });
     }
+    if let Some((Inverted(false), TypeKind::Fn(_))) = types.kind(ty) {
+      let types = types.clone();
+      found.push(TypeCtx { types, inner: TirImpl::Synthetic(SyntheticImpl::DefaultNil) });
+    }
   }
 }
 
