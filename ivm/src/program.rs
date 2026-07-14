@@ -195,6 +195,10 @@ impl<'ivm> Encoder<'ivm, '_> {
   }
 
   fn encode_tree(&mut self, tree: TreeNode, reg: Register) {
+    vine_util::ensure_sufficient_stack(|| self._encode_tree(tree, reg));
+  }
+
+  fn _encode_tree(&mut self, tree: TreeNode, reg: Register) {
     match tree {
       TreeNode::Wire(_) => {}
       TreeNode::Node(name, children) => {
