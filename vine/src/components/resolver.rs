@@ -1,6 +1,7 @@
 use std::{
   collections::{BTreeMap, HashMap, HashSet},
   mem::take,
+  slice,
 };
 
 use vine_util::{
@@ -31,6 +32,7 @@ use crate::{
 
 #[derive(Debug)]
 pub struct Resolver<'a> {
+  pub(crate) main_segments: &'a Option<Vec<Ident>>,
   pub(crate) chart: &'a Chart,
   pub(crate) config: &'a HashMap<String, String>,
   pub(crate) sigs: &'a mut Signatures,
@@ -86,6 +88,7 @@ impl ScopeBinding {
 
 impl<'a> Resolver<'a> {
   pub fn new(
+    main_segments: &'a Option<Vec<Ident>>,
     config: &'a HashMap<String, String>,
     chart: &'a Chart,
     sigs: &'a mut Signatures,
@@ -96,6 +99,7 @@ impl<'a> Resolver<'a> {
     finder_cache: &'a mut FinderCache,
   ) -> Self {
     Resolver {
+      main_segments,
       config,
       chart,
       sigs,
@@ -178,14 +182,15 @@ impl<'a> Resolver<'a> {
       self.resolve_test_fn(*id);
     }
     if let Some(main_mod) = self.chart.main_mod
+      && let Some(main_segments) = self.main_segments
       && main_mod >= checkpoint.defs
     {
-      self.resolve_main(main_mod);
+      self.resolve_main(main_mod, main_segments);
     }
   }
 
-  fn resolve_main(&mut self, main_mod: DefId) {
-    match self._resolve_main(main_mod) {
+  fn resolve_main(&mut self, main_mod: DefId, main_segments: &[Ident]) {
+    match self._resolve_main(main_mod, main_segments) {
       Ok(main_mod) => {
         self.resolutions.main = Some(self.resolutions.fns[main_mod]);
       }
@@ -195,13 +200,16 @@ impl<'a> Resolver<'a> {
     }
   }
 
-  fn _resolve_main(&mut self, main_mod: DefId) -> Result<ConcreteFnId, Diag> {
+  fn _resolve_main(
+    &mut self,
+    main_mod: DefId,
+    main_segments: &[Ident],
+  ) -> Result<ConcreteFnId, Diag> {
     self.types.reset();
     let span = Span::NONE;
-    let main_mod_name = self.chart.defs[main_mod].name.clone();
-    let main_ident = Ident("main".into());
-    let path =
-      Path { span, absolute: true, segments: vec![main_mod_name, main_ident], generics: None };
+    let main_mod_name = &self.chart.defs[main_mod].name;
+    let segments = [slice::from_ref(main_mod_name), main_segments].concat();
+    let path = Path { span, absolute: true, segments, generics: None };
     let fn_id = self.resolve_path(DefId::NONE, &path, "fn", |def| def.fn_id())?;
     let FnId::Concrete(fn_id) = fn_id else { unreachable!() };
     self.expect_entrypoint_sig(fn_id)?;

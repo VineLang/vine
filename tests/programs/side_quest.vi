@@ -1,0 +1,14 @@
+
+// @build --main distant::land::side
+
+pub fn main(&io: &IO) {
+  io.println("this should not print");
+}
+
+pub mod distant {
+  pub mod land {
+    pub fn side(&io: &IO) {
+      io.println("this should print");
+    }
+  }
+}

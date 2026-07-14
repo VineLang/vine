@@ -23,7 +23,7 @@ use crate::{
   },
   structures::{
     annotations::Annotations,
-    ast::Span,
+    ast::{Ident, Span},
     chart::{Chart, VisId},
     checkpoint::Checkpoint,
     diag::{Diag, Diags, ErrorGuaranteed, FileInfo},
@@ -38,6 +38,7 @@ use crate::{
 #[derive(Default)]
 pub struct Compiler {
   pub debug: bool,
+  pub main_segments: Option<Vec<Ident>>,
   pub config: HashMap<String, String>,
   pub files: IdxVec<FileId, FileInfo>,
   pub loaded: Vec<Module>,
@@ -54,8 +55,8 @@ pub struct Compiler {
 }
 
 impl Compiler {
-  pub fn new(debug: bool, config: HashMap<String, String>) -> Self {
-    Compiler { debug, config, ..Default::default() }
+  pub fn new(debug: bool, main_path: Option<Vec<Ident>>, config: HashMap<String, String>) -> Self {
+    Compiler { debug, main_segments: main_path, config, ..Default::default() }
   }
 
   pub fn check(&mut self, hooks: impl Hooks) -> Result<(), ErrorGuaranteed> {
@@ -101,6 +102,7 @@ impl Compiler {
     hooks.chart(&mut charter);
 
     let mut resolver = Resolver::new(
+      &self.main_segments,
       &self.config,
       chart,
       &mut self.sigs,
