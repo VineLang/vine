@@ -245,6 +245,10 @@ pub struct VineTestCommand {
   /// stdout to stderr after the test runs.
   #[arg(short, long)]
   no_capture: bool,
+  /// Print the test entrypoint paths to stdout instead of running them. This
+  /// still filters the paths using the `tests` patterns.
+  #[arg(short, long)]
+  list: bool,
   /// The test patterns to run. Test paths containing any of the provided
   /// strings as substrings are run. If none are provided, all tests are run.
   #[arg(long = "test")]
@@ -259,6 +263,15 @@ impl VineTestCommand {
     let (ref mut table, mut nets, mut compiler) = self.compile.compile();
 
     let tests = Self::matching_tests(&self.tests, &compiler);
+
+    if self.list {
+      for (path, _) in tests {
+        println!("{path}");
+      }
+
+      return Ok(());
+    }
+
     eprintln!("running {} test(s)\n", tests.len());
 
     let entrypoints: Vec<_> =
