@@ -12,7 +12,7 @@
 // is preserved.
 // ====================================================
 
-use #root::data::Array;
+use #root::data::{Array, Lookup};
 
 // initial value for jk
 fn init_jk() -> Array[N32] {
@@ -20,8 +20,8 @@ fn init_jk() -> Array[N32] {
 }
 
 // Table of constants for 2/pi, 396 Hex digits (476 decimal) of 2/pi
-fn ipio2() -> Array[N32] {
-  [
+fn ipio2() -> Lookup::Size128[N32] {
+  Lookup([
     0xA2F983,
     0x6E4E44,
     0x1529FC,
@@ -88,11 +88,11 @@ fn ipio2() -> Array[N32] {
     0x73A8C9,
     0x60E27B,
     0xC08C6B,
-  ] as Array
+  ])
 }
 
-fn pio2() -> Array[F64] {
-  [
+fn pio2() -> Lookup::Size8[F64] {
+  Lookup([
     1.57079625129699707031e+00[F64],
     7.54978941586159635335e-08[F64],
     5.39030252995776476554e-15[F64],
@@ -101,7 +101,7 @@ fn pio2() -> Array[F64] {
     1.22933308981111328932e-36[F64],
     2.73370053816464559624e-44[F64],
     2.16741683877804819444e-51[F64],
-  ] as Array
+  ])
 }
 
 // 2 ^ 24
@@ -143,9 +143,6 @@ fn floor(x: F64) -> F64 {
 // x is the input value broken into nx pieces of 24-bit integers in double
 // precision format. Returns (n & +7, y) where y is an array of the result.
 pub.F64 fn rem_pio2_large(x: Array[F64], nx: N32, e0: I32, prec: N32) -> (I32, Array[F64]) {
-  let ipio2 = ipio2();
-  let pio2 = pio2();
-
   let y = Array::new(3, 0.0[F64]);
 
   let fw = 0.0[F64];
@@ -172,7 +169,7 @@ pub.F64 fn rem_pio2_large(x: Array[F64], nx: N32, e0: I32, prec: N32) -> (I32, A
   let m = jx + jk;
   let i = 0;
   while i <= m {
-    f.[i] = if j < +0 { 0.0[F64] } else { ipio2.[j as N32] as F64 };
+    f.[i] = if j < +0 { 0.0[F64] } else { ipio2.lookup(j as N32) as F64 };
     j += +1;
     i += 1;
   }
@@ -269,7 +266,7 @@ pub.F64 fn rem_pio2_large(x: Array[F64], nx: N32, e0: I32, prec: N32) -> (I32, A
 
         let ii = jz + 1;
         while ii <= jz + k {
-          f.[jx + ii] = ipio2.[jv + ii] as F64;
+          f.[jx + ii] = ipio2.lookup(jv + ii) as F64;
           fw = 0.0[F64];
           let jj = 0;
           while jj <= jx {
@@ -322,7 +319,7 @@ pub.F64 fn rem_pio2_large(x: Array[F64], nx: N32, e0: I32, prec: N32) -> (I32, A
     fw = 0.0[F64];
     let k = 0;
     while k <= jp and k <= jz - i {
-      fw += pio2.[k] * q.[i + k];
+      fw += pio2.lookup(k) * q.[i + k];
       k += 1;
     }
     fq.[jz - i] = fw;
