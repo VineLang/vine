@@ -1,0 +1,89 @@
+
+// Adapted from https://github.com/rust-lang/compiler-builtins/blob/libm-v0.2.16/libm/src/math/atan2.rs
+//
+// origin: FreeBSD /usr/src/lib/msun/src/e_atan2.c */
+//
+// ====================================================
+// Copyright (C) 1993 by Sun Microsystems, Inc. All rights reserved.
+//
+// Developed at SunSoft, a Sun Microsystems, Inc. business.
+// Permission to use, copy, modify, and distribute this
+// software is freely granted, provided that this notice
+// is preserved.
+// ====================================================
+
+/// Arctangent of `y/x`.
+///
+/// Computes the inverse tangent (arc tangent) of `y/x`.
+/// Produces the correct result even for angles near pi/2 or -pi/2 (that is, when `x` is near 0).
+/// Returns a value in radians, in the range of -pi to pi.
+pub fn .atan2(y: F64, x: F64) -> F64 {
+  const pi: F64 = 3.1415926535897931160e+00[F64];
+  const pi_lo: F64 = 1.2246467991473531772e-16[F64];
+
+  if x.is_nan() or y.is_nan() {
+    return x + y;
+  }
+
+  let N64(lx, ix) = x.to_bits();
+  let N64(ly, iy) = y.to_bits();
+
+  // x == 1.0
+  if ((ix - 0x3ff00000) | lx) == 0 {
+    return y.atan();
+  }
+
+  // m = 2 * sign(x) + sign(y)
+  let m = ((iy >> 31) & 1) | ((ix >> 30) & 2);
+  ix = ix & 0x7fffffff;
+  iy = iy & 0x7fffffff;
+
+  // when y == 0
+  if (iy | ly) == 0 {
+    return when {
+      m == 0 { y }
+      m == 1 { y }
+      m == 2 { pi }
+      _ { -pi }
+    };
+  }
+
+  // when x == 0
+  if (ix | lx) == 0 {
+    return if (m & 1) != 0 { -pi / 2.0[F64] } else { pi / 2.0[F64] };
+  }
+
+  // when x is inf
+  if ix == 0x7ff00000 {
+    if iy == 0x7ff00000 {
+      return when {
+        m == 0 { pi / 4.0[F64] }
+        m == 1 { -pi / 4.0[F64] }
+        m == 2 { 3.0[F64] * pi / 4.0[F64] }
+        _ { -3.0[F64] * pi / 4.0[F64] }
+      };
+    } else {
+      return when {
+        m == 0 { 0.0[F64] }
+        m == 1 { -0.0[F64] }
+        m == 2 { pi }
+        _ { -pi }
+      };
+    }
+  }
+
+  // |y/x| > 2^64
+  if (ix + (64 << 20) < iy) or (iy == 0x7ff00000) {
+    return if (m & 1) != 0 { -pi / 2.0[F64] } else { pi / 2.0[F64] };
+  }
+
+  // z = atan(|y/x|) without spurious underflow
+  let z = if ((m & 2) != 0) and (iy + (64 << 20) < ix) { 0.0[F64] } else { (y / x).abs().atan() };
+
+  when {
+    m == 0 { z }
+    m == 1 { -z }
+    m == 2 { pi - (z - pi_lo) }
+    _ { (z - pi_lo) - pi }
+  }
+}

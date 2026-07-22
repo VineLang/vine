@@ -1,0 +1,417 @@
+
+// Adapted from https://github.com/rust-lang/compiler-builtins/blob/libm-v0.2.16/libm/src/math/pow.rs
+//
+// origin: FreeBSD /usr/src/lib/msun/src/e_pow.c
+//
+// ====================================================
+// Copyright (C) 2004 by Sun Microsystems, Inc. All rights reserved.
+//
+// Permission to use, copy, modify, and distribute this
+// software is freely granted, provided that this notice
+// is preserved.
+// ====================================================
+
+// pow(x,y) return x**y
+//
+//                    n
+// Method:  Let x =  2   * (1+f)
+//      1. Compute and return log2(x) in two pieces:
+//              log2(x) = w1 + w2,
+//         where w1 has 53-24 = 29 bit trailing zeros.
+//      2. Perform y*log2(x) = n+y' by simulating multi-precision
+//         arithmetic, where |y'|<=0.5.
+//      3. Return x**y = 2**n*exp(y'*log2)
+
+const two53: F64 = 9007199254740992.0[F64];
+const huge: F64 = 1.0e300[F64];
+const tiny: F64 = 1.0e-300[F64];
+
+// poly coefs for (3/2)*(log(x)-2s-2/3*s**3:
+const l1: F64 = 5.99999999999994648725e-01[F64];
+const l2: F64 = 4.28571428578550184252e-01[F64];
+const l3: F64 = 3.33333329818377432918e-01[F64];
+const l4: F64 = 2.72728123808534006489e-01[F64];
+const l5: F64 = 2.30660745775561754067e-01[F64];
+const l6: F64 = 2.06975017800338417784e-01[F64];
+const p1: F64 = 1.66666666666666019037e-01[F64];
+const p2: F64 = -2.77777777770155933842e-03[F64];
+const p3: F64 = 6.61375632143793436117e-05[F64];
+const p4: F64 = -1.65339022054652515390e-06[F64];
+const p5: F64 = 4.13813679705723846039e-08[F64];
+const lg2: F64 = 6.93147180559945286227e-01[F64];
+const lg2_h: F64 = 6.93147182464599609375e-01[F64];
+const lg2_l: F64 = -1.90465429995776804525e-09[F64];
+/// -(1024-log2(ovfl+.5ulp))
+const ovt: F64 = 8.0085662595372944372e-017[F64];
+/// 2/(3ln2)
+const cp: F64 = 9.61796693925975554329e-01[F64];
+/// (float)cp
+const cp_h: F64 = 9.61796700954437255859e-01[F64];
+/// tail of cp_h
+const cp_l: F64 = -7.02846165095275826516e-09[F64];
+/// 1/ln2
+const ivln2: F64 = 1.44269504088896338700e+00[F64];
+/// 24b 1/ln2
+const ivln2_h: F64 = 1.44269502162933349609e+00[F64];
+/// 1/ln2 tail
+const ivln2_l: F64 = 1.92596299112661746887e-08[F64];
+
+fn bp(k: I32) -> F64 {
+  if k == +0 {
+    1.0[F64]
+  } else {
+    1.5[F64]
+  }
+}
+
+fn dp_h(k: I32) -> F64 {
+  if k == +0 {
+    0.0[F64]
+  } else {
+    5.84962487220764160156e-01[F64]
+  }
+}
+
+fn dp_l(k: I32) -> F64 {
+  if k == +0 {
+    0.0[F64]
+  } else {
+    1.35003920212974897128e-08[F64]
+  }
+}
+
+fn with_set_high_word(f: F64, hi: N32) -> F64 {
+  F64::from_bits(N64(f.to_bits().0, hi))
+}
+
+fn with_set_low_word(f: F64, lo: N32) -> F64 {
+  F64::from_bits(N64(lo, f.to_bits().1))
+}
+
+/// Returns `x` to the power of `y`.
+pub.F64 fn pow(x: F64, y: F64) -> F64 {
+  let N64(lx, hxn) = x.to_bits();
+  let N64(ly, hyn) = y.to_bits();
+  let hx = hxn as I32;
+  let hy = hyn as I32;
+
+  let ix = hx & +0x7fffffff;
+  let iy = hy & +0x7fffffff;
+
+  // x**0 = 1, even if x is NaN
+  if (iy as N32 | ly) == 0 {
+    return 1.0[F64];
+  }
+
+  // 1**y = 1, even if y is NaN
+  if hx == +0x3ff00000 and lx == 0 {
+    return 1.0[F64];
+  }
+
+  // NaN if either arg is NaN
+  if
+    ix > +0x7ff00000
+      or (ix == +0x7ff00000 and lx != 0)
+      or iy > +0x7ff00000
+      or (iy == +0x7ff00000 and ly != 0)
+  {
+    return x + y;
+  }
+
+  // determine if y is an odd int when x < 0
+  // yisint = 0       ... y is not an integer
+  // yisint = 1       ... y is an odd int
+  // yisint = 2       ... y is an even int
+  let yisint: I32 = +0;
+  let k: I32;
+  let j: I32;
+  if hx < +0 {
+    if iy >= +0x43400000 {
+      yisint = +2;
+      // even integer y
+    } else {
+      if iy >= +0x3ff00000 {
+        k = (iy >> 20) - +0x3ff;
+        // exponent
+
+        when {
+          k > +20 {
+            j = (ly >> (52 - k as N32)) as I32;
+
+            if (j << (52 - k as N32)) == ly as I32 {
+              yisint = +2 - (j & +1);
+            }
+          }
+          ly == 0 {
+            j = iy >> (20 - k as N32);
+
+            if (j << (20 - k as N32)) == iy {
+              yisint = +2 - (j & +1);
+            }
+          }
+          _ {}
+        }
+      }
+    }
+  }
+
+  if ly == 0 {
+    // special value of y
+    if iy == +0x7ff00000 {
+      // y is +-inf
+
+      return when {
+        ((ix - +0x3ff00000) | lx as I32) == +0 { 1.0[F64] }
+        ix >= +0x3ff00000 {
+          if hy >= +0 {
+            y
+          } else {
+            0.0[F64]
+          }
+        }
+        _ {
+          if hy >= +0 {
+            0.0[F64]
+          } else {
+            -y
+          }
+        }
+      };
+    }
+
+    if iy == +0x3ff00000 {
+      // y is +-1
+      return if hy >= +0 { x } else { 1.0[F64] / x };
+    }
+
+    if hy == +0x40000000 {
+      // y is 2
+      return x * x;
+    }
+
+    if hy == +0x3fe00000 {
+      // y is 0.5
+      if hx >= +0 {
+        // x >= +0
+        return x.sqrt();
+      }
+    }
+  }
+
+  let ax = x.abs();
+  if lx == 0 {
+    // special value of x
+    if ix == +0x7ff00000 or ix == +0 or ix == +0x3ff00000 {
+      // x is +-0,+-inf,+-1
+      let z = ax;
+
+      if hy < +0 {
+        // z = (1/|x|)
+        z = 1.0[F64] / z;
+      }
+
+      if hx < +0 {
+        when {
+          ((ix - +0x3ff00000) | yisint) == +0 { z = (z - z) / (z - z); }
+          yisint == +1 { z = -z; }
+          _ {}
+        }
+      }
+
+      return z;
+    }
+  }
+
+  let s = 1.0[F64];
+  // sign of result
+  if hx < +0 {
+    if yisint == +0 {
+      // (x<0)**(non-int) is NaN
+      return (x - x) / (x - x);
+    }
+
+    if yisint == +1 {
+      // (x<0)**(odd int)
+      s = -1.0[F64];
+    }
+  }
+
+  let t1: F64;
+  let t2: F64;
+
+  // |y| is huge
+  if iy > +0x41e00000 {
+    // if |y| > 2**31
+    if iy > +0x43f00000 {
+      // if |y| > 2**64, must o/uflow
+      if ix <= +0x3fefffff {
+        return if hy < +0 { huge * huge } else { tiny * tiny };
+      }
+
+      if ix >= +0x3ff00000 {
+        return if hy > +0 { huge * huge } else { tiny * tiny };
+      }
+    }
+
+    // over/underflow if x is not close to one
+    if ix < +0x3fefffff {
+      return if hy < +0 { s * huge * huge } else { s * tiny * tiny };
+    }
+    if ix > +0x3ff00000 {
+      return if hy > +0 { s * huge * huge } else { s * tiny * tiny };
+    }
+
+    // now |1-x| is tiny <= 2**-20, suffice to compute
+    // log(x) by x-x^2/2+x^3/3-x^4/4
+    let t = ax - 1.0[F64];
+    // t has 20 trailing zeros
+    let w = (t * t) * (0.5[F64] - t * (0.3333333333333333333333[F64] - t * 0.25[F64]));
+    let u = ivln2_h * t;
+    // ivln2_h has 21 sig. bits
+    let v = t * ivln2_l - w * ivln2;
+    t1 = with_set_low_word(u + v, 0);
+    t2 = v - (t1 - u);
+  } else {
+    let n: I32 = +0;
+
+    if ix < +0x00100000 {
+      // take care subnormal number
+      ax *= two53;
+      n -= +53;
+      ix = ax.to_bits().1 as I32;
+    }
+
+    n += (ix >> 20) - +0x3ff;
+    j = ix & +0x000fffff;
+
+    // determine interval
+    let k: I32;
+    ix = j | +0x3ff00000;
+    // normalize ix
+    when {
+      j <= +0x3988E { k = +0; }
+      j < +0xBB67A { k = +1; }
+      _ {
+        k = +0;
+        n += +1;
+        ix -= +0x00100000;
+      }
+    }
+    ax = with_set_high_word(ax, ix as N32);
+
+    // compute ss = s_h+s_l = (x-1)/(x+1) or (x-1.5)/(x+1.5)
+    let u = ax - bp(k);
+    // bp(0)=1.0, bp(1)=1.5
+    let v = 1.0[F64] / (ax + bp(k));
+    let ss = u * v;
+    let s_h = with_set_low_word(ss, 0);
+
+    // t_h=ax+bp(k) High
+    let t_h = with_set_high_word(
+      0.0[F64],
+      ((ix as N32 >> 1) | 0x20000000) + 0x00080000 + (k as N32 << 18),
+    );
+    let t_l = ax - (t_h - bp(k));
+    let s_l = v * ((u - s_h * t_h) - s_h * t_l);
+
+    // compute log(ax)
+    let s2 = ss * ss;
+    let r = s2 * s2 * (l1 + s2 * (l2 + s2 * (l3 + s2 * (l4 + s2 * (l5 + s2 * l6)))));
+    r += s_l * (s_h + ss);
+    let s2 = s_h * s_h;
+    let t_h = with_set_low_word(3.0[F64] + s2 + r, 0);
+    let t_l = r - ((t_h - 3.0[F64]) - s2);
+
+    // u+v = ss*(1+...)
+    let u = s_h * t_h;
+    let v = s_l * t_h + t_l * ss;
+
+    // 2/(3log2)*(ss+...)
+    let p_h = with_set_low_word(u + v, 0);
+    let p_l = v - (p_h - u);
+    let z_h = cp_h * p_h;
+    // cp_h+cp_l = 2/(3*log2)
+    let z_l = cp_l * p_h + p_l * cp + dp_l(k);
+
+    // log2(ax) = (ss+..)*2/(3*log2) = n + dp_h + z_h + z_l
+    let t = n as F64;
+    t1 = with_set_low_word(((z_h + z_l) + dp_h(k)) + t, 0);
+    t2 = z_l - (((t1 - t) - dp_h(k)) - z_h);
+  }
+
+  // split up y into y1+y2 and compute (y1+y2)*(t1+t2)
+  let y1 = with_set_low_word(y, 0);
+  let p_l = (y - y1) * t1 + y * t2;
+  let p_h = y1 * t1;
+  let z = p_l + p_h;
+  let N64(zlo, zhi) = z.to_bits();
+  let j = zhi as I32;
+  let i = zlo as I32;
+
+  if j >= +0x40900000 {
+    // z >= 1024
+    if ((j - +0x40900000) | i) != +0 {
+      // if z > 1024
+      return s * huge * huge;
+      // overflow
+    }
+
+    if p_l + ovt > z - p_h {
+      return s * huge * huge;
+      // overflow
+    }
+  } else {
+    if (j & +0x7fffffff) >= +0x4090cc00 {
+      // z <= -1075
+      if ((j as N32 - 0xc090cc00) | i as N32) != 0 {
+        // z < -1075
+        return s * tiny * tiny;
+        // underflow
+      }
+
+      if p_l <= z - p_h {
+        return s * tiny * tiny;
+        // underflow
+      }
+    }
+  }
+
+  // compute 2**(p_h+p_l)
+  let i = j & +0x7fffffff;
+  k = (i >> 20) - +0x3ff;
+  let n: I32 = +0;
+
+  if i > +0x3fe00000 {
+    // if |z| > 0.5, set n = [z+0.5]
+    n = j + (+0x00100000 >> (k as N32 + 1));
+    k = ((n & +0x7fffffff) >> 20) - +0x3ff;
+    // new k for n
+    let t = with_set_high_word(0.0[F64], (n & !(+0x000fffff >> k as N32)) as N32);
+    n = ((n & +0x000fffff) | +0x00100000) >> (20 - k as N32);
+    if j < +0 {
+      n = -n;
+    }
+    p_h -= t;
+  }
+
+  let t = with_set_low_word(p_l + p_h, 0);
+  let u = t * lg2_h;
+  let v = (p_l - (t - p_h)) * lg2 + t * lg2_l;
+  let z = u + v;
+  let w = v - (z - u);
+  let t = z * z;
+  let t1 = z - t * (p1 + t * (p2 + t * (p3 + t * (p4 + t * p5))));
+  let r = (z * t1) / (t1 - 2.0[F64]) - (w + z * w);
+  z = 1.0[F64] - (r - z);
+  j = z.to_bits().1 as I32;
+  j += n << 20;
+
+  if (j >> 20) <= +0 {
+    // subnormal output
+    z = common::apply_exponent(z, n);
+  } else {
+    z = with_set_high_word(z, j as N32);
+  }
+
+  s * z
+}

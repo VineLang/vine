@@ -1,0 +1,356 @@
+
+// Adapted from https://github.com/rust-lang/compiler-builtins/blob/libm-v0.2.16/libm/src/math/rem_pio2_large.rs
+//
+// origin: FreeBSD /usr/src/lib/msun/src/k_rem_pio2.c
+//
+// ====================================================
+// Copyright (C) 1993 by Sun Microsystems, Inc. All rights reserved.
+//
+// Developed at SunSoft, a Sun Microsystems, Inc. business.
+// Permission to use, copy, modify, and distribute this
+// software is freely granted, provided that this notice
+// is preserved.
+// ====================================================
+
+use #root::data::Array;
+
+// initial value for jk
+fn init_jk() -> Array[N32] {
+  [3, 4, 4, 6] as Array
+}
+
+// Table of constants for 2/pi, 396 Hex digits (476 decimal) of 2/pi
+fn ipio2() -> Array[N32] {
+  [
+    0xA2F983,
+    0x6E4E44,
+    0x1529FC,
+    0x2757D1,
+    0xF534DD,
+    0xC0DB62,
+    0x95993C,
+    0x439041,
+    0xFE5163,
+    0xABDEBB,
+    0xC561B7,
+    0x246E3A,
+    0x424DD2,
+    0xE00649,
+    0x2EEA09,
+    0xD1921C,
+    0xFE1DEB,
+    0x1CB129,
+    0xA73EE8,
+    0x8235F5,
+    0x2EBB44,
+    0x84E99C,
+    0x7026B4,
+    0x5F7E41,
+    0x3991D6,
+    0x398353,
+    0x39F49C,
+    0x845F8B,
+    0xBDF928,
+    0x3B1FF8,
+    0x97FFDE,
+    0x05980F,
+    0xEF2F11,
+    0x8B5A0A,
+    0x6D1F6D,
+    0x367ECF,
+    0x27CB09,
+    0xB74F46,
+    0x3F669E,
+    0x5FEA2D,
+    0x7527BA,
+    0xC7EBE5,
+    0xF17B3D,
+    0x0739F7,
+    0x8A5292,
+    0xEA6BFB,
+    0x5FB11F,
+    0x8D5D08,
+    0x560330,
+    0x46FC7B,
+    0x6BABF0,
+    0xCFBC20,
+    0x9AF436,
+    0x1DA9E3,
+    0x91615E,
+    0xE61B08,
+    0x659985,
+    0x5F14A0,
+    0x68408D,
+    0xFFD880,
+    0x4D7327,
+    0x310606,
+    0x1556CA,
+    0x73A8C9,
+    0x60E27B,
+    0xC08C6B,
+  ] as Array
+}
+
+fn pio2() -> Array[F64] {
+  [
+    1.57079625129699707031e+00[F64],
+    7.54978941586159635335e-08[F64],
+    5.39030252995776476554e-15[F64],
+    3.28200341580791294123e-22[F64],
+    1.27065575308067607349e-29[F64],
+    1.22933308981111328932e-36[F64],
+    2.73370053816464559624e-44[F64],
+    2.16741683877804819444e-51[F64],
+  ] as Array
+}
+
+// 2 ^ 24
+const x1p24: F64 = F64::from_bits(N64(0, 0x41700000));
+// 2 ^ (-24)
+const x1p_24: F64 = F64::from_bits(N64(0, 0x3e700000));
+
+fn scalbn(x: F64, n: I32) -> F64 {
+  common::apply_exponent(x, n)
+}
+
+fn floor(x: F64) -> F64 {
+  let ix = x.to_bits();
+  let e = ((ix.1 >> 20) & 0x7ff) as I32 - +1023;
+  if e >= +52 {
+    return x;
+  }
+  if e >= +0 {
+    let m = 0xfffffffffffff[N64] >> e as N32;
+    if (ix & m) == 0[N64] {
+      return x;
+    }
+    if ix.1 >> 31 != 0 {
+      ix += m;
+    }
+    ix &= !m;
+    return F64::from_bits(ix);
+  } else {
+    when {
+      ix.1 >> 31 == 0 { 0.0[F64] }
+      (ix << 1) != 0[N64] { -1.0[F64] }
+      _ { x }
+    }
+  }
+}
+
+// Return the last three digits of N with y = x - N*pi/2 so that |y| < pi/2.
+//
+// x is the input value broken into nx pieces of 24-bit integers in double
+// precision format. Returns (n & +7, y) where y is an array of the result.
+pub.F64 fn rem_pio2_large(x: Array[F64], nx: N32, e0: I32, prec: N32) -> (I32, Array[F64]) {
+  let ipio2 = ipio2();
+  let pio2 = pio2();
+
+  let y = Array::new(3, 0.0[F64]);
+
+  let fw = 0.0[F64];
+  let n = +0;
+  let ih = +0;
+  let z = 0.0[F64];
+  let f = Array::new(20, 0.0[F64]);
+  let fq = Array::new(20, 0.0[F64]);
+  let q = Array::new(20, 0.0[F64]);
+  let iq = Array::new(20, +0);
+
+  let jk = init_jk().[prec];
+  let jp = jk;
+
+  let jx = nx - 1;
+  let jv = (e0 - +3) / +24;
+  if jv < +0 {
+    jv = +0;
+  }
+  let q0 = e0 - +24 * (jv + +1);
+  let jv = jv as N32;
+
+  let j = jv as I32 - jx as I32;
+  let m = jx + jk;
+  let i = 0;
+  while i <= m {
+    f.[i] = if j < +0 { 0.0[F64] } else { ipio2.[j as N32] as F64 };
+    j += +1;
+    i += 1;
+  }
+
+  let i = 0;
+  while i <= jk {
+    fw = 0.0[F64];
+    let jj = 0;
+    while jj <= jx {
+      fw += x.[jj] * f.[jx + i - jj];
+      jj += 1;
+    }
+    q.[i] = fw;
+    i += 1;
+  }
+
+  let jz = jk;
+
+  let recompute = true;
+  while recompute {
+    recompute = false;
+
+    let i = 0;
+    z = q.[jz];
+    let jj = jz;
+    while jj >= 1 {
+      fw = (x1p_24 * z) as I32 as F64;
+      iq.[i] = (z - x1p24 * fw) as I32;
+      z = q.[jj - 1] + fw;
+      i += 1;
+      jj -= 1;
+    }
+
+    z = scalbn(z, q0);
+    z -= 8.0[F64] * floor(z * 0.125[F64]);
+    n = z as I32;
+    z -= n as F64;
+    ih = +0;
+    when {
+      q0 > +0 {
+        let ii = iq.[jz - 1] >> (+24 - q0) as N32;
+        n += ii;
+        iq.[jz - 1] -= ii << (+24 - q0) as N32;
+        ih = iq.[jz - 1] >> (+23 - q0) as N32;
+      }
+      q0 == +0 { ih = iq.[jz - 1] >> 23; }
+      z >= 0.5[F64] { ih = +2; }
+      _ {}
+    }
+
+    if ih > +0 {
+      n += +1;
+      let carry = +0;
+      let ii = 0;
+      while ii < jz {
+        let jval = iq.[ii];
+        if carry == +0 {
+          if jval != +0 {
+            carry = +1;
+            iq.[ii] = +0x1000000 - jval;
+          }
+        } else {
+          iq.[ii] = +0xffffff - jval;
+        }
+        ii += 1;
+      }
+      if q0 > +0 {
+        when {
+          q0 == +1 { iq.[jz - 1] &= +0x7fffff; }
+          q0 == +2 { iq.[jz - 1] &= +0x3fffff; }
+          _ {}
+        }
+      }
+      if ih == +2 {
+        z = 1.0[F64] - z;
+        if carry != +0 {
+          z -= scalbn(1.0[F64], q0);
+        }
+      }
+    }
+
+    if z == 0.0[F64] {
+      let jsum = +0;
+      let ii = jk;
+      while ii <= jz - 1 {
+        jsum |= iq.[ii];
+        ii += 1;
+      }
+      if jsum == +0 {
+        let k = 1;
+        while iq.[jk - k] == +0 {
+          k += 1;
+        }
+
+        let ii = jz + 1;
+        while ii <= jz + k {
+          f.[jx + ii] = ipio2.[jv + ii] as F64;
+          fw = 0.0[F64];
+          let jj = 0;
+          while jj <= jx {
+            fw += x.[jj] * f.[jx + ii - jj];
+            jj += 1;
+          }
+          q.[ii] = fw;
+          ii += 1;
+        }
+        jz += k;
+        recompute = true;
+      }
+    }
+  }
+
+  if z == 0.0[F64] {
+    jz -= 1;
+    q0 -= +24;
+    while iq.[jz] == +0 {
+      jz -= 1;
+      q0 -= +24;
+    }
+  } else {
+    z = scalbn(z, -q0);
+    if z >= x1p24 {
+      fw = (x1p_24 * z) as I32 as F64;
+      iq.[jz] = (z - x1p24 * fw) as I32;
+      jz += 1;
+      q0 += +24;
+      iq.[jz] = fw as I32;
+    } else {
+      iq.[jz] = z as I32;
+    }
+  }
+
+  fw = scalbn(1.0[F64], q0);
+  let i = jz;
+  loop {
+    q.[i] = fw * (iq.[i] as F64);
+    fw *= x1p_24;
+    if i == 0 {
+      break;
+    }
+    i -= 1;
+    continue;
+  }
+
+  let i = jz;
+  loop {
+    fw = 0.0[F64];
+    let k = 0;
+    while k <= jp and k <= jz - i {
+      fw += pio2.[k] * q.[i + k];
+      k += 1;
+    }
+    fq.[jz - i] = fw;
+    if i == 0 {
+      break;
+    }
+    i -= 1;
+    continue;
+  }
+
+  fw = 0.0[F64];
+  let i = jz;
+  loop {
+    fw += fq.[i];
+    if i == 0 {
+      break;
+    }
+    i -= 1;
+    continue;
+  }
+  y.[0] = if ih == +0 { fw } else { -fw };
+  fw = fq.[0] - fw;
+  let i = 1;
+  while i <= jz {
+    fw += fq.[i];
+    i += 1;
+  }
+  y.[1] = if ih == +0 { fw } else { -fw };
+
+  (n & +7, y)
+}
