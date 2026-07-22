@@ -93,6 +93,9 @@ type _512 = S[_256];
 type _1024 = S[_512];
 type _2048 = S[_1024];
 type _4096 = S[_2048];
+type _8192 = S[_4096];
+type _16384 = S[_8192];
+type _32768 = S[_16384];
 
 pub type Size1[T] = Lookup[_1, T];
 pub type Size2[T] = Lookup[_2, T];
@@ -107,6 +110,9 @@ pub type Size512[T] = Lookup[_512, T];
 pub type Size1024[T] = Lookup[_1024, T];
 pub type Size2048[T] = Lookup[_2048, T];
 pub type Size4096[T] = Lookup[_4096, T];
+pub type Size8192[T] = Lookup[_8192, T];
+pub type Size16384[T] = Lookup[_16384, T];
+pub type Size32768[T] = Lookup[_32768, T];
 
 trait[] Const[T] {
   const value: T;
