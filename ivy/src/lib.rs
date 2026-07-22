@@ -1,3 +1,4 @@
+pub mod binary;
 pub mod engine;
 pub mod name;
 pub mod net;

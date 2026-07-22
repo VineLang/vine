@@ -23,6 +23,7 @@ use ivm::{
   runtime::heap::Heap,
 };
 use ivy::{
+  binary::encode_binary,
   name::{FromTable, NameId, Table},
   net::{FlatNet, TreeNet},
   text::ast::Nets,
@@ -319,6 +320,8 @@ pub struct VineBuildCommand {
   target: BuildTarget,
   #[arg(long)]
   flat: bool,
+  #[arg(long)]
+  binary: bool,
 }
 
 #[derive(Debug, Clone, Copy, ValueEnum)]
@@ -335,18 +338,22 @@ impl VineBuildCommand {
       BuildTarget::Ivm => Target::Ivm,
     };
     backend(table, &self.optimizations.into_config(target, None), &mut nets);
-    let nets = if self.flat {
-      Nets::from_flat_nets(&nets)
+    let output = if self.binary {
+      encode_binary(table, &mut nets)
     } else {
-      let mut nets = TreeNet::from_flat_nets(&nets);
-      nets.values_mut().for_each(TreeNet::resolve_links);
-      Nets::from_tree_nets(&nets)
+      let nets = if self.flat {
+        Nets::from_flat_nets(&nets)
+      } else {
+        let mut nets = TreeNet::from_flat_nets(&nets);
+        nets.values_mut().for_each(TreeNet::resolve_links);
+        Nets::from_tree_nets(&nets)
+      };
+      nets.print(table).into_bytes()
     };
-    let text = nets.print(table);
     if let Some(out) = self.out {
-      fs::write(out, text)?;
+      fs::write(out, output)?;
     } else {
-      println!("{text}");
+      stdout().write_all(&output).unwrap();
     }
     Ok(())
   }

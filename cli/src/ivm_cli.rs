@@ -3,7 +3,11 @@ use std::{fs, io, path::PathBuf};
 use anyhow::Result;
 use clap::{Args, CommandFactory};
 use clap_complete::generate;
-use ivy::{name::Table, text::parser::Parser};
+use ivy::{
+  binary::{decode_binary, is_binary},
+  name::Table,
+  text::parser::Parser,
+};
 
 use crate::common::RunArgs;
 
@@ -32,10 +36,14 @@ pub struct IvmRunCommand {
 
 impl IvmRunCommand {
   pub fn execute(self) -> Result<()> {
-    let src_contents = fs::read_to_string(self.src.clone())?;
+    let data = fs::read(self.src.clone())?;
     let table = &mut Table::default();
-    let nets = Parser::parse(table, &src_contents).unwrap();
-    let nets = nets.to_flat_nets().unwrap();
+    let nets = if is_binary(&data) {
+      decode_binary(table, &data).unwrap()
+    } else {
+      let nets = Parser::parse(table, &String::from_utf8(data).unwrap()).unwrap();
+      nets.to_flat_nets().unwrap()
+    };
     self.run_args.run(table, &nets, false);
     Ok(())
   }
