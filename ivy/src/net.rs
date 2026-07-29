@@ -256,6 +256,14 @@ impl TreeNet {
     }
 
     fn visit(trees: &mut HashMap<Wire, TreeNode>, wire_links: &mut WireLinks, tree: &mut TreeNode) {
+      vine_util::ensure_sufficient_stack(|| _visit(trees, wire_links, tree))
+    }
+
+    fn _visit(
+      trees: &mut HashMap<Wire, TreeNode>,
+      wire_links: &mut WireLinks,
+      tree: &mut TreeNode,
+    ) {
       match tree {
         TreeNode::Wire(wire) => {
           *wire = wire_links.canonicalize(*wire);
