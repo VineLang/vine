@@ -4,7 +4,7 @@ use ops::{
   arithmetic::{Add, Div, Mul, Pow, Rem, Sub},
   bitwise::{BitAnd, BitOr, BitXor, Not, Shl, Shr},
 };
-use util::{duplicate, erase, transmute};
+use util::{duplicate, erase};
 
 /// Natural numbers represented with 64 bits of precision.
 /// ```vi
@@ -352,7 +352,7 @@ pub mod N64 {
 
   pub impl to_n64: Cast[Bool, N64] {
     fn cast(b: Bool) -> N64 {
-      N64(safe transmute(b), 0)
+      N64(b as N32, 0)
     }
   }
 }

@@ -1,7 +1,6 @@
 
 use ops::comparison::Ord;
 use derive::Tuple;
-use util::transmute;
 
 pub trait[I] Iterator[T] {
   #[builtin = "advance"]
@@ -262,7 +261,10 @@ pub mod Iterator[I, T; Iterator[I, T]] {
   pub mod Zip[Is] {
     pub impl iter_singleton[I, T; Iterator[I, T]]: Iterator[Zip[(I,)], (T,)] {
       fn advance(Zip[(I,)]((iter,))) -> Option[((T,), Zip[(I,)])] {
-        safe transmute[Option[(T, I)], Option[((T,), Zip[(I,)])]](iter.advance())
+        match iter.advance() {
+          Some(value, iter) { Some((value,), Zip((iter,))) }
+          None() { None() }
+        }
       }
     }
 
@@ -291,7 +293,10 @@ pub mod Iterator[I, T; Iterator[I, T]] {
   pub mod ZipShortest[Is] {
     pub impl iter_singleton[I, T; Iterator[I, T]]: Iterator[ZipShortest[(I,)], (T,)] {
       fn advance(ZipShortest[(I,)]((iter,))) -> Option[((T,), ZipShortest[(I,)])] {
-        safe transmute[Option[(T, I)], Option[((T,), ZipShortest[(I,)])]](iter.advance())
+        match iter.advance() {
+          Some(value, iter) { Some((value,), ZipShortest((iter,))) }
+          None() { None() }
+        }
       }
     }
 
