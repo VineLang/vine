@@ -100,7 +100,7 @@ where
       Fn("vi:n32:xor", |(a, b): (u32, u32)| a ^ b),
     ),
     (
-      Fn("vi:n32:add_high", |(a, b): (u32, u32)| (((a as u64) + (b as u64)) >> 32) as u32),
+      Fn("vi:n32:add_high", |(a, b): (u32, u32)| (((a as u64) + (b as u64)) >> 32) != 0),
       Fn("vi:n32:mul_high", |(a, b): (u32, u32)| (((a as u64) * (b as u64)) >> 32) as u32),
     ),
     (
