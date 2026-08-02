@@ -153,10 +153,13 @@ pub fn optimizations<'r>(vi: &'r Guide, table: &mut Table) -> impl use<'r> + Reg
   (
     graft(vi.graft, false),
     annihilate([vi.dup].into_iter().chain(vi_x)),
-    commute([vi.dup], [vi.eraser, vi.tuple, vi.enum_match].into_iter().chain(vi_data)),
+    commute(
+      [vi.dup],
+      [vi.eraser, vi.tuple, vi.enum_variant, vi.enum_match].into_iter().chain(vi_data),
+    ),
     erase(
       [vi.eraser].into_iter().chain(vi_x),
-      [vi.eraser, vi.enum_match].into_iter().chain(vi_data).chain(vi_x),
+      [vi.eraser, vi.enum_variant, vi.enum_match].into_iter().chain(vi_data).chain(vi_x),
     ),
     eta_reduce(vi_x, [vi.eraser], vi_x),
     Interaction([(vi.bool, vi.bool_if)], move |engine, _, net, bool, cond| {

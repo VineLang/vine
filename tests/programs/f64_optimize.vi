@@ -1,0 +1,6 @@
+
+// @build --opt-all
+
+pub fn main(&io: &IO) {
+  io.println("{2.0[F64]}");
+}
