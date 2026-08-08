@@ -14,11 +14,13 @@ pub struct Graft<'ivm> {
   /// The actual list of instructions; see [`Graft::push`] for the safety
   /// requirements of these instructions.
   pub(crate) instructions: Vec<Instruction<'ivm>>,
+  /// Whether grafting this constitutes an error.
+  pub(crate) error: bool,
 }
 
 impl<'ivm> Graft<'ivm> {
   pub(crate) const fn new() -> Self {
-    Self { next_register: Register::new(1), instructions: Vec::new() }
+    Self { next_register: Register::new(1), instructions: Vec::new(), error: false }
   }
 
   /// Returns a new, unused register.
@@ -133,6 +135,10 @@ impl<'ivm> Runtime<'ivm, '_> {
 
   /// Execute a [`Graft`], linking the net's root to `port`.
   pub fn graft(&mut self, graft: &Graft<'ivm>, port: Port<'ivm>) {
+    if graft.error {
+      self.flags.error = true;
+    }
+
     let needed_registers = graft.next_register.index();
     if needed_registers > self.registers.len() {
       self.registers.resize_with(needed_registers, || None)

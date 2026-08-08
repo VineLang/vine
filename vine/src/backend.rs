@@ -192,6 +192,7 @@ pub fn vi_to_ivm<'r>(vi: &'r Guide, ivm: &'r IvmGuide) -> impl Register<Translat
     chain_binary([ivm.x, ivm.y]),
     elide_unary([ivm.x, ivm.y]),
     replace_nilary([ivm.x, ivm.y, vi.eraser], ivm.eraser),
+    replace_nilary([vi.error], ivm.error),
     replace_path([vi.graft], ivm.graft),
     replace_path([vi.n32, vi.bool], ivm.n32),
     replace_path([vi.f32], ivm.f32),

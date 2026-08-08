@@ -12,6 +12,7 @@ guide!(pub Guide {
   x: PathId = "ivm:x",
   y: PathId = "ivm:y",
   graft: PathId = "ivm:graft",
+  error: PathId = "ivm:error",
   eraser: PathId = "ivm:eraser",
   n32: PathId = "ivm:n32",
   f32: PathId = "ivm:f32",
