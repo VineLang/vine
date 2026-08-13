@@ -9,6 +9,8 @@ use core::{
   ops::{Deref, DerefMut},
 };
 
+use alloc::{boxed::Box, vec::Vec};
+
 use crate::runtime::{Runtime, port::Tag, wire::Wire, word::Word};
 
 macro_rules! trait_alias {

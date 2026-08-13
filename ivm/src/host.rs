@@ -1,4 +1,5 @@
-use core::{any::TypeId, collections::HashMap};
+use core::any::TypeId;
+use hashbrown::HashMap;
 
 use alloc::boxed::Box;
 use ivy::name::NameId;
@@ -15,6 +16,7 @@ use crate::{
 };
 
 pub mod ext;
+#[cfg(feature = "std")]
 pub mod runner;
 
 pub struct IVM<'ivm> {
