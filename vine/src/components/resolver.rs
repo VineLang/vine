@@ -1,8 +1,5 @@
-use std::{
-  collections::{BTreeMap, HashMap, HashSet},
-  mem::take,
-  slice,
-};
+use hashbrown::{HashMap, HashSet};
+use std::{collections::BTreeMap, mem::take, slice};
 
 use vine_util::{
   idx::{Counter, IdxVec},

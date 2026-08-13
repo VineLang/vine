@@ -1378,6 +1378,7 @@ name = "vine"
 version = "0.0.0"
 dependencies = [
  "class",
+ "hashbrown",
  "ivm",
  "ivy",
  "unicode-id-start",

@@ -10,9 +10,17 @@ use core::{
 };
 
 #[doc(hidden)]
-pub use nohash_hasher::IsEnabled;
+pub use nohash_hasher::{BuildNoHashHasher, IsEnabled};
 
-pub use nohash_hasher::{IntMap, IntSet};
+/// A hash map with a no-op hasher, for integer-like keys.
+///
+/// Backed by `hashbrown` (the same implementation behind `std`'s HashMap) so
+/// that every hash collection in the workspace is the *same type*, whether it
+/// is built for `std` or for a `no_std` target.
+pub type IntMap<K, V> = hashbrown::HashMap<K, V, BuildNoHashHasher<K>>;
+
+/// A hash set with a no-op hasher, for integer-like keys.
+pub type IntSet<T> = hashbrown::HashSet<T, BuildNoHashHasher<T>>;
 use slab::Slab;
 
 pub trait Idx: Copy + Eq + Ord + Hash + IsEnabled + From<usize> + Into<usize> + Debug {}

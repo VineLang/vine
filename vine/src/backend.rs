@@ -1,7 +1,5 @@
-use std::{
-  collections::{HashMap, hash_map::Entry},
-  slice,
-};
+use hashbrown::{HashMap, hash_map::Entry};
+use std::slice;
 
 use ivm::system::{
   Guide as IvmGuide, construct_f64s, optimizations as ivm_optimizations, replace_ext_fns,

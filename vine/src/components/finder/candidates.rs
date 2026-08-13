@@ -1,7 +1,5 @@
-use std::{
-  collections::{HashMap, hash_map::Entry},
-  mem::take,
-};
+use hashbrown::{HashMap, hash_map::Entry};
+use std::mem::take;
 
 use vine_util::{
   idx::{Counter, IdxVec, IntSet},

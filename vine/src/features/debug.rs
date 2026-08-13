@@ -1,4 +1,5 @@
-use std::{collections::HashMap, mem::replace};
+use hashbrown::HashMap;
+use std::mem::replace;
 
 use ivy::{
   name::{FromTable, NameId, Table},
