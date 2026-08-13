@@ -10,7 +10,7 @@ use ivm::{
     ext::{ExtFn, ExtTyBoxed},
   },
   runtime::{
-    Runtime,
+    Runtime, StdHooks,
     ext::Boxed,
     port::{Port, Tag},
     wire::Wire,
@@ -108,7 +108,7 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
     let slot_ext_ty = self.host.get_ext_ty().unwrap();
     self.rt.link_wire(slot_, Port::new_ext_val(slot_ext_ty.wrap_static(Boxed::new(slot.clone()))));
 
-    self.rt.normalize(ivm::runtime::StdHooks);
+    self.rt.normalize(StdHooks);
 
     let string = slot.0.lock().unwrap().take();
 

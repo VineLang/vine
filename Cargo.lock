@@ -1393,6 +1393,7 @@ dependencies = [
  "clap",
  "clap_complete",
  "glob",
+ "hashbrown",
  "ivm",
  "ivy",
  "notify",
@@ -1408,6 +1409,7 @@ name = "vine-lsp"
 version = "0.0.0"
 dependencies = [
  "futures",
+ "hashbrown",
  "tokio",
  "tower-lsp",
  "vine",

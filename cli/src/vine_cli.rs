@@ -1,5 +1,4 @@
 use std::{
-  collections::HashMap,
   env,
   ffi::OsStr,
   fmt, fs,
@@ -17,9 +16,10 @@ use clap::{
   builder::{TypedValueParser, ValueParserFactory},
   error::ErrorKind,
 };
+use hashbrown::HashMap;
 
 use ivm::{
-  host::{Host, IVM},
+  host::{Host, IVM, ext::platform},
   runtime::heap::Heap,
 };
 use ivy::{
@@ -458,7 +458,10 @@ impl VineReplCommand {
     let mut host = Host::new(&mut ivm);
 
     use ivm::host::ext::common;
-    host.register(table, (common::all(&self.args, io::stdin, io::stdout), repl::extrinsics()));
+    host.register(
+      table,
+      ((common::all(), platform::all(&self.args, io::stdin, io::stdout)), repl::extrinsics()),
+    );
 
     let mut runtime = host.init(&mut heap);
 

@@ -5,7 +5,7 @@ use ivm::{
   host::{Host, ext::ExtTyRegister},
   program::Program,
   runtime::{
-    Runtime,
+    Runtime, StdHooks,
     ext::{ExtTy, ExtTyCastStatic},
     port::{Port, Tag},
     wire::Wire,
@@ -341,12 +341,12 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
 
     let name = self.table.add_path_name(format!(":<repl>:{}", self.line));
     self.rt.graft(self.program.graft(name).unwrap(), Port::new_wire(root));
-    self.rt.normalize(ivm::runtime::StdHooks);
+    self.rt.normalize(StdHooks);
 
     let mut result = Port::new_wire(result);
     let output = self.show(ty, &mut result);
     self.rt.link_wire(destroy, result);
-    self.rt.normalize(ivm::runtime::StdHooks);
+    self.rt.normalize(StdHooks);
 
     if output != "()" {
       println!("{output}");
