@@ -9,3 +9,9 @@ vine-util = { path = "../util" }
 
 [lints.clippy]
 absolute_paths = "warn"
+std_instead_of_alloc = "warn"
+alloc_instead_of_core = "warn"
+
+[features]
+default = ["std"]
+std = []

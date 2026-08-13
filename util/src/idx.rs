@@ -1,11 +1,12 @@
-use core::fmt;
-use std::{
+use alloc::{vec, vec::Vec};
+use core::{
+  fmt,
   fmt::Debug,
   hash::Hash,
   iter::{Enumerate, Map},
   marker::PhantomData,
   ops::{Index, IndexMut, Range},
-  slice, vec,
+  slice,
 };
 
 #[doc(hidden)]
@@ -38,8 +39,8 @@ macro_rules! new_idx {
     impl $crate::idx::IsEnabled for $Ty {}
     impl $crate::idx::Idx for $Ty {}
 
-    impl std::fmt::Debug for $Ty {
-      fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    impl core::fmt::Debug for $Ty {
+      fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         let $n = self.0;
         write!(f, $($fmt)*)
       }

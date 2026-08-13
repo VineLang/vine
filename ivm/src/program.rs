@@ -38,7 +38,7 @@
 //! the address of a [`Tag::Graft`] port as an `&UnsafeCell<Graft>` if it's one
 //! of the grafts we're currently creating, rather than the usual `&Graft`.
 
-use std::{
+use core::{
   cell::UnsafeCell,
   collections::{BTreeSet, HashMap, hash_map::Entry},
 };

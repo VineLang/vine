@@ -1,7 +1,9 @@
-use std::{
+use core::{
   fmt::{self, Write},
   iter,
 };
+
+use alloc::{vec, vec::Vec};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Nat(pub Vec<u32>);
