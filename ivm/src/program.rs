@@ -208,6 +208,11 @@ impl<'ivm> Encoder<'ivm, '_> {
             assert!(children.is_empty());
             self.push(Instruction::Nilary(Port::ERASE, reg));
           }
+          _ if path == self.guide.error => {
+            assert!(children.is_empty());
+            self.graft.error = true;
+            self.push(Instruction::Nilary(Port::ERASE, reg));
+          }
           _ if path == self.guide.graft => {
             assert!(children.is_empty());
             let addr = Addr(self.grafts[&name.children[0]] as *const ());

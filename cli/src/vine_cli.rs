@@ -258,7 +258,6 @@ pub struct VineTestCommand {
 
 impl VineTestCommand {
   pub fn execute(mut self) -> Result<()> {
-    self.compile.debug = true;
     self.compile.main_path = None;
 
     let (ref mut table, mut nets, mut compiler) = self.compile.compile();
