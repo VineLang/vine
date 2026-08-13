@@ -1,4 +1,6 @@
-use std::{borrow::Cow, collections::HashMap, fmt};
+use alloc::{borrow::Cow, string::String, vec::Vec};
+use core::fmt;
+use hashbrown::HashMap;
 
 use vine_util::{idx::IdxVec, nat::Nat, new_idx};
 

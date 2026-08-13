@@ -1,4 +1,4 @@
-use std::fmt::{self, Debug};
+use core::fmt::{self, Debug};
 
 use vine_util::lexer::{Lex, LexerState, Token as TokenTrait};
 

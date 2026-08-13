@@ -1,8 +1,6 @@
-use std::{
-  collections::{BTreeMap, HashMap, hash_map::Entry},
-  convert::Infallible,
-  fmt,
-};
+use alloc::{boxed::Box, collections::BTreeMap, format, string::String, vec::Vec};
+use core::{convert::Infallible, fmt};
+use hashbrown::{HashMap, hash_map::Entry};
 
 use vine_util::{idx::Counter, lexer::TokenSet};
 

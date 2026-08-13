@@ -675,6 +675,7 @@ dependencies = [
 name = "ivy"
 version = "0.0.0"
 dependencies = [
+ "hashbrown",
  "unicode-id-start",
  "vine-util",
 ]

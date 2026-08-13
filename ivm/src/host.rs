@@ -1,5 +1,6 @@
-use std::{any::TypeId, collections::HashMap};
+use core::{any::TypeId, collections::HashMap};
 
+use alloc::boxed::Box;
 use ivy::name::NameId;
 
 use crate::{

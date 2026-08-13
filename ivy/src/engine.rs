@@ -1,10 +1,6 @@
-use std::{
-  collections::{HashMap, hash_map::Entry},
-  iter,
-  mem::take,
-  ops::Deref,
-  rc::Rc,
-};
+use alloc::{rc::Rc, vec::Vec};
+use core::{iter, mem::take, ops::Deref};
+use hashbrown::{HashMap, hash_map::Entry};
 
 use vine_util::{
   exact_size,
@@ -503,10 +499,10 @@ impl Engine {
     let net_id = self.nets.push(Net {
       name,
       free: NodeId(usize::MAX),
-      maybe_nodes: vec![],
+      maybe_nodes: Vec::new(),
       not_nodes: 0,
       pending: 0,
-      awaiting: vec![],
+      awaiting: Vec::new(),
     });
 
     let mut wires = HashMap::<Wire, Port>::new();
