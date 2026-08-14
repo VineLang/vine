@@ -24,6 +24,8 @@ pub struct RunArgs {
   workers: usize,
   #[arg(long, alias = "depth", short = 'd')]
   breadth_first: bool,
+  #[arg(long, short = 'b')]
+  max_breadth: Option<usize>,
   #[arg(long, short = 'H', value_parser = parse_size)]
   heap: Option<usize>,
   pub args: Vec<String>,
@@ -38,7 +40,8 @@ impl RunArgs {
     let extrinsics = common::all(&self.args, io::stdin, io::stdout);
     let runner = Runner::new(&mut heap, &mut host, extrinsics, table, nets);
 
-    let (mut stats, flags) = runner.normalize(self.breadth_first, self.workers, ());
+    let (mut stats, flags) =
+      runner.normalize(self.breadth_first, self.max_breadth, self.workers, ());
 
     if !flags.success() {
       eprintln!("\n{}", flags.error_message(debug_hint));
@@ -71,7 +74,7 @@ impl RunArgs {
       let extrinsics = capture.extrinsics(&self.args);
       let runner = Runner::new(&mut heap, &mut host, extrinsics, table, nets);
 
-      runner.normalize(self.breadth_first, self.workers, ())
+      runner.normalize(self.breadth_first, self.max_breadth, self.workers, ())
     };
 
     (stats, flags, capture.into_output())

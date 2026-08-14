@@ -1,6 +1,5 @@
 #![warn(clippy::std_instead_of_core)]
 
-use core::mem;
 use std::time::Instant;
 
 mod parallel;
@@ -88,20 +87,32 @@ impl<'ivm, 'ext> Runtime<'ivm, 'ext> {
   ///
   /// This is useful to get the depth (longest critical path) of the computation
   /// to understand the parallelism of the program.
-  pub fn normalize_breadth_first(&mut self, mut hooks: impl Hooks) {
+  pub fn normalize_breadth_first(&mut self, max_breadth: Option<usize>, mut hooks: impl Hooks) {
+    assert!(max_breadth.is_none_or(|max_breadth| max_breadth > 0));
+
     let start = hooks.now();
-    let mut work = vec![];
+    let mut fast_work = vec![];
+    let mut slow_work = vec![];
     loop {
       hooks.tick(&start, &mut self.stats);
 
-      mem::swap(&mut work, &mut self.active_fast);
-      work.append(&mut self.active_slow);
-      if work.is_empty() {
+      fast_work.append(&mut self.active_fast);
+      slow_work.append(&mut self.active_slow);
+      if fast_work.is_empty() && slow_work.is_empty() {
         break;
       }
-      for (a, b) in work.drain(..) {
+
+      let budget = max_breadth.unwrap_or(usize::MAX);
+      let fast_end = budget.min(fast_work.len());
+      for (a, b) in fast_work.drain(..fast_end) {
         self.interact(a, b);
       }
+
+      let slow_end = (budget - fast_end).min(slow_work.len());
+      for (a, b) in slow_work.drain(..slow_end) {
+        self.interact(a, b);
+      }
+
       self.stats.depth += 1;
     }
 
