@@ -61,11 +61,12 @@ impl<'ivm, 'ext> Runner<'ivm, 'ext> {
   pub fn normalize(
     mut self,
     breadth_first: bool,
+    max_breadth: Option<usize>,
     workers: usize,
     hooks: impl Hooks,
   ) -> (Stats, Flags) {
     if breadth_first {
-      self.runtime.normalize_breadth_first(hooks);
+      self.runtime.normalize_breadth_first(max_breadth, hooks);
     } else if workers > 0 {
       self.runtime.normalize_parallel(workers)
     } else {
