@@ -233,6 +233,7 @@ guide!(pub Guide {
   ref_: PathId = "vi:ref",
   tuple: PathId = "vi:tuple",
   interface: PathId = "vi:interface",
+  error: PathId = "vi:error",
   eraser: PathId = "vi:eraser",
   dup: PathId = "vi:dup",
   enum_: PathId = "vi:enum",
@@ -271,8 +272,6 @@ guide!(pub Guide {
 
   io_split: NameId = "vi:io:split",
   io_merge: NameId = "vi:io:merge",
-
-  error: PathId = "vi:error",
 
   closure: PathId = "vi:closure",
   closure_fork: PathId = "vi:closure:fork",

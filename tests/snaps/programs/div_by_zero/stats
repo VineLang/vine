@@ -1,18 +1,20 @@
 
+Error: a runtime error occurred
+
 Error: the net did not return its `IO` handle
 
 Error: a linear extrinsic was erased
 
 Interactions
-  Total                2_011
-  Annihilate             968
+  Total                2_009
+  Annihilate             969
   Commute                 12
-  Copy                   305
-  Erase                  242
+  Copy                   303
+  Erase                  241
   Graft                  122
   Extrinsic              362
 
 Memory
-  Heap                 3_472 B
+  Heap                 3_440 B
   Allocated           42_112 B
   Freed               42_112 B

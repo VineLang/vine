@@ -260,6 +260,7 @@ let
         result = interactive "misc-basic_test" { inherit vine vi; } ''
           ! $vine test --no-stats $vi
           ! $vine test --no-stats --no-capture $vi
+          ! $vine test --no-stats --no-capture $vi --debug
           $vine test --no-stats --test test_proper_div $vi
         '';
       in
