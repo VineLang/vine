@@ -1,4 +1,5 @@
-use std::{collections::HashMap, convert::Infallible, iter};
+use hashbrown::HashMap;
+use std::{convert::Infallible, iter};
 
 use ivy::{
   name::{Name, NameId, Table},

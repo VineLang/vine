@@ -1,16 +1,39 @@
-use std::{collections::HashMap, mem::take};
+use hashbrown::HashMap;
+use std::mem::take;
 
 use ivm::{
-  host::{Host, ext::common::IO},
+  host::{Host, ext::ExtTyRegister},
   program::Program,
   runtime::{
-    Runtime,
-    ext::ExtTy,
+    Runtime, StdHooks,
+    ext::{ExtTy, ExtTyCastStatic},
     port::{Port, Tag},
     wire::Wire,
+    word::Word,
   },
 };
 use ivy::name::{FromTable, Table};
+
+/// The `IO` token of the Vine stdlib. The core no_std `ivm` no longer ships an
+/// `IO` type (it is a Vine-ABI / host concern, cf. `root:io:*`); the REPL
+/// defines its own so it can thread the linear `IO` handle through evaluations.
+struct IO;
+
+impl<'ivm> ExtTyRegister<'ivm> for IO {
+  type With<'x> = IO;
+}
+
+impl<'ivm> ExtTyCastStatic<'ivm> for IO {
+  const COPY: bool = false;
+
+  fn into_payload_static(_: IO) -> Word {
+    Word::from_bits(0)
+  }
+
+  unsafe fn from_payload_static(_: Word) -> Self {
+    IO
+  }
+}
 
 use crate::{
   backend::{BackendConfig, Target, backend},
@@ -318,12 +341,12 @@ impl<'ctx, 'ivm, 'ext, 'comp> Repl<'ctx, 'ivm, 'ext, 'comp> {
 
     let name = self.table.add_path_name(format!(":<repl>:{}", self.line));
     self.rt.graft(self.program.graft(name).unwrap(), Port::new_wire(root));
-    self.rt.normalize(());
+    self.rt.normalize(StdHooks);
 
     let mut result = Port::new_wire(result);
     let output = self.show(ty, &mut result);
     self.rt.link_wire(destroy, result);
-    self.rt.normalize(());
+    self.rt.normalize(StdHooks);
 
     if output != "()" {
       println!("{output}");

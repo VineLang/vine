@@ -1,4 +1,6 @@
-use std::fmt::{Display, Write as _};
+use core::fmt::{Display, Write as _};
+
+use alloc::string::String;
 
 use crate::{
   name::{Name, NameId, Table},

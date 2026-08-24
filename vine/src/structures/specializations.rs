@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use hashbrown::HashMap;
 
 use ivy::name::{Name, NameId};
 use vine_util::{idx::IdxVec, new_idx};

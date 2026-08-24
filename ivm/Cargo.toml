@@ -6,6 +6,13 @@ edition = "2024"
 [dependencies]
 ivy = { path = "../ivy" }
 vine-util = { path = "../util" }
+hashbrown = "0.14.5"
 
 [lints.clippy]
 absolute_paths = "warn"
+std_instead_of_alloc = "warn"
+alloc_instead_of_core = "warn"
+
+[features]
+default = ["std"]
+std = []

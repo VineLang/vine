@@ -1,4 +1,6 @@
-use std::{collections::HashMap, mem::take, rc::Rc};
+use alloc::{boxed::Box, rc::Rc, vec::Vec};
+use core::mem::take;
+use hashbrown::HashMap;
 
 use vine_util::{
   idx::Counter,

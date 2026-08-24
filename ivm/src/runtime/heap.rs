@@ -1,5 +1,6 @@
 use core::{alloc::Layout, mem::transmute, ptr};
-use std::alloc::alloc;
+
+use alloc::{alloc::alloc, boxed::Box};
 
 use crate::runtime::word::AtomicWord;
 

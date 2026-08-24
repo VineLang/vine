@@ -1,13 +1,14 @@
-use std::{collections::HashMap, io, process::exit};
+use std::{io, process::exit};
 
 use clap::Args;
+use hashbrown::HashMap;
 use ivm::{
   host::{
     Host, IVM,
-    ext::common,
+    ext::{common, platform},
     runner::{CaptureOutput, Runner},
   },
-  runtime::{flags::Flags, heap::Heap, stats::Stats},
+  runtime::{StdHooks, flags::Flags, heap::Heap, stats::Stats},
 };
 use ivy::{
   name::{NameId, Table},
@@ -35,10 +36,10 @@ impl RunArgs {
     let mut heap = self.heap();
     let mut ivm = IVM::new();
     let mut host = Host::new(&mut ivm);
-    let extrinsics = common::all(&self.args, io::stdin, io::stdout);
+    let extrinsics = (common::all(), platform::all(&self.args, io::stdin, io::stdout));
     let runner = Runner::new(&mut heap, &mut host, extrinsics, table, nets);
 
-    let (mut stats, flags) = runner.normalize(self.breadth_first, self.workers, ());
+    let (mut stats, flags) = runner.normalize(self.breadth_first, self.workers, StdHooks);
 
     if !flags.success() {
       eprintln!("\n{}", flags.error_message(debug_hint));
@@ -71,7 +72,7 @@ impl RunArgs {
       let extrinsics = capture.extrinsics(&self.args);
       let runner = Runner::new(&mut heap, &mut host, extrinsics, table, nets);
 
-      runner.normalize(self.breadth_first, self.workers, ())
+      runner.normalize(self.breadth_first, self.workers, StdHooks)
     };
 
     (stats, flags, capture.into_output())

@@ -1,17 +1,26 @@
-use core::fmt;
-use std::{
+use alloc::{vec, vec::Vec};
+use core::{
+  fmt,
   fmt::Debug,
   hash::Hash,
   iter::{Enumerate, Map},
   marker::PhantomData,
   ops::{Index, IndexMut, Range},
-  slice, vec,
+  slice,
 };
 
 #[doc(hidden)]
-pub use nohash_hasher::IsEnabled;
+pub use nohash_hasher::{BuildNoHashHasher, IsEnabled};
 
-pub use nohash_hasher::{IntMap, IntSet};
+/// A hash map with a no-op hasher, for integer-like keys.
+///
+/// Backed by `hashbrown` (the same implementation behind `std`'s HashMap) so
+/// that every hash collection in the workspace is the *same type*, whether it
+/// is built for `std` or for a `no_std` target.
+pub type IntMap<K, V> = hashbrown::HashMap<K, V, BuildNoHashHasher<K>>;
+
+/// A hash set with a no-op hasher, for integer-like keys.
+pub type IntSet<T> = hashbrown::HashSet<T, BuildNoHashHasher<T>>;
 use slab::Slab;
 
 pub trait Idx: Copy + Eq + Ord + Hash + IsEnabled + From<usize> + Into<usize> + Debug {}
@@ -38,8 +47,8 @@ macro_rules! new_idx {
     impl $crate::idx::IsEnabled for $Ty {}
     impl $crate::idx::Idx for $Ty {}
 
-    impl std::fmt::Debug for $Ty {
-      fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    impl core::fmt::Debug for $Ty {
+      fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         let $n = self.0;
         write!(f, $($fmt)*)
       }

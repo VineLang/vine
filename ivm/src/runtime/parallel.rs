@@ -5,6 +5,8 @@ use std::{
   time::Instant,
 };
 
+use alloc::vec::Vec;
+
 use crate::runtime::{Runtime, port::Port};
 
 impl<'ivm> Runtime<'ivm, '_> {
@@ -25,7 +27,7 @@ impl<'ivm> Runtime<'ivm, '_> {
         s.spawn(move || Worker { ivm, shared, dispatch }.execute());
         WorkerHandle { shared }
       }));
-      Dispatch { active: workers, idle: vec![] }.execute();
+      Dispatch { active: workers, idle: Vec::new() }.execute();
     });
 
     self.stats.time_clock += start.elapsed();

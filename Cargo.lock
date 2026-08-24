@@ -667,6 +667,7 @@ checksum = "49f1f14873335454500d59611f1cf4a4b0f786f9ac11f4312a78e4cf2566695b"
 name = "ivm"
 version = "0.0.0"
 dependencies = [
+ "hashbrown",
  "ivy",
  "vine-util",
 ]
@@ -675,6 +676,7 @@ dependencies = [
 name = "ivy"
 version = "0.0.0"
 dependencies = [
+ "hashbrown",
  "unicode-id-start",
  "vine-util",
 ]
@@ -1376,6 +1378,7 @@ name = "vine"
 version = "0.0.0"
 dependencies = [
  "class",
+ "hashbrown",
  "ivm",
  "ivy",
  "unicode-id-start",
@@ -1390,6 +1393,7 @@ dependencies = [
  "clap",
  "clap_complete",
  "glob",
+ "hashbrown",
  "ivm",
  "ivy",
  "notify",
@@ -1405,6 +1409,7 @@ name = "vine-lsp"
 version = "0.0.0"
 dependencies = [
  "futures",
+ "hashbrown",
  "tokio",
  "tower-lsp",
  "vine",

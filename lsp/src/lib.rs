@@ -1,5 +1,6 @@
+use hashbrown::HashMap;
 use std::{
-  collections::{BTreeMap, HashMap},
+  collections::BTreeMap,
   fs,
   path::{Path, PathBuf},
   sync::Arc,

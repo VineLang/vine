@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use hashbrown::HashMap;
 
 use ivy::{
   engine::{Rewrite, Rules, common::eta_reduce},

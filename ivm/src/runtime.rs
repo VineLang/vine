@@ -1,8 +1,8 @@
 #![warn(clippy::std_instead_of_core)]
 
 use core::mem;
-use std::time::Instant;
 
+#[cfg(feature = "std")]
 mod parallel;
 
 pub mod addr;
@@ -17,6 +17,8 @@ pub mod word;
 
 pub(crate) mod allocator;
 mod interact;
+
+use alloc::vec::Vec;
 
 use crate::runtime::{
   allocator::Allocator, ext::Extrinsics, flags::Flags, port::Port, stats::Stats,
@@ -90,7 +92,7 @@ impl<'ivm, 'ext> Runtime<'ivm, 'ext> {
   /// to understand the parallelism of the program.
   pub fn normalize_breadth_first(&mut self, mut hooks: impl Hooks) {
     let start = hooks.now();
-    let mut work = vec![];
+    let mut work = Vec::new();
     loop {
       hooks.tick(&start, &mut self.stats);
 
@@ -117,16 +119,36 @@ pub trait Hooks {
   fn end(&mut self, _start: &Self::Instant, _stats: &mut Stats);
 }
 
-impl Hooks for () {
-  type Instant = Instant;
+pub struct NoopHooks;
 
-  fn now(&mut self) -> Self::Instant {
-    Instant::now()
-  }
+impl Hooks for NoopHooks {
+  type Instant = ();
+
+  fn now(&mut self) -> Self::Instant {}
 
   fn tick(&mut self, _start: &Self::Instant, _stats: &mut Stats) {}
 
-  fn end(&mut self, start: &Self::Instant, stats: &mut Stats) {
-    stats.time_clock += start.elapsed();
-  }
+  fn end(&mut self, _start: &Self::Instant, _stats: &mut Stats) {}
 }
+
+#[cfg(feature = "std")]
+pub struct StdHooks;
+
+#[cfg(feature = "std")]
+const _: () = {
+  use std::time::Instant;
+
+  impl Hooks for StdHooks {
+    type Instant = Instant;
+
+    fn now(&mut self) -> Self::Instant {
+      Instant::now()
+    }
+
+    fn tick(&mut self, _start: &Self::Instant, _stats: &mut Stats) {}
+
+    fn end(&mut self, start: &Self::Instant, stats: &mut Stats) {
+      stats.time_clock += start.elapsed();
+    }
+  }
+};

@@ -1,3 +1,7 @@
+#![no_std]
+
+extern crate alloc;
+
 pub mod idx;
 pub mod lexer;
 pub mod nat;
@@ -15,5 +19,7 @@ pub use unwrap_vec::*;
 mod exact_size;
 pub use exact_size::*;
 
+#[cfg(feature = "std")]
 mod ensure_sufficient_stack;
+#[cfg(feature = "std")]
 pub use ensure_sufficient_stack::*;

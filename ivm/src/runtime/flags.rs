@@ -1,3 +1,5 @@
+use alloc::{string::String, vec::Vec};
+
 /// Error flags set during interactions.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct Flags {

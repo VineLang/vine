@@ -1,4 +1,4 @@
-use std::ops::{Add, Range};
+use core::ops::{Add, Range};
 
 use crate::{idx::IdxVec, new_idx};
 
@@ -126,6 +126,8 @@ impl Node {
 
 #[test]
 fn test() {
+  use alloc::{vec, vec::Vec};
+
   #[derive(Debug, Default, Clone, PartialEq, Eq)]
   struct El(Vec<usize>);
   impl Add for El {

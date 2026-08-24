@@ -1,7 +1,9 @@
-use std::{
+use core::{
   fmt::{self, Debug, Display},
   ops::Range,
 };
+
+use alloc::vec::Vec;
 
 #[derive(Debug, Clone, Copy)]
 pub struct LexerState<'src> {
@@ -142,7 +144,7 @@ pub struct TokenSet<T: Token> {
 
 impl<T: Token> Default for TokenSet<T> {
   fn default() -> Self {
-    Self { bits: 0, values: vec![], groups: 0 }
+    Self { bits: 0, values: Vec::new(), groups: 0 }
   }
 }
 

@@ -1,4 +1,4 @@
-use std::collections::hash_map::Entry;
+use hashbrown::hash_map::Entry;
 
 use ivy::name::{Name, NameId, PathId, Table};
 use vine_util::{idx::IdxVec, nat::Nat};

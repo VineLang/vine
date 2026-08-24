@@ -1,5 +1,6 @@
+use hashbrown::{HashMap, HashSet, hash_map::Entry};
 use std::{
-  collections::{BTreeMap, HashMap, HashSet, hash_map::Entry},
+  collections::BTreeMap,
   fmt::{self, Debug, Write},
   mem::take,
   ops::{BitXor, BitXorAssign},

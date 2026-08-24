@@ -1,5 +1,7 @@
 use core::ptr;
 
+use alloc::{boxed::Box, vec::Vec};
+
 use crate::idx::{Idx, IdxVec};
 
 pub fn unwrap_vec<T>(vec: Vec<Option<T>>) -> Vec<T> {
