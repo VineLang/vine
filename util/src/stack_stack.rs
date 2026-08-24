@@ -1,4 +1,4 @@
-use std::{mem::replace, ptr::NonNull};
+use std::{fmt, mem::replace, ptr::NonNull};
 
 /// Stack your stack on the stack with StackStack!
 pub enum StackStack<'a, T> {
@@ -41,6 +41,10 @@ impl<'a, T> StackStackRef<'a, T> {
     unsafe { self.0.as_mut() }.fork()
   }
 
+  pub fn get_ref(&self) -> &StackStack<'a, T> {
+    unsafe { self.0.as_ref() }
+  }
+
   pub fn fork(&mut self) -> StackStackRef<'_, T> {
     StackStackRef(self.0)
   }
@@ -57,6 +61,30 @@ impl<'a, T> Iterator for StackStack<'a, T> {
         Some(head)
       }
     }
+  }
+}
+
+impl<'a, T> Iterator for &'a StackStack<'_, T> {
+  type Item = &'a T;
+
+  fn next(&mut self) -> Option<Self::Item> {
+    match *self {
+      StackStack::Nil => None,
+      StackStack::Cons(value, parent) => {
+        *self = parent.get_ref();
+        Some(value)
+      }
+    }
+  }
+}
+
+impl<T: fmt::Debug> fmt::Debug for StackStack<'_, T> {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    let mut f = f.debug_list();
+    for value in self {
+      f.entry(value);
+    }
+    f.finish()
   }
 }
 

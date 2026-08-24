@@ -9,5 +9,6 @@ pub mod matcher;
 pub mod normalizer;
 pub mod parser;
 pub mod resolver;
+pub mod solver;
 pub mod specializer;
 pub mod synthesizer;

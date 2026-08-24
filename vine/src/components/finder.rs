@@ -11,7 +11,10 @@ use crate::{
     diag::{Diag, Diags, ErrorGuaranteed},
     signatures::Signatures,
     tir::TirImpl,
-    types::{ImplType, Inverted, Type, TypeCtx, TypeKind, Types},
+    types::{
+      ImplType, Inverted, Type, TypeCtx, TypeKind, Types,
+      repo::{TypesCommit, TypesRepo},
+    },
   },
 };
 

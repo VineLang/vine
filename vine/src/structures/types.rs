@@ -18,6 +18,7 @@ use crate::structures::{
   tir::ClosureId,
 };
 
+pub mod repo;
 mod show;
 
 /// A type variable, or its inverse. The high bit of the usize denotes the
