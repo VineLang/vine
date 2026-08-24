@@ -1,0 +1,8 @@
+
+// @build --flat
+
+const large: List[N32] = List::new(100000, 0);
+
+pub fn main(&io: &IO) {
+  io.println("{large.len()} {large.len()}");
+}
