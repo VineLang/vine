@@ -214,6 +214,29 @@ pub fn optimizations<'r>(vi: &'r Guide, table: &mut Table) -> impl use<'r> + Reg
       engine.link_all([lhs, rhs, out], [lhs_, rhs_, out_]);
       true
     }),
+    Rewrite([vi.ext], move |engine, _, _, node| {
+      let name = engine.name(node);
+      if name.children[0] != vi.n32_add {
+        return false;
+      }
+      let rhs = engine.follow(node.port(1));
+      if !rhs.is_principal() {
+        return false;
+      }
+      let rhs_name = engine.name(rhs.node);
+      if rhs_name.path != vi.n32 {
+        return false;
+      }
+      let n = rhs_name.payload.as_u32().unwrap();
+      if n != 0 {
+        return false;
+      }
+      let [rhs_] = engine.remove_node_n(rhs.node);
+      let [lhs, rhs, out] = engine.remove_node_n(node);
+      engine.remove_wire(rhs, rhs_);
+      engine.link(lhs, out);
+      true
+    }),
   )
 }
 
