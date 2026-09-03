@@ -334,6 +334,32 @@ let
         checks."tests-misc-reconfigure" = result;
         snaps."misc/reconfigure.txt" = result;
       };
+
+    omnivy =
+      let
+        omnivy = pkgs.stdenv.mkDerivation {
+          name = "omnivy";
+          src = pkgs.lib.fileset.toSource {
+            root = ../.;
+            fileset = pkgs.lib.fileset.unions [
+              ../vine/examples
+              ../tests/programs
+              ../tests/aoc_2024
+            ];
+          };
+          nativeBuildInputs = [
+            pkgs.nushell
+            cli.packages.vine
+          ];
+          buildPhase = ''
+            nu ${./omnivy.nu} >$out
+          '';
+        };
+      in
+      {
+        checks."tests-misc-omnivy" = omnivy;
+        snaps."omnivy.iv" = omnivy;
+      };
   };
 
   tests.verify = forEach (ls_ (p: !(hasSuffix ".lock" p)) ./verify) (
