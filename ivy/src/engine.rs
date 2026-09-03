@@ -202,9 +202,11 @@ impl Engine {
 
   pub fn link_all(
     &mut self,
-    a: impl ExactSizeIterator<Item = Port>,
-    b: impl ExactSizeIterator<Item = Port>,
+    a: impl IntoIterator<IntoIter: ExactSizeIterator<Item = Port>>,
+    b: impl IntoIterator<IntoIter: ExactSizeIterator<Item = Port>>,
   ) {
+    let a = a.into_iter();
+    let b = b.into_iter();
     assert_eq!(a.len(), b.len());
     for (a, b) in a.zip(b) {
       self.link(a, b);

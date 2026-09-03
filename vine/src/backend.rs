@@ -150,6 +150,9 @@ fn get_occurrences(
 pub fn optimizations<'r>(vi: &'r Guide, table: &mut Table) -> impl use<'r> + Register<Rules<'r>> {
   let vi_data = [vi.bool, vi.n32, vi.f32];
   let vi_x = [vi.tuple, vi.fn_, vi.dbg, vi.ref_, vi.interface];
+  let div = table.add_path_name("vi:n32:div");
+  let shr = table.add_path_name("vi:n32:shr");
+  let n32 = table.add_path("vi:n32");
   (
     graft(vi.graft, false),
     annihilate([vi.dup].into_iter().chain(vi_x)),
@@ -185,6 +188,32 @@ pub fn optimizations<'r>(vi: &'r Guide, table: &mut Table) -> impl use<'r> + Reg
       true
     }),
     arithmetic(vi, table),
+    Rewrite([vi.ext], move |engine, _, net, node| {
+      let name = engine.name(node);
+      if name.children[0] != div {
+        return false;
+      }
+      let rhs = engine.follow(node.port(1));
+      if !rhs.is_principal() {
+        return false;
+      }
+      let rhs_name = engine.name(rhs.node);
+      if rhs_name.path != vi.n32 {
+        return false;
+      }
+      let n = rhs_name.payload.as_u32().unwrap();
+      if !n.is_power_of_two() {
+        return false;
+      }
+      let [rhs_] = engine.remove_node_n(rhs.node);
+      let [lhs, rhs, out] = engine.remove_node_n(node);
+      engine.remove_wire(rhs, rhs_);
+      let [lhs_, rhs_, out_] =
+        engine.insert_node_n(net, vi.ext.with_payload(2u32).with_children([shr]));
+      let [rhs] = engine.insert_node_n(net, vi.n32.with_payload(n.trailing_zeros()));
+      engine.link_all([lhs, rhs, out], [lhs_, rhs_, out_]);
+      true
+    }),
   )
 }
 
