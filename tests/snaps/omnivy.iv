@@ -22467,11 +22467,11 @@ vi:synthetic#14[vi:synthetic:enum_reconstruct[:root::IO::File::Error]] {
                     ](vi:interface(
                       vi:ref(vi:tuple(16 18 19) vi:eraser)
                       vi:ref(vi:tuple(20 21 22) 23)
-                      vi:ext#1[vi:bool:not](vi:bool:if[:heap::main#8, :heap::main#9](vi:interface(
+                      vi:bool:if[:heap::main#9, :heap::main#8](vi:interface(
                         vi:ref(24 25)
                         vi:tuple(10 26)
                         vi:ref(23 27)
-                      )))
+                      ))
                     ))))) 18 19)
                   )
                 ))
@@ -22506,7 +22506,7 @@ vi:synthetic#14[vi:synthetic:enum_reconstruct[:root::IO::File::Error]] {
                   ](vi:interface(
                     vi:ref(vi:tuple(37 39 40) vi:eraser)
                     vi:ref(vi:tuple(41 42 43) 44)
-                    vi:ext#1[vi:bool:not](vi:bool:if[:heap::main#8, :heap::main#9](vi:interface(
+                    vi:bool:if[:heap::main#9, :heap::main#8](vi:interface(
                       vi:ref(45 vi:ext#2[root:io:print_char](vi:n32#112 vi:ext#2[root:io:print_char](vi:n32#111 vi:ext#2[root:io:print_char](vi:n32#112 vi:ext#2[root:io:print_char](vi:n32#112 vi:ext#2[root:io:print_char](vi:n32#105 vi:ext#2[root:io:print_char](vi:n32#110 vi:ext#2[root:io:print_char](vi:n32#103 vi:ext#2[root:io:print_char](vi:n32#10 46)))))))))
                       31
                       vi:ref(44 vi:tuple(vi:dup(47 vi:ext#2[vi:n32:ne](vi:n32 vi:bool:if[:root::data::List::pop_front#2, :root::data::List::pop_front#3](vi:interface(
@@ -22534,7 +22534,7 @@ vi:synthetic#14[vi:synthetic:enum_reconstruct[:root::IO::File::Error]] {
                           ](50)
                         )))
                       )))) 48 22))
-                    )))
+                    ))
                   ))))) 39 40)
                 )
               ))
@@ -22564,7 +22564,7 @@ vi:synthetic#14[vi:synthetic:enum_reconstruct[:root::IO::File::Error]] {
               ](vi:interface(
                 vi:ref(vi:tuple(57 59 60) vi:eraser)
                 vi:ref(vi:tuple(61 62 63) 64)
-                vi:ext#1[vi:bool:not](vi:bool:if[:heap::main#8, :heap::main#9](vi:interface(
+                vi:bool:if[:heap::main#9, :heap::main#8](vi:interface(
                   vi:ref(65 66)
                   51
                   vi:ref(64 vi:tuple(
@@ -22572,7 +22572,7 @@ vi:synthetic#14[vi:synthetic:enum_reconstruct[:root::IO::File::Error]] {
                     69
                     vi:tuple(70 71)
                   ))
-                )))
+                ))
               ))))) 59 60)
             )
           ))
@@ -22728,11 +22728,11 @@ vi:synthetic#14[vi:synthetic:enum_reconstruct[:root::IO::File::Error]] {
                     ](vi:interface(
                       vi:ref(vi:tuple(14 16 17) vi:eraser)
                       vi:ref(vi:tuple(18 19 20) 21)
-                      vi:ext#1[vi:bool:not](vi:bool:if[:heap::main#8, :heap::main#9](vi:interface(
+                      vi:bool:if[:heap::main#9, :heap::main#8](vi:interface(
                         vi:ref(22 23)
                         8
                         vi:ref(21 24)
-                      )))
+                      ))
                     ))))) 16 17)
                   )
                 ))
@@ -22761,7 +22761,7 @@ vi:synthetic#14[vi:synthetic:enum_reconstruct[:root::IO::File::Error]] {
                   ](vi:interface(
                     vi:ref(vi:tuple(31 33 34) vi:eraser)
                     vi:ref(vi:tuple(35 36 37) 38)
-                    vi:ext#1[vi:bool:not](vi:bool:if[:heap::main#8, :heap::main#9](vi:interface(
+                    vi:bool:if[:heap::main#9, :heap::main#8](vi:interface(
                       vi:ref(39 40)
                       vi:tuple(25 41)
                       vi:ref(38 vi:tuple(
@@ -22769,7 +22769,7 @@ vi:synthetic#14[vi:synthetic:enum_reconstruct[:root::IO::File::Error]] {
                         44
                         vi:tuple(45 46)
                       ))
-                    )))
+                    ))
                   ))))) 33 34)
                 )
               ))
@@ -22805,7 +22805,7 @@ vi:synthetic#14[vi:synthetic:enum_reconstruct[:root::IO::File::Error]] {
               ](vi:interface(
                 vi:ref(vi:tuple(55 57 58) vi:eraser)
                 vi:ref(vi:tuple(59 60 61) 62)
-                vi:ext#1[vi:bool:not](vi:bool:if[:heap::main#8, :heap::main#9](vi:interface(
+                vi:bool:if[:heap::main#9, :heap::main#8](vi:interface(
                   vi:ref(63 vi:ext#2[root:io:print_char](vi:n32#112 vi:ext#2[root:io:print_char](vi:n32#111 vi:ext#2[root:io:print_char](vi:n32#112 vi:ext#2[root:io:print_char](vi:n32#112 vi:ext#2[root:io:print_char](vi:n32#105 vi:ext#2[root:io:print_char](vi:n32#110 vi:ext#2[root:io:print_char](vi:n32#103 vi:ext#2[root:io:print_char](vi:n32#10 64)))))))))
                   vi:tuple(49 65)
                   vi:ref(62 vi:tuple(vi:dup(66 vi:ext#2[vi:n32:ne](vi:n32 vi:bool:if[:root::data::List::pop_front#2, :root::data::List::pop_front#3](vi:interface(
@@ -22833,7 +22833,7 @@ vi:synthetic#14[vi:synthetic:enum_reconstruct[:root::IO::File::Error]] {
                       ](69)
                     )))
                   )))) 67 37))
-                )))
+                ))
               ))))) 57 58)
             )
           ))
@@ -31692,14 +31692,7 @@ vi:synthetic[vi:synthetic:enum_variant_names[:root::logical::Option]] {
     ],
   ](vi:interface(
     vi:interface(2)
-    vi:ext#1[vi:bool:not](vi:bool:if[
-      :root::data::Iterator::Filter::advance#5[
-        :root::ops::Range::exclusive_iter[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32],
-        :root::util::erase,
-        vi:closure:fork#15[:iterator_party::main],
-        vi:closure:drop#15[:iterator_party::main],
-        vi:closure#15[:iterator_party::main],
-      ],
+    vi:bool:if[
       :root::data::Iterator::Filter::advance#6[
         :root::ops::Range::exclusive_iter[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32],
         :root::util::erase,
@@ -31707,7 +31700,14 @@ vi:synthetic[vi:synthetic:enum_variant_names[:root::logical::Option]] {
         vi:closure:drop#15[:iterator_party::main],
         vi:closure#15[:iterator_party::main],
       ],
-    ](vi:interface(7 vi:interface 1 0)))
+      :root::data::Iterator::Filter::advance#5[
+        :root::ops::Range::exclusive_iter[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32],
+        :root::util::erase,
+        vi:closure:fork#15[:iterator_party::main],
+        vi:closure:drop#15[:iterator_party::main],
+        vi:closure#15[:iterator_party::main],
+      ],
+    ](vi:interface(7 vi:interface 1 0))
   )))))
 }
 
@@ -58801,7 +58801,7 @@ vi:synthetic#4[vi:synthetic:enum_deconstruct[:life::Signal]] {
                                                                                                                                               ](vi:interface(
                                                                                                                                                 vi:ref(vi:tuple(193 194 195) 196)
                                                                                                                                                 vi:ref(vi:tuple(vi:n32 197 197) vi:eraser)
-                                                                                                                                                vi:ext#1[vi:bool:not](vi:bool:if[:nat_div::main#13, :nat_div::main#14](vi:interface(vi:ref(0 198) 85 196)))
+                                                                                                                                                vi:bool:if[:nat_div::main#14, :nat_div::main#13](vi:interface(vi:ref(0 198) 85 196))
                                                                                                                                               ))))) 194 195)) 191)))))
                                                                                                                                               vi:ext#2[vi:n32:shr](vi:n32#5 vi:dup(199 200))
                                                                                                                                             ))))))
@@ -59064,7 +59064,7 @@ vi:synthetic#4[vi:synthetic:enum_deconstruct[:life::Signal]] {
     ](vi:interface(
       vi:ref(vi:tuple(1 3 4) 5)
       vi:ref(vi:tuple(6 7 8) vi:eraser)
-      vi:ext#1[vi:bool:not](vi:bool:if[:nat_div::main#18, :nat_div::main#19](vi:interface(0 5 9 10 11)))
+      vi:bool:if[:nat_div::main#19, :nat_div::main#18](vi:interface(0 5 9 10 11))
     ))))) 3 4)
     vi:dup(9 12)
     vi:dup(10 vi:tuple(vi:dup(13 vi:dup(vi:eraser vi:ext#2[vi:n32:eq](vi:n32 vi:bool:if[:root::numeric::Nat::mul#2, :root::numeric::Nat::mul#3](vi:interface(
@@ -59562,7 +59562,7 @@ vi:synthetic#4[vi:synthetic:enum_deconstruct[:life::Signal]] {
       ](vi:interface(
         vi:ref(vi:tuple(77 78 79) 80)
         vi:ref(vi:tuple(vi:n32 81 81) vi:eraser)
-        vi:ext#1[vi:bool:not](vi:bool:if[:nat_edges::main#35, :nat_edges::main#36](vi:interface(vi:ref(82 83) 3 80)))
+        vi:bool:if[:nat_edges::main#36, :nat_edges::main#35](vi:interface(vi:ref(82 83) 3 80))
       ))))) 78 79)
       vi:dup(7 vi:dup(
         vi:tuple(vi:dup(84 vi:dup(vi:eraser vi:ext#2[vi:n32:eq](vi:n32 vi:bool:if[:root::numeric::Nat::to_string::cast#2, :root::numeric::Nat::to_string::cast#3](vi:interface(
