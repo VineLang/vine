@@ -152,7 +152,6 @@ pub fn optimizations<'r>(vi: &'r Guide, table: &mut Table) -> impl use<'r> + Reg
   let vi_x = [vi.tuple, vi.fn_, vi.dbg, vi.ref_, vi.interface];
   let div = table.add_path_name("vi:n32:div");
   let shr = table.add_path_name("vi:n32:shr");
-  let n32 = table.add_path("vi:n32");
   (
     graft(vi.graft, false),
     annihilate([vi.dup].into_iter().chain(vi_x)),
@@ -235,6 +234,29 @@ pub fn optimizations<'r>(vi: &'r Guide, table: &mut Table) -> impl use<'r> + Reg
       let [lhs, rhs, out] = engine.remove_node_n(node);
       engine.remove_wire(rhs, rhs_);
       engine.link(lhs, out);
+      true
+    }),
+    Rewrite([vi.bool_if], move |engine, _, net, node| {
+      let name = engine.name(node);
+      if name.children[0] != vi.n32_add {
+        return false;
+      }
+      let cond = engine.follow(node.port(1));
+      let cond_name = engine.name(cond.node);
+      if cond_name.path != vi.ext {
+        return false;
+      }
+      if cond_name.children[0] != vi.bool_not {
+        return false;
+      }
+      let mut name = name.clone();
+      name.children.swap(0, 1);
+      let [cond, bool] = engine.remove_node_n(cond.node);
+      let [cond_, ctx] = engine.remove_node_n(node);
+      engine.remove_wire(cond, cond_);
+      let [bool_, ctx_] = engine.insert_node_n(net, name);
+      engine.link(bool, bool_);
+      engine.link(ctx, ctx_);
       true
     }),
   )
