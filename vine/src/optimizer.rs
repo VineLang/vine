@@ -63,7 +63,7 @@ fn from_opt<'r>(
     Translate([opt.n32_add], move |mut node, _, net| {
       let payload = replace(&mut node.name.payload, Nat::ZERO);
       if payload.as_u32().unwrap() != 0 {
-        node.aux.push(net.make(vi.n32.with_payload(payload), []));
+        node.aux.insert(node.aux.len() - 1, net.make(vi.n32.with_payload(payload), []));
       }
       net.push(node);
     }),
