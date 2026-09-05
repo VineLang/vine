@@ -40,7 +40,10 @@ pub fn backend(table: &mut Table, config: &BackendConfig, nets: &mut HashMap<Nam
   let limit = &mut { config.optimize_limit };
   apply_prune(table, config, nets, vi);
   let filter = optimization_filter(config, nets, vi);
-  optimize_vi(table, nets, limit, &filter);
+  if config.optimize {
+    optimize_vi(table, nets, limit, &filter);
+    apply_prune(table, config, nets, vi);
+  }
   match config.target {
     Target::None => {}
     Target::Ivm => {
@@ -48,6 +51,7 @@ pub fn backend(table: &mut Table, config: &BackendConfig, nets: &mut HashMap<Nam
       Translator::new(vi_to_ivm(vi, ivm)).translate_all(table, nets);
       if config.optimize {
         optimize(table, &Rules::new(ivm_optimizations(ivm)), nets, limit, &filter);
+        apply_prune(table, config, nets, vi);
       }
     }
   }
