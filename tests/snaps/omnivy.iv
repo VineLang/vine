@@ -32881,27 +32881,26 @@ vi:synthetic[vi:synthetic:enum_variant_names[:root::logical::Option]] {
         vi:ext#2[vi:n32:add](8 vi:ext#2[vi:n32:add](vi:n32#1 0))
       ) 3)
       4
-      vi:tuple(vi:dup(vi:dup(5 9) 8) 6)
+      vi:tuple(vi:dup(vi:dup(5 vi:ext#2[vi:n32:mul](vi:n32#3 vi:ext#2[vi:n32:add](vi:n32#2 vi:dup(vi:eraser 2)))) 8) 6)
     ) 7)
-    10
+    9
     vi:ref(
-      vi:tuple(vi:dup(11 vi:ext#2[vi:n32:eq](vi:n32 vi:bool:if[
+      vi:tuple(vi:dup(10 vi:ext#2[vi:n32:eq](vi:n32 vi:bool:if[
         :root::data::Set::insert#2[:root::numeric::N32],
         :root::data::Set::insert#3[:root::numeric::N32],
       ](vi:interface(
-        vi:ref(11 12)
-        vi:ref(13 14)
-        10
-        15
-      )))) 13)
-      vi:tuple(12 14)
+        vi:ref(10 11)
+        vi:ref(12 13)
+        9
+        14
+      )))) 12)
+      vi:tuple(11 13)
     )
+    vi:ref(15 15)
     vi:ref(16 16)
-    vi:ref(17 17)
-    15
+    14
   )
   ^1 = vi:tuple
-  vi:n32#3 = vi:ext#2[vi:n32:mul](9 vi:ext#2[vi:n32:add](vi:n32#2 vi:dup(vi:eraser 2)))
 }
 
 :root::data::Set::insert#9[:root::numeric::N32] {
@@ -32922,36 +32921,35 @@ vi:synthetic[vi:synthetic:enum_variant_names[:root::logical::Option]] {
     vi:ref(vi:eraser 0)
     vi:ref(vi:tuple(
       vi:tuple(vi:dup(
-        vi:dup(1 2)
+        vi:dup(1 vi:ext#2[vi:n32:mul](vi:n32#3 vi:ext#2[vi:n32:add](vi:n32#2 vi:dup(vi:eraser 2))))
         vi:ext#2[vi:n32:add](3 vi:ext#2[vi:n32:add](vi:n32#1 0))
       ) 4)
       5
-      vi:tuple(vi:dup(vi:dup(6 vi:ext#2[vi:n32:le](7 vi:bool:if[:root::data::Set::balance_left#2, :root::data::Set::balance_left#3](vi:interface(
+      vi:tuple(vi:dup(vi:dup(6 vi:ext#2[vi:n32:le](2 vi:bool:if[:root::data::Set::balance_left#2, :root::data::Set::balance_left#3](vi:interface(
         vi:tuple(1 4)
         5
-        vi:tuple(6 8)
-        9
-      )))) 3) 8)
-    ) 9)
-    10
+        vi:tuple(6 7)
+        8
+      )))) 3) 7)
+    ) 8)
+    9
+    vi:ref(10 10)
     vi:ref(11 11)
-    vi:ref(12 12)
     vi:ref(
-      vi:tuple(vi:dup(13 vi:ext#2[vi:n32:eq](vi:n32 vi:bool:if[
+      vi:tuple(vi:dup(12 vi:ext#2[vi:n32:eq](vi:n32 vi:bool:if[
         :root::data::Set::insert#2[:root::numeric::N32],
         :root::data::Set::insert#3[:root::numeric::N32],
       ](vi:interface(
-        vi:ref(13 14)
-        vi:ref(15 16)
-        10
-        17
-      )))) 15)
-      vi:tuple(14 16)
+        vi:ref(12 13)
+        vi:ref(14 15)
+        9
+        16
+      )))) 14)
+      vi:tuple(13 15)
     )
-    17
+    16
   )
   ^1 = vi:tuple
-  vi:n32#3 = vi:ext#2[vi:n32:mul](2 vi:ext#2[vi:n32:add](vi:n32#2 vi:dup(vi:eraser 7)))
 }
 
 :root::data::Set::balance_right#2 {
@@ -32960,18 +32958,17 @@ vi:synthetic[vi:synthetic:enum_variant_names[:root::logical::Option]] {
 
 :root::data::Set::balance_right#3 {
   ^ = vi:interface(vi:tuple(vi:eraser vi:tuple(
-    vi:tuple(vi:dup(0 1) 2)
+    vi:tuple(vi:dup(0 vi:ext#2[vi:n32:mul](vi:n32#2 vi:dup(vi:eraser 1))) 2)
     3
-    vi:tuple(vi:dup(4 vi:ext#2[vi:n32:le](5 vi:bool:if[:root::data::Set::balance_right#5, :root::data::Set::balance_right#6](vi:interface(
+    vi:tuple(vi:dup(4 vi:ext#2[vi:n32:le](1 vi:bool:if[:root::data::Set::balance_right#5, :root::data::Set::balance_right#6](vi:interface(
+      5
       6
-      7
       vi:tuple(0 2)
       3
-      vi:tuple(4 8)
-      9
-    )))) 8)
-  )) 6 7 9)
-  vi:n32#2 = vi:ext#2[vi:n32:mul](1 vi:dup(vi:eraser 5))
+      vi:tuple(4 7)
+      8
+    )))) 7)
+  )) 5 6 8)
 }
 
 :root::data::Set::balance_right#5 {
@@ -33031,9 +33028,8 @@ vi:synthetic[vi:synthetic:enum_variant_names[:root::logical::Option]] {
       8
     )))) 4)
     5
-    vi:tuple(vi:dup(6 9) 7)
+    vi:tuple(vi:dup(6 vi:ext#2[vi:n32:mul](vi:n32#2 vi:dup(vi:eraser 3))) 7)
   )) 8)
-  vi:n32#2 = vi:ext#2[vi:n32:mul](9 vi:dup(vi:eraser 3))
 }
 
 :root::data::Set::balance_left#5 {
@@ -33323,27 +33319,26 @@ vi:synthetic[vi:synthetic:enum_variant_names[:root::logical::Option]] {
         vi:ext#2[vi:n32:add](8 vi:ext#2[vi:n32:add](vi:n32#1 0))
       ) 3)
       4
-      vi:tuple(vi:dup(vi:dup(5 9) 8) 6)
+      vi:tuple(vi:dup(vi:dup(5 vi:ext#2[vi:n32:mul](vi:n32#3 vi:ext#2[vi:n32:add](vi:n32#2 vi:dup(vi:eraser 2)))) 8) 6)
     ) 7)
-    10
+    9
     vi:ref(
-      vi:tuple(vi:dup(11 vi:ext#2[vi:n32:eq](vi:n32 vi:bool:if[
+      vi:tuple(vi:dup(10 vi:ext#2[vi:n32:eq](vi:n32 vi:bool:if[
         :root::data::Set::insert#2[:root::data::Map::ord_entry[:root::numeric::N32]],
         :root::data::Set::insert#3[:root::data::Map::ord_entry[:root::numeric::N32]],
       ](vi:interface(
-        vi:ref(11 12)
-        vi:ref(13 14)
-        10
-        15
-      )))) 13)
-      vi:tuple(12 14)
+        vi:ref(10 11)
+        vi:ref(12 13)
+        9
+        14
+      )))) 12)
+      vi:tuple(11 13)
     )
+    vi:ref(15 15)
     vi:ref(16 16)
-    vi:ref(17 17)
-    15
+    14
   )
   ^1 = vi:tuple
-  vi:n32#3 = vi:ext#2[vi:n32:mul](9 vi:ext#2[vi:n32:add](vi:n32#2 vi:dup(vi:eraser 2)))
 }
 
 :root::data::Set::insert#9[:root::data::Map::ord_entry[:root::numeric::N32]] {
@@ -33364,36 +33359,35 @@ vi:synthetic[vi:synthetic:enum_variant_names[:root::logical::Option]] {
     vi:ref(vi:eraser 0)
     vi:ref(vi:tuple(
       vi:tuple(vi:dup(
-        vi:dup(1 2)
+        vi:dup(1 vi:ext#2[vi:n32:mul](vi:n32#3 vi:ext#2[vi:n32:add](vi:n32#2 vi:dup(vi:eraser 2))))
         vi:ext#2[vi:n32:add](3 vi:ext#2[vi:n32:add](vi:n32#1 0))
       ) 4)
       5
-      vi:tuple(vi:dup(vi:dup(6 vi:ext#2[vi:n32:le](7 vi:bool:if[:root::data::Set::balance_left#2, :root::data::Set::balance_left#3](vi:interface(
+      vi:tuple(vi:dup(vi:dup(6 vi:ext#2[vi:n32:le](2 vi:bool:if[:root::data::Set::balance_left#2, :root::data::Set::balance_left#3](vi:interface(
         vi:tuple(1 4)
         5
-        vi:tuple(6 8)
-        9
-      )))) 3) 8)
-    ) 9)
-    10
+        vi:tuple(6 7)
+        8
+      )))) 3) 7)
+    ) 8)
+    9
+    vi:ref(10 10)
     vi:ref(11 11)
-    vi:ref(12 12)
     vi:ref(
-      vi:tuple(vi:dup(13 vi:ext#2[vi:n32:eq](vi:n32 vi:bool:if[
+      vi:tuple(vi:dup(12 vi:ext#2[vi:n32:eq](vi:n32 vi:bool:if[
         :root::data::Set::insert#2[:root::data::Map::ord_entry[:root::numeric::N32]],
         :root::data::Set::insert#3[:root::data::Map::ord_entry[:root::numeric::N32]],
       ](vi:interface(
-        vi:ref(13 14)
-        vi:ref(15 16)
-        10
-        17
-      )))) 15)
-      vi:tuple(14 16)
+        vi:ref(12 13)
+        vi:ref(14 15)
+        9
+        16
+      )))) 14)
+      vi:tuple(13 15)
     )
-    17
+    16
   )
   ^1 = vi:tuple
-  vi:n32#3 = vi:ext#2[vi:n32:mul](2 vi:ext#2[vi:n32:add](vi:n32#2 vi:dup(vi:eraser 7)))
 }
 
 :root::data::Map::iter_ref::iter[:root::numeric::N32] {
@@ -37447,27 +37441,26 @@ vi:synthetic[vi:synthetic:enum_variant_names[:root::logical::Option]] {
         vi:ext#2[vi:n32:add](8 vi:ext#2[vi:n32:add](vi:n32#1 0))
       ) 3)
       4
-      vi:tuple(vi:dup(vi:dup(5 9) 8) 6)
+      vi:tuple(vi:dup(vi:dup(5 vi:ext#2[vi:n32:mul](vi:n32#3 vi:ext#2[vi:n32:add](vi:n32#2 vi:dup(vi:eraser 2)))) 8) 6)
     ) 7)
-    10
+    9
     vi:ref(
-      vi:tuple(vi:dup(11 vi:ext#2[vi:n32:eq](vi:n32 vi:bool:if[
+      vi:tuple(vi:dup(10 vi:ext#2[vi:n32:eq](vi:n32 vi:bool:if[
         :root::data::Set::insert#2[:root::data::Map::ord_entry[:root::unicode::String]],
         :root::data::Set::insert#3[:root::data::Map::ord_entry[:root::unicode::String]],
       ](vi:interface(
-        vi:ref(11 12)
-        vi:ref(13 14)
-        10
-        15
-      )))) 13)
-      vi:tuple(12 14)
+        vi:ref(10 11)
+        vi:ref(12 13)
+        9
+        14
+      )))) 12)
+      vi:tuple(11 13)
     )
+    vi:ref(15 15)
     vi:ref(16 16)
-    vi:ref(17 17)
-    15
+    14
   )
   ^1 = vi:tuple
-  vi:n32#3 = vi:ext#2[vi:n32:mul](9 vi:ext#2[vi:n32:add](vi:n32#2 vi:dup(vi:eraser 2)))
 }
 
 :root::data::Set::insert#9[:root::data::Map::ord_entry[:root::unicode::String]] {
@@ -37488,36 +37481,35 @@ vi:synthetic[vi:synthetic:enum_variant_names[:root::logical::Option]] {
     vi:ref(vi:eraser 0)
     vi:ref(vi:tuple(
       vi:tuple(vi:dup(
-        vi:dup(1 2)
+        vi:dup(1 vi:ext#2[vi:n32:mul](vi:n32#3 vi:ext#2[vi:n32:add](vi:n32#2 vi:dup(vi:eraser 2))))
         vi:ext#2[vi:n32:add](3 vi:ext#2[vi:n32:add](vi:n32#1 0))
       ) 4)
       5
-      vi:tuple(vi:dup(vi:dup(6 vi:ext#2[vi:n32:le](7 vi:bool:if[:root::data::Set::balance_left#2, :root::data::Set::balance_left#3](vi:interface(
+      vi:tuple(vi:dup(vi:dup(6 vi:ext#2[vi:n32:le](2 vi:bool:if[:root::data::Set::balance_left#2, :root::data::Set::balance_left#3](vi:interface(
         vi:tuple(1 4)
         5
-        vi:tuple(6 8)
-        9
-      )))) 3) 8)
-    ) 9)
-    10
+        vi:tuple(6 7)
+        8
+      )))) 3) 7)
+    ) 8)
+    9
+    vi:ref(10 10)
     vi:ref(11 11)
-    vi:ref(12 12)
     vi:ref(
-      vi:tuple(vi:dup(13 vi:ext#2[vi:n32:eq](vi:n32 vi:bool:if[
+      vi:tuple(vi:dup(12 vi:ext#2[vi:n32:eq](vi:n32 vi:bool:if[
         :root::data::Set::insert#2[:root::data::Map::ord_entry[:root::unicode::String]],
         :root::data::Set::insert#3[:root::data::Map::ord_entry[:root::unicode::String]],
       ](vi:interface(
-        vi:ref(13 14)
-        vi:ref(15 16)
-        10
-        17
-      )))) 15)
-      vi:tuple(14 16)
+        vi:ref(12 13)
+        vi:ref(14 15)
+        9
+        16
+      )))) 14)
+      vi:tuple(13 15)
     )
-    17
+    16
   )
   ^1 = vi:tuple
-  vi:n32#3 = vi:ext#2[vi:n32:mul](2 vi:ext#2[vi:n32:add](vi:n32#2 vi:dup(vi:eraser 7)))
 }
 
 :root::derive::Struct::cast_reconstruct::cast[vi:synthetic:Struct[:json::Stuff]] {
@@ -44658,7 +44650,7 @@ vi:synthetic#14[vi:synthetic:enum_reconstruct[:root::codec::Json]] {
       :root::data::Set::remove#3[:root::data::Map::ord_entry[:root::unicode::String]],
     ](vi:interface(
       vi:ref(3 vi:dup(
-        vi:dup(4 5)
+        vi:dup(4 vi:ext#2[vi:n32:mul](vi:n32#3 vi:ext#2[vi:n32:add](vi:n32#2 vi:dup(vi:eraser 5))))
         vi:ext#2[vi:n32:add](6 vi:ext#2[vi:n32:add](vi:n32#1 0))
       ))
       vi:ref(7 8)
@@ -44666,16 +44658,15 @@ vi:synthetic#14[vi:synthetic:enum_reconstruct[:root::codec::Json]] {
       9
     )))) 7)
     10
-    vi:tuple(vi:dup(vi:dup(11 vi:ext#2[vi:n32:le](12 vi:bool:if[:root::data::Set::balance_left#2, :root::data::Set::balance_left#3](vi:interface(
+    vi:tuple(vi:dup(vi:dup(11 vi:ext#2[vi:n32:le](5 vi:bool:if[:root::data::Set::balance_left#2, :root::data::Set::balance_left#3](vi:interface(
       vi:tuple(4 8)
       10
-      vi:tuple(11 13)
+      vi:tuple(11 12)
       1
-    )))) 6) 13)
+    )))) 6) 12)
     9
   )
   ^1 = vi:tuple
-  vi:n32#3 = vi:ext#2[vi:n32:mul](5 vi:ext#2[vi:n32:add](vi:n32#2 vi:dup(vi:eraser 12)))
 }
 
 :root::data::Set::remove#9[:root::data::Map::ord_entry[:root::unicode::String]] {
@@ -44710,15 +44701,14 @@ vi:synthetic#14[vi:synthetic:enum_reconstruct[:root::codec::Json]] {
       :root::data::Set::remove#2[:root::data::Map::ord_entry[:root::unicode::String]],
       :root::data::Set::remove#3[:root::data::Map::ord_entry[:root::unicode::String]],
     ](vi:interface(
-      vi:ref(10 vi:dup(vi:dup(7 11) 9))
-      vi:ref(12 8)
+      vi:ref(10 vi:dup(vi:dup(7 vi:ext#2[vi:n32:mul](vi:n32#3 vi:ext#2[vi:n32:add](vi:n32#2 vi:dup(vi:eraser 4)))) 9))
+      vi:ref(11 8)
       2
-      13
-    )))) 12)
-    13
+      12
+    )))) 11)
+    12
   )
   ^1 = vi:tuple
-  vi:n32#3 = vi:ext#2[vi:n32:mul](11 vi:ext#2[vi:n32:add](vi:n32#2 vi:dup(vi:eraser 4)))
 }
 
 :root::data::Set::merge_balanced#3 {
@@ -44796,12 +44786,11 @@ vi:synthetic#14[vi:synthetic:enum_reconstruct[:root::codec::Json]] {
     )))) 3)
     4
     vi:tuple(
-      vi:ext#2[vi:n32:sub](vi:n32#1 vi:dup(5 7))
-      vi:tuple(8 9 vi:tuple(vi:dup(10 vi:dup(vi:eraser vi:ext#2[vi:n32:eq](vi:n32 vi:bool:if[:root::data::Set::_remove_max#2, :root::data::Set::_remove_max#3](vi:interface(6 8 9 vi:tuple(10 11) 12))))) 11))
+      vi:ext#2[vi:n32:sub](vi:n32#1 vi:dup(5 vi:ext#2[vi:n32:mul](vi:n32#3 vi:ext#2[vi:n32:add](vi:n32#2 vi:dup(vi:eraser 2)))))
+      vi:tuple(7 8 vi:tuple(vi:dup(9 vi:dup(vi:eraser vi:ext#2[vi:n32:eq](vi:n32 vi:bool:if[:root::data::Set::_remove_max#2, :root::data::Set::_remove_max#3](vi:interface(6 7 8 vi:tuple(9 10) 11))))) 10))
     )
-    12
+    11
   )
-  vi:n32#3 = vi:ext#2[vi:n32:mul](7 vi:ext#2[vi:n32:add](vi:n32#2 vi:dup(vi:eraser 2)))
 }
 
 :root::data::Set::_remove_min#2 {
@@ -44818,19 +44807,18 @@ vi:synthetic#14[vi:synthetic:enum_reconstruct[:root::codec::Json]] {
   ^ = vi:interface(
     0
     vi:tuple(
-      vi:ext#2[vi:n32:sub](vi:n32#1 vi:dup(1 2))
+      vi:ext#2[vi:n32:sub](vi:n32#1 vi:dup(1 vi:ext#2[vi:n32:mul](vi:n32#3 vi:ext#2[vi:n32:add](vi:n32#2 vi:dup(vi:eraser 2)))))
       vi:tuple(vi:tuple(vi:dup(3 vi:dup(vi:eraser vi:ext#2[vi:n32:eq](vi:n32 vi:bool:if[:root::data::Set::_remove_min#2, :root::data::Set::_remove_min#3](vi:interface(4 vi:tuple(3 5) 6 7 8))))) 5) 6 7)
     )
     9
-    vi:tuple(vi:dup(10 vi:ext#2[vi:n32:le](11 vi:bool:if[:root::data::Set::balance_left#2, :root::data::Set::balance_left#3](vi:interface(
+    vi:tuple(vi:dup(10 vi:ext#2[vi:n32:le](2 vi:bool:if[:root::data::Set::balance_left#2, :root::data::Set::balance_left#3](vi:interface(
       vi:tuple(1 4)
       9
-      vi:tuple(10 12)
+      vi:tuple(10 11)
       0
-    )))) 12)
+    )))) 11)
     8
   )
-  vi:n32#3 = vi:ext#2[vi:n32:mul](2 vi:ext#2[vi:n32:add](vi:n32#2 vi:dup(vi:eraser 11)))
 }
 
 :root::logical::Option::map#4[
@@ -57382,27 +57370,26 @@ vi:synthetic#4[vi:synthetic:enum_deconstruct[:life::Signal]] {
 :root::data::Set::balanced#3[:root::data::Map::ord_entry[:root::numeric::N32]] {
   ^ = vi:interface(vi:ref(
     vi:tuple(
-      vi:tuple(vi:dup(0 1) 2)
+      vi:tuple(vi:dup(0 vi:ext#2[vi:n32:mul](vi:n32#3 vi:ext#2[vi:n32:add](vi:n32#2 vi:dup(vi:eraser 1)))) 2)
       3
-      vi:tuple(vi:dup(4 vi:ext#2[vi:n32:le](5 vi:bool:if[
+      vi:tuple(vi:dup(4 vi:ext#2[vi:n32:le](1 vi:bool:if[
         :root::data::Set::balanced#5[:root::data::Map::ord_entry[:root::numeric::N32]],
         :root::data::Set::balanced#6[:root::data::Map::ord_entry[:root::numeric::N32]],
       ](vi:interface(
-        vi:ref(vi:tuple(0 2) 6)
-        vi:ref(vi:tuple(4 7) 8)
+        vi:ref(vi:tuple(0 2) 5)
+        vi:ref(vi:tuple(4 6) 7)
         vi:bool:if[
           :root::data::Set::balanced#11[:root::data::Map::ord_entry[:root::numeric::N32]],
           :root::data::Set::balanced#12[:root::data::Map::ord_entry[:root::numeric::N32]],
         ](vi:interface(
-          vi:ref(6 9)
-          vi:ref(8 10)
-          11
+          vi:ref(5 8)
+          vi:ref(7 9)
+          10
         ))
-      )))) 7)
+      )))) 6)
     )
-    vi:tuple(9 3 10)
-  ) 11)
-  vi:n32#3 = vi:ext#2[vi:n32:mul](1 vi:ext#2[vi:n32:add](vi:n32#2 vi:dup(vi:eraser 5)))
+    vi:tuple(8 3 9)
+  ) 10)
 }
 
 :root::data::Set::balanced#5[:root::data::Map::ord_entry[:root::numeric::N32]] {
@@ -57415,12 +57402,11 @@ vi:synthetic#4[vi:synthetic:enum_deconstruct[:life::Signal]] {
       vi:tuple(0 3)
     )
     vi:ref(
-      vi:tuple(vi:dup(4 5) 6)
-      vi:tuple(4 6)
+      vi:tuple(vi:dup(4 vi:ext#2[vi:n32:mul](vi:n32#3 vi:ext#2[vi:n32:add](vi:n32#2 vi:dup(vi:eraser 1)))) 5)
+      vi:tuple(4 5)
     )
     2
   )
-  vi:n32#3 = vi:ext#2[vi:n32:mul](5 vi:ext#2[vi:n32:add](vi:n32#2 vi:dup(vi:eraser 1)))
 }
 
 :root::data::Set::balanced#6[:root::data::Map::ord_entry[:root::numeric::N32]] {
@@ -57640,7 +57626,7 @@ vi:synthetic#4[vi:synthetic:enum_deconstruct[:life::Signal]] {
       :root::data::Set::remove#3[:root::data::Map::ord_entry[:root::numeric::N32]],
     ](vi:interface(
       vi:ref(3 vi:dup(
-        vi:dup(4 5)
+        vi:dup(4 vi:ext#2[vi:n32:mul](vi:n32#3 vi:ext#2[vi:n32:add](vi:n32#2 vi:dup(vi:eraser 5))))
         vi:ext#2[vi:n32:add](6 vi:ext#2[vi:n32:add](vi:n32#1 0))
       ))
       vi:ref(7 8)
@@ -57648,16 +57634,15 @@ vi:synthetic#4[vi:synthetic:enum_deconstruct[:life::Signal]] {
       9
     )))) 7)
     10
-    vi:tuple(vi:dup(vi:dup(11 vi:ext#2[vi:n32:le](12 vi:bool:if[:root::data::Set::balance_left#2, :root::data::Set::balance_left#3](vi:interface(
+    vi:tuple(vi:dup(vi:dup(11 vi:ext#2[vi:n32:le](5 vi:bool:if[:root::data::Set::balance_left#2, :root::data::Set::balance_left#3](vi:interface(
       vi:tuple(4 8)
       10
-      vi:tuple(11 13)
+      vi:tuple(11 12)
       1
-    )))) 6) 13)
+    )))) 6) 12)
     9
   )
   ^1 = vi:tuple
-  vi:n32#3 = vi:ext#2[vi:n32:mul](5 vi:ext#2[vi:n32:add](vi:n32#2 vi:dup(vi:eraser 12)))
 }
 
 :root::data::Set::remove#9[:root::data::Map::ord_entry[:root::numeric::N32]] {
@@ -57692,15 +57677,14 @@ vi:synthetic#4[vi:synthetic:enum_deconstruct[:life::Signal]] {
       :root::data::Set::remove#2[:root::data::Map::ord_entry[:root::numeric::N32]],
       :root::data::Set::remove#3[:root::data::Map::ord_entry[:root::numeric::N32]],
     ](vi:interface(
-      vi:ref(10 vi:dup(vi:dup(7 11) 9))
-      vi:ref(12 8)
+      vi:ref(10 vi:dup(vi:dup(7 vi:ext#2[vi:n32:mul](vi:n32#3 vi:ext#2[vi:n32:add](vi:n32#2 vi:dup(vi:eraser 4)))) 9))
+      vi:ref(11 8)
       2
-      13
-    )))) 12)
-    13
+      12
+    )))) 11)
+    12
   )
   ^1 = vi:tuple
-  vi:n32#3 = vi:ext#2[vi:n32:mul](11 vi:ext#2[vi:n32:add](vi:n32#2 vi:dup(vi:eraser 4)))
 }
 
 :root::logical::Option::map#4[
@@ -73175,23 +73159,22 @@ vi:synthetic[vi:synthetic:string#0x7200000069000000610000005000000004] {
     2
     3
     vi:tuple(4 5)
-    vi:ref(vi:dup(6 7) 8)
-    vi:dup(9 vi:ext#2[vi:n32:lt](10 vi:bool:if[:day_06::walk#2, :day_06::walk#3](vi:interface(
+    vi:ref(vi:dup(6 vi:ext#2[vi:n32:mul](vi:n32#3 vi:dup(vi:eraser 7))) 8)
+    vi:dup(9 vi:ext#2[vi:n32:lt](7 vi:bool:if[:day_06::walk#2, :day_06::walk#3](vi:interface(
       0
       1
       2
       3
-      vi:tuple(11 4)
+      vi:tuple(10 4)
       vi:ref(6 8)
       9
-      12
+      11
     ))))
     vi:eraser
-    vi:ref(13 13)
-    12
+    vi:ref(12 12)
+    11
   )
-  vi:n32 = vi:ext#2[vi:n32:sub](5 11)
-  vi:n32#3 = vi:ext#2[vi:n32:mul](7 vi:dup(vi:eraser 10))
+  vi:n32 = vi:ext#2[vi:n32:sub](5 10)
 }
 
 :day_06::walk#12 {
@@ -73205,12 +73188,11 @@ vi:synthetic[vi:synthetic:string#0x7200000069000000610000005000000004] {
     6
     7
     vi:ref(vi:dup(vi:eraser vi:ext#2[vi:n32:eq](vi:n32#88 vi:bool:if[:day_06::walk#14, :day_06::walk#15](vi:interface(
-      vi:ref(4 vi:dup(8 9))
-      vi:ref(6 vi:dup(10 vi:ext#2[vi:n32:lt](11 vi:bool:if[:day_06::walk#2, :day_06::walk#3](vi:interface(0 7 1 2 3 vi:ref(8 5) 10 12)))))
+      vi:ref(4 vi:dup(8 vi:ext#2[vi:n32:mul](vi:n32#3 vi:dup(vi:eraser 9))))
+      vi:ref(6 vi:dup(10 vi:ext#2[vi:n32:lt](9 vi:bool:if[:day_06::walk#2, :day_06::walk#3](vi:interface(0 7 1 2 3 vi:ref(8 5) 10 11)))))
     )))) vi:n32#88)
-    12
+    11
   )
-  vi:n32#3 = vi:ext#2[vi:n32:mul](9 vi:dup(vi:eraser 11))
 }
 
 :day_06::walk#14 {
@@ -74411,27 +74393,26 @@ vi:synthetic[vi:synthetic:string#0x7200000069000000610000005000000004] {
         vi:ext#2[vi:n32:add](8 vi:ext#2[vi:n32:add](vi:n32#1 0))
       ) 3)
       4
-      vi:tuple(vi:dup(vi:dup(5 9) 8) 6)
+      vi:tuple(vi:dup(vi:dup(5 vi:ext#2[vi:n32:mul](vi:n32#3 vi:ext#2[vi:n32:add](vi:n32#2 vi:dup(vi:eraser 2)))) 8) 6)
     ) 7)
-    10
+    9
     vi:ref(
-      vi:tuple(vi:dup(11 vi:ext#2[vi:n32:eq](vi:n32 vi:bool:if[
+      vi:tuple(vi:dup(10 vi:ext#2[vi:n32:eq](vi:n32 vi:bool:if[
         :root::data::Set::insert#2[:root::data::Map::ord_entry[:root::ops::comparison::Ord::tuple[vi:synthetic:Tuple#2, :root::numeric::N32, :root::ops::comparison::Ord::unary[:root::numeric::N32]]]],
         :root::data::Set::insert#3[:root::data::Map::ord_entry[:root::ops::comparison::Ord::tuple[vi:synthetic:Tuple#2, :root::numeric::N32, :root::ops::comparison::Ord::unary[:root::numeric::N32]]]],
       ](vi:interface(
-        vi:ref(11 12)
-        vi:ref(13 14)
-        10
-        15
-      )))) 13)
-      vi:tuple(12 14)
+        vi:ref(10 11)
+        vi:ref(12 13)
+        9
+        14
+      )))) 12)
+      vi:tuple(11 13)
     )
+    vi:ref(15 15)
     vi:ref(16 16)
-    vi:ref(17 17)
-    15
+    14
   )
   ^1 = vi:tuple
-  vi:n32#3 = vi:ext#2[vi:n32:mul](9 vi:ext#2[vi:n32:add](vi:n32#2 vi:dup(vi:eraser 2)))
 }
 
 :root::data::Set::insert#9[:root::data::Map::ord_entry[:root::ops::comparison::Ord::tuple[vi:synthetic:Tuple#2, :root::numeric::N32, :root::ops::comparison::Ord::unary[:root::numeric::N32]]]] {
@@ -74452,36 +74433,35 @@ vi:synthetic[vi:synthetic:string#0x7200000069000000610000005000000004] {
     vi:ref(vi:eraser 0)
     vi:ref(vi:tuple(
       vi:tuple(vi:dup(
-        vi:dup(1 2)
+        vi:dup(1 vi:ext#2[vi:n32:mul](vi:n32#3 vi:ext#2[vi:n32:add](vi:n32#2 vi:dup(vi:eraser 2))))
         vi:ext#2[vi:n32:add](3 vi:ext#2[vi:n32:add](vi:n32#1 0))
       ) 4)
       5
-      vi:tuple(vi:dup(vi:dup(6 vi:ext#2[vi:n32:le](7 vi:bool:if[:root::data::Set::balance_left#2, :root::data::Set::balance_left#3](vi:interface(
+      vi:tuple(vi:dup(vi:dup(6 vi:ext#2[vi:n32:le](2 vi:bool:if[:root::data::Set::balance_left#2, :root::data::Set::balance_left#3](vi:interface(
         vi:tuple(1 4)
         5
-        vi:tuple(6 8)
-        9
-      )))) 3) 8)
-    ) 9)
-    10
+        vi:tuple(6 7)
+        8
+      )))) 3) 7)
+    ) 8)
+    9
+    vi:ref(10 10)
     vi:ref(11 11)
-    vi:ref(12 12)
     vi:ref(
-      vi:tuple(vi:dup(13 vi:ext#2[vi:n32:eq](vi:n32 vi:bool:if[
+      vi:tuple(vi:dup(12 vi:ext#2[vi:n32:eq](vi:n32 vi:bool:if[
         :root::data::Set::insert#2[:root::data::Map::ord_entry[:root::ops::comparison::Ord::tuple[vi:synthetic:Tuple#2, :root::numeric::N32, :root::ops::comparison::Ord::unary[:root::numeric::N32]]]],
         :root::data::Set::insert#3[:root::data::Map::ord_entry[:root::ops::comparison::Ord::tuple[vi:synthetic:Tuple#2, :root::numeric::N32, :root::ops::comparison::Ord::unary[:root::numeric::N32]]]],
       ](vi:interface(
-        vi:ref(13 14)
-        vi:ref(15 16)
-        10
-        17
-      )))) 15)
-      vi:tuple(14 16)
+        vi:ref(12 13)
+        vi:ref(14 15)
+        9
+        16
+      )))) 14)
+      vi:tuple(13 15)
     )
-    17
+    16
   )
   ^1 = vi:tuple
-  vi:n32#3 = vi:ext#2[vi:n32:mul](2 vi:ext#2[vi:n32:add](vi:n32#2 vi:dup(vi:eraser 7)))
 }
 
 :root::logical::Option::map#4[
@@ -74556,27 +74536,26 @@ vi:synthetic[vi:synthetic:string#0x7200000069000000610000005000000004] {
         vi:ext#2[vi:n32:add](8 vi:ext#2[vi:n32:add](vi:n32#1 0))
       ) 3)
       4
-      vi:tuple(vi:dup(vi:dup(5 9) 8) 6)
+      vi:tuple(vi:dup(vi:dup(5 vi:ext#2[vi:n32:mul](vi:n32#3 vi:ext#2[vi:n32:add](vi:n32#2 vi:dup(vi:eraser 2)))) 8) 6)
     ) 7)
-    10
+    9
     vi:ref(
-      vi:tuple(vi:dup(11 vi:ext#2[vi:n32:eq](vi:n32 vi:bool:if[
+      vi:tuple(vi:dup(10 vi:ext#2[vi:n32:eq](vi:n32 vi:bool:if[
         :root::data::Set::insert#2[:root::data::Map::ord_entry[:root::unicode::Char]],
         :root::data::Set::insert#3[:root::data::Map::ord_entry[:root::unicode::Char]],
       ](vi:interface(
-        vi:ref(11 12)
-        vi:ref(13 14)
-        10
-        15
-      )))) 13)
-      vi:tuple(12 14)
+        vi:ref(10 11)
+        vi:ref(12 13)
+        9
+        14
+      )))) 12)
+      vi:tuple(11 13)
     )
+    vi:ref(15 15)
     vi:ref(16 16)
-    vi:ref(17 17)
-    15
+    14
   )
   ^1 = vi:tuple
-  vi:n32#3 = vi:ext#2[vi:n32:mul](9 vi:ext#2[vi:n32:add](vi:n32#2 vi:dup(vi:eraser 2)))
 }
 
 :root::data::Set::insert#9[:root::data::Map::ord_entry[:root::unicode::Char]] {
@@ -74597,36 +74576,35 @@ vi:synthetic[vi:synthetic:string#0x7200000069000000610000005000000004] {
     vi:ref(vi:eraser 0)
     vi:ref(vi:tuple(
       vi:tuple(vi:dup(
-        vi:dup(1 2)
+        vi:dup(1 vi:ext#2[vi:n32:mul](vi:n32#3 vi:ext#2[vi:n32:add](vi:n32#2 vi:dup(vi:eraser 2))))
         vi:ext#2[vi:n32:add](3 vi:ext#2[vi:n32:add](vi:n32#1 0))
       ) 4)
       5
-      vi:tuple(vi:dup(vi:dup(6 vi:ext#2[vi:n32:le](7 vi:bool:if[:root::data::Set::balance_left#2, :root::data::Set::balance_left#3](vi:interface(
+      vi:tuple(vi:dup(vi:dup(6 vi:ext#2[vi:n32:le](2 vi:bool:if[:root::data::Set::balance_left#2, :root::data::Set::balance_left#3](vi:interface(
         vi:tuple(1 4)
         5
-        vi:tuple(6 8)
-        9
-      )))) 3) 8)
-    ) 9)
-    10
+        vi:tuple(6 7)
+        8
+      )))) 3) 7)
+    ) 8)
+    9
+    vi:ref(10 10)
     vi:ref(11 11)
-    vi:ref(12 12)
     vi:ref(
-      vi:tuple(vi:dup(13 vi:ext#2[vi:n32:eq](vi:n32 vi:bool:if[
+      vi:tuple(vi:dup(12 vi:ext#2[vi:n32:eq](vi:n32 vi:bool:if[
         :root::data::Set::insert#2[:root::data::Map::ord_entry[:root::unicode::Char]],
         :root::data::Set::insert#3[:root::data::Map::ord_entry[:root::unicode::Char]],
       ](vi:interface(
-        vi:ref(13 14)
-        vi:ref(15 16)
-        10
-        17
-      )))) 15)
-      vi:tuple(14 16)
+        vi:ref(12 13)
+        vi:ref(14 15)
+        9
+        16
+      )))) 14)
+      vi:tuple(13 15)
     )
-    17
+    16
   )
   ^1 = vi:tuple
-  vi:n32#3 = vi:ext#2[vi:n32:mul](2 vi:ext#2[vi:n32:add](vi:n32#2 vi:dup(vi:eraser 7)))
 }
 
 :root::logical::Option::map#4[
@@ -75971,27 +75949,26 @@ vi:synthetic[vi:synthetic:string#0x7200000069000000610000005000000004] {
         vi:ext#2[vi:n32:add](8 vi:ext#2[vi:n32:add](vi:n32#1 0))
       ) 3)
       4
-      vi:tuple(vi:dup(vi:dup(5 9) 8) 6)
+      vi:tuple(vi:dup(vi:dup(5 vi:ext#2[vi:n32:mul](vi:n32#3 vi:ext#2[vi:n32:add](vi:n32#2 vi:dup(vi:eraser 2)))) 8) 6)
     ) 7)
-    10
+    9
     vi:ref(
-      vi:tuple(vi:dup(11 vi:ext#2[vi:n32:eq](vi:n32 vi:bool:if[
+      vi:tuple(vi:dup(10 vi:ext#2[vi:n32:eq](vi:n32 vi:bool:if[
         :root::data::Set::insert#2[:root::data::Map::ord_entry[:root::numeric::N64]],
         :root::data::Set::insert#3[:root::data::Map::ord_entry[:root::numeric::N64]],
       ](vi:interface(
-        vi:ref(11 12)
-        vi:ref(13 14)
-        10
-        15
-      )))) 13)
-      vi:tuple(12 14)
+        vi:ref(10 11)
+        vi:ref(12 13)
+        9
+        14
+      )))) 12)
+      vi:tuple(11 13)
     )
+    vi:ref(15 15)
     vi:ref(16 16)
-    vi:ref(17 17)
-    15
+    14
   )
   ^1 = vi:tuple
-  vi:n32#3 = vi:ext#2[vi:n32:mul](9 vi:ext#2[vi:n32:add](vi:n32#2 vi:dup(vi:eraser 2)))
 }
 
 :root::data::Set::insert#9[:root::data::Map::ord_entry[:root::numeric::N64]] {
@@ -76012,36 +75989,35 @@ vi:synthetic[vi:synthetic:string#0x7200000069000000610000005000000004] {
     vi:ref(vi:eraser 0)
     vi:ref(vi:tuple(
       vi:tuple(vi:dup(
-        vi:dup(1 2)
+        vi:dup(1 vi:ext#2[vi:n32:mul](vi:n32#3 vi:ext#2[vi:n32:add](vi:n32#2 vi:dup(vi:eraser 2))))
         vi:ext#2[vi:n32:add](3 vi:ext#2[vi:n32:add](vi:n32#1 0))
       ) 4)
       5
-      vi:tuple(vi:dup(vi:dup(6 vi:ext#2[vi:n32:le](7 vi:bool:if[:root::data::Set::balance_left#2, :root::data::Set::balance_left#3](vi:interface(
+      vi:tuple(vi:dup(vi:dup(6 vi:ext#2[vi:n32:le](2 vi:bool:if[:root::data::Set::balance_left#2, :root::data::Set::balance_left#3](vi:interface(
         vi:tuple(1 4)
         5
-        vi:tuple(6 8)
-        9
-      )))) 3) 8)
-    ) 9)
-    10
+        vi:tuple(6 7)
+        8
+      )))) 3) 7)
+    ) 8)
+    9
+    vi:ref(10 10)
     vi:ref(11 11)
-    vi:ref(12 12)
     vi:ref(
-      vi:tuple(vi:dup(13 vi:ext#2[vi:n32:eq](vi:n32 vi:bool:if[
+      vi:tuple(vi:dup(12 vi:ext#2[vi:n32:eq](vi:n32 vi:bool:if[
         :root::data::Set::insert#2[:root::data::Map::ord_entry[:root::numeric::N64]],
         :root::data::Set::insert#3[:root::data::Map::ord_entry[:root::numeric::N64]],
       ](vi:interface(
-        vi:ref(13 14)
-        vi:ref(15 16)
-        10
-        17
-      )))) 15)
-      vi:tuple(14 16)
+        vi:ref(12 13)
+        vi:ref(14 15)
+        9
+        16
+      )))) 14)
+      vi:tuple(13 15)
     )
-    17
+    16
   )
   ^1 = vi:tuple
-  vi:n32#3 = vi:ext#2[vi:n32:mul](2 vi:ext#2[vi:n32:add](vi:n32#2 vi:dup(vi:eraser 7)))
 }
 
 :root::ops::comparison::Ord::cmp_from_lt#3[:root::numeric::N64] {
@@ -77119,8 +77095,14 @@ vi:synthetic[vi:synthetic:string#0x7200000069000000610000005000000004] {
         vi:dup(
           vi:ext#2[vi:n32:add_high](1 vi:ext#1[vi:bool:to_n32](2))
           vi:ext#2[vi:n32:add](3 vi:dup(4 vi:dup(
-            vi:dup(5 vi:dup(6 7))
-            vi:dup(8 vi:dup(9 10))
+            vi:dup(
+              vi:ext#2[vi:n32:mul](vi:n32 5)
+              vi:dup(6 7)
+            )
+            vi:dup(
+              vi:ext#2[vi:n32:mul](vi:n32 8)
+              vi:dup(9 10)
+            )
           )))
         )
         vi:ext#2[vi:n32:add](2 vi:dup(11 vi:dup(12 13)))
@@ -77131,8 +77113,14 @@ vi:synthetic[vi:synthetic:string#0x7200000069000000610000005000000004] {
           vi:ext#2[vi:n32:add](16 vi:dup(
             vi:dup(vi:eraser 17)
             vi:dup(
-              vi:dup(18 vi:dup(19 20))
-              vi:dup(21 vi:dup(22 23))
+              vi:dup(
+                vi:ext#2[vi:n32:mul](vi:n32 18)
+                vi:dup(19 20)
+              )
+              vi:dup(
+                vi:ext#2[vi:n32:mul](vi:n32 21)
+                vi:dup(22 23)
+              )
             )
           ))
         )
@@ -77150,185 +77138,181 @@ vi:synthetic[vi:synthetic:string#0x7200000069000000610000005000000004] {
       vi:ref(39 30)
     )))))) 36 37)
   )
-  vi:n32 = vi:ext#2[vi:n32:mul](21 40)
-  vi:n32 = vi:ext#2[vi:n32:mul](8 41)
-  vi:n32 = vi:ext#2[vi:n32:mul](5 42)
-  vi:n32 = vi:ext#2[vi:n32:mul](18 43)
   vi:n32#1 = vi:ext#2[vi:n32:le](32 vi:bool:if[:root::unicode::String::split_once#2, :root::unicode::String::split_once#3](vi:interface(
-    vi:tuple(vi:n32#1 vi:tuple(vi:n32#43 44) 44)
-    vi:tuple(vi:n32 45 45)
+    vi:tuple(vi:n32#1 vi:tuple(vi:n32#43 40) 40)
+    vi:tuple(vi:n32 41 41)
     vi:tuple(31 33 34)
-    vi:tuple(vi:eraser vi:enum:match[vi:enum#2, :root::logical::Option::assume#4, :root::logical::Option::assume#5](vi:interface(vi:tuple(vi:dup(46 vi:dup(vi:eraser 47)) 48 49))))
+    vi:tuple(vi:eraser vi:enum:match[vi:enum#2, :root::logical::Option::assume#4, :root::logical::Option::assume#5](vi:interface(vi:tuple(vi:dup(42 vi:dup(vi:eraser 43)) 44 45))))
   )))
-  vi:n32#4 = vi:ext#2[vi:n32:le](47 vi:bool:if[:root::unicode::String::split_once#2, :root::unicode::String::split_once#3](vi:interface(
-    vi:tuple(vi:n32#4 vi:tuple(vi:n32#44 vi:tuple(vi:n32#32 vi:tuple(vi:n32#89 vi:tuple(vi:n32#43 50)))) 50)
-    vi:tuple(vi:n32 51 51)
-    vi:tuple(46 48 49)
+  vi:n32#4 = vi:ext#2[vi:n32:le](43 vi:bool:if[:root::unicode::String::split_once#2, :root::unicode::String::split_once#3](vi:interface(
+    vi:tuple(vi:n32#4 vi:tuple(vi:n32#44 vi:tuple(vi:n32#32 vi:tuple(vi:n32#89 vi:tuple(vi:n32#43 46)))) 46)
+    vi:tuple(vi:n32 47 47)
+    vi:tuple(42 44 45)
     vi:tuple(
-      vi:tuple(vi:dup(52 vi:dup(vi:eraser vi:ext#2[vi:n32:eq](vi:n32 vi:bool:if[:root::numeric::N32::parse#2, :root::numeric::N32::parse#3](vi:interface(
-        vi:tuple(52 53 54)
+      vi:tuple(vi:dup(48 vi:dup(vi:eraser vi:ext#2[vi:n32:eq](vi:n32 vi:bool:if[:root::numeric::N32::parse#2, :root::numeric::N32::parse#3](vi:interface(
+        vi:tuple(48 49 50)
         vi:enum:match[vi:enum#2, :root::logical::Option::assume#4, :root::logical::Option::assume#5](vi:interface(vi:dup(
-          vi:dup(55 vi:dup(56 57))
+          vi:dup(51 vi:dup(52 53))
           vi:dup(
             vi:dup(
-              vi:ext#2[vi:n32:mul](12 58)
+              vi:ext#2[vi:n32:mul](12 54)
               vi:dup(
-                vi:ext#2[vi:n32:mul_high](6 vi:ext#2[vi:n32:add](58 vi:ext#2[vi:n32:add](42 vi:dup(59 60))))
-                vi:ext#2[vi:n32:mul](7 61)
+                vi:ext#2[vi:n32:mul_high](6 vi:ext#2[vi:n32:add](54 vi:ext#2[vi:n32:add](5 vi:dup(55 56))))
+                vi:ext#2[vi:n32:mul](7 57)
               )
             )
             vi:dup(
-              vi:ext#2[vi:n32:mul](62 vi:ext#2[vi:n32:add](63 vi:dup(vi:eraser vi:ext#2[vi:n32:eq](64 vi:bool:if[:day_13::main#7, :day_13::main#8](vi:interface(
+              vi:ext#2[vi:n32:mul](58 vi:ext#2[vi:n32:add](59 vi:dup(vi:eraser vi:ext#2[vi:n32:eq](60 vi:bool:if[:day_13::main#7, :day_13::main#8](vi:interface(
                 vi:ref(27 38)
-                vi:ref(65 vi:dup(1 3))
-                66
-                67
-                68
+                vi:ref(61 vi:dup(1 3))
+                62
+                63
+                64
               ))))))
               vi:dup(
-                vi:ext#2[vi:n32:mul](69 vi:dup(70 71))
-                vi:ext#2[vi:n32:mul](72 vi:dup(73 74))
+                vi:ext#2[vi:n32:mul](65 vi:dup(66 67))
+                vi:ext#2[vi:n32:mul](68 vi:dup(69 70))
               )
             )
           )
         )))
-      ))))) 53 54)
-      vi:enum:match[vi:enum#2, :root::logical::Option::assume#4, :root::logical::Option::assume#5](vi:interface(vi:tuple(vi:dup(75 vi:dup(vi:eraser 76)) 77 78)))
+      ))))) 49 50)
+      vi:enum:match[vi:enum#2, :root::logical::Option::assume#4, :root::logical::Option::assume#5](vi:interface(vi:tuple(vi:dup(71 vi:dup(vi:eraser 72)) 73 74)))
     )
   )))
-  vi:n32#13 = vi:ext#2[vi:n32:le](76 vi:bool:if[:root::unicode::String::split_once#2, :root::unicode::String::split_once#3](vi:interface(
-    vi:tuple(vi:n32#13 vi:tuple(vi:n32#10 vi:tuple(vi:n32#66 vi:tuple(vi:n32#117 vi:tuple(vi:n32#116 vi:tuple(vi:n32#116 vi:tuple(vi:n32#111 vi:tuple(vi:n32#110 vi:tuple(vi:n32#32 vi:tuple(vi:n32#66 vi:tuple(vi:n32#58 vi:tuple(vi:n32#32 vi:tuple(vi:n32#88 vi:tuple(vi:n32#43 79))))))))))))) 79)
-    vi:tuple(vi:n32 80 80)
-    vi:tuple(75 77 78)
+  vi:n32#13 = vi:ext#2[vi:n32:le](72 vi:bool:if[:root::unicode::String::split_once#2, :root::unicode::String::split_once#3](vi:interface(
+    vi:tuple(vi:n32#13 vi:tuple(vi:n32#10 vi:tuple(vi:n32#66 vi:tuple(vi:n32#117 vi:tuple(vi:n32#116 vi:tuple(vi:n32#116 vi:tuple(vi:n32#111 vi:tuple(vi:n32#110 vi:tuple(vi:n32#32 vi:tuple(vi:n32#66 vi:tuple(vi:n32#58 vi:tuple(vi:n32#32 vi:tuple(vi:n32#88 vi:tuple(vi:n32#43 75))))))))))))) 75)
+    vi:tuple(vi:n32 76 76)
+    vi:tuple(71 73 74)
     vi:tuple(
-      vi:tuple(vi:dup(81 vi:dup(vi:eraser vi:ext#2[vi:n32:eq](vi:n32 vi:bool:if[:root::numeric::N32::parse#2, :root::numeric::N32::parse#3](vi:interface(
-        vi:tuple(81 82 83)
+      vi:tuple(vi:dup(77 vi:dup(vi:eraser vi:ext#2[vi:n32:eq](vi:n32 vi:bool:if[:root::numeric::N32::parse#2, :root::numeric::N32::parse#3](vi:interface(
+        vi:tuple(77 78 79)
         vi:enum:match[vi:enum#2, :root::logical::Option::assume#4, :root::logical::Option::assume#5](vi:interface(vi:dup(
-          vi:dup(84 vi:dup(85 86))
+          vi:dup(80 vi:dup(81 82))
           vi:dup(
             vi:dup(
-              vi:ext#2[vi:n32:mul](25 87)
+              vi:ext#2[vi:n32:mul](25 83)
               vi:dup(
-                vi:ext#2[vi:n32:mul_high](19 vi:ext#2[vi:n32:add](87 vi:ext#2[vi:n32:add](43 vi:dup(88 vi:ext#2[vi:n32:lt](60 vi:bool:if[:root::numeric::N64::lt#2, :root::numeric::N64::lt#3](vi:interface(
-                  vi:ref(89 90)
-                  vi:ref(88 91)
-                  vi:ref(61 92)
-                  vi:ref(59 93)
+                vi:ext#2[vi:n32:mul_high](19 vi:ext#2[vi:n32:add](83 vi:ext#2[vi:n32:add](18 vi:dup(84 vi:ext#2[vi:n32:lt](56 vi:bool:if[:root::numeric::N64::lt#2, :root::numeric::N64::lt#3](vi:interface(
+                  vi:ref(85 86)
+                  vi:ref(84 87)
+                  vi:ref(57 88)
+                  vi:ref(55 89)
                   vi:bool:if[:root::numeric::N64::diff#2, :root::numeric::N64::diff#3](vi:interface(
-                    vi:tuple(92 93)
-                    vi:tuple(90 91)
-                    vi:tuple(94 vi:dup(
-                      vi:ext#2[vi:n32:rem](95 vi:dup(96 vi:ext#2[vi:n32:ne](vi:n32 vi:bool:if[:root::numeric::N64::div_rem_n32#2, :root::numeric::N64::div_rem_n32#3](vi:interface(
-                        vi:ref(94 vi:dup(
-                          vi:ext#2[vi:n32:rem](97 vi:eraser)
-                          vi:ext#2[vi:n32:div](98 99)
+                    vi:tuple(88 89)
+                    vi:tuple(86 87)
+                    vi:tuple(90 vi:dup(
+                      vi:ext#2[vi:n32:rem](91 vi:dup(92 vi:ext#2[vi:n32:ne](vi:n32 vi:bool:if[:root::numeric::N64::div_rem_n32#2, :root::numeric::N64::div_rem_n32#3](vi:interface(
+                        vi:ref(90 vi:dup(
+                          vi:ext#2[vi:n32:rem](93 vi:eraser)
+                          vi:ext#2[vi:n32:div](94 95)
                         ))
+                        92
                         96
-                        100
-                        vi:ref(vi:n32 vi:ext#2[vi:n32:add](99 vi:dup(101 vi:dup(
+                        vi:ref(vi:n32 vi:ext#2[vi:n32:add](95 vi:dup(97 vi:dup(
                           vi:dup(
-                            vi:ext#2[vi:n32:mul](vi:n32 102)
+                            vi:ext#2[vi:n32:mul](vi:n32 98)
                             vi:dup(
-                              vi:ext#2[vi:n32:mul_high](103 vi:ext#2[vi:n32:add](102 vi:ext#2[vi:n32:add](104 105)))
-                              vi:ext#2[vi:n32:mul](106 vi:dup(107 108))
+                              vi:ext#2[vi:n32:mul_high](99 vi:ext#2[vi:n32:add](98 vi:ext#2[vi:n32:add](100 101)))
+                              vi:ext#2[vi:n32:mul](102 vi:dup(103 104))
                             )
                           )
                           vi:dup(
-                            vi:ext#2[vi:n32:mul](vi:n32 109)
+                            vi:ext#2[vi:n32:mul](vi:n32 105)
                             vi:dup(
-                              vi:ext#2[vi:n32:mul_high](110 vi:ext#2[vi:n32:add](109 vi:ext#2[vi:n32:add](111 112)))
-                              vi:ext#2[vi:n32:mul](113 vi:dup(114 115))
+                              vi:ext#2[vi:n32:mul_high](106 vi:ext#2[vi:n32:add](105 vi:ext#2[vi:n32:add](107 108)))
+                              vi:ext#2[vi:n32:mul](109 vi:dup(110 111))
                             )
                           )
                         ))))
                       )))))
-                      vi:ext#2[vi:n32:div](116 vi:dup(117 vi:dup(
-                        vi:ext#2[vi:n32:mul](118 104)
-                        vi:ext#2[vi:n32:mul](119 111)
+                      vi:ext#2[vi:n32:div](112 vi:dup(113 vi:dup(
+                        vi:ext#2[vi:n32:mul](114 100)
+                        vi:ext#2[vi:n32:mul](115 107)
                       )))
                     ))
                   ))
                 )))))))
-                vi:ext#2[vi:n32:mul](20 89)
+                vi:ext#2[vi:n32:mul](20 85)
               )
             )
             vi:dup(
-              vi:ext#2[vi:n32:mul](120 vi:ext#2[vi:n32:add](121 68))
+              vi:ext#2[vi:n32:mul](116 vi:ext#2[vi:n32:add](117 64))
               vi:dup(
-                vi:ext#2[vi:n32:mul](122 vi:dup(123 vi:ext#2[vi:n32:lt](71 vi:bool:if[:root::numeric::N32::diff#2, :root::numeric::N32::diff#3](vi:interface(70 123 vi:ext#2[vi:n32:div](124 vi:dup(67 vi:dup(125 126))))))))
-                vi:ext#2[vi:n32:mul](127 vi:dup(128 vi:ext#2[vi:n32:lt](74 vi:bool:if[:root::numeric::N32::diff#2, :root::numeric::N32::diff#3](vi:interface(73 128 vi:dup(
-                  vi:dup(97 vi:dup(98 vi:dup(100 vi:dup(95 116))))
+                vi:ext#2[vi:n32:mul](118 vi:dup(119 vi:ext#2[vi:n32:lt](67 vi:bool:if[:root::numeric::N32::diff#2, :root::numeric::N32::diff#3](vi:interface(66 119 vi:ext#2[vi:n32:div](120 vi:dup(63 vi:dup(121 122))))))))
+                vi:ext#2[vi:n32:mul](123 vi:dup(124 vi:ext#2[vi:n32:lt](70 vi:bool:if[:root::numeric::N32::diff#2, :root::numeric::N32::diff#3](vi:interface(69 124 vi:dup(
+                  vi:dup(93 vi:dup(94 vi:dup(96 vi:dup(91 112))))
                   vi:dup(
-                    vi:dup(129 vi:dup(130 vi:dup(131 vi:dup(132 133))))
-                    vi:dup(124 134)
+                    vi:dup(125 vi:dup(126 vi:dup(127 vi:dup(128 129))))
+                    vi:dup(120 130)
                   )
                 ))))))
               )
             )
           )
         )))
-      ))))) 82 83)
-      vi:enum:match[vi:enum#2, :root::logical::Option::assume#4, :root::logical::Option::assume#5](vi:interface(vi:tuple(vi:dup(135 vi:dup(vi:eraser 136)) 137 138)))
+      ))))) 78 79)
+      vi:enum:match[vi:enum#2, :root::logical::Option::assume#4, :root::logical::Option::assume#5](vi:interface(vi:tuple(vi:dup(131 vi:dup(vi:eraser 132)) 133 134)))
     )
   )))
-  vi:n32#4 = vi:ext#2[vi:n32:le](136 vi:bool:if[:root::unicode::String::split_once#2, :root::unicode::String::split_once#3](vi:interface(
-    vi:tuple(vi:n32#4 vi:tuple(vi:n32#44 vi:tuple(vi:n32#32 vi:tuple(vi:n32#89 vi:tuple(vi:n32#43 139)))) 139)
-    vi:tuple(vi:n32 140 140)
-    vi:tuple(135 137 138)
+  vi:n32#4 = vi:ext#2[vi:n32:le](132 vi:bool:if[:root::unicode::String::split_once#2, :root::unicode::String::split_once#3](vi:interface(
+    vi:tuple(vi:n32#4 vi:tuple(vi:n32#44 vi:tuple(vi:n32#32 vi:tuple(vi:n32#89 vi:tuple(vi:n32#43 135)))) 135)
+    vi:tuple(vi:n32 136 136)
+    vi:tuple(131 133 134)
     vi:tuple(
-      vi:tuple(vi:dup(141 vi:dup(vi:eraser vi:ext#2[vi:n32:eq](vi:n32 vi:bool:if[:root::numeric::N32::parse#2, :root::numeric::N32::parse#3](vi:interface(
-        vi:tuple(141 142 143)
+      vi:tuple(vi:dup(137 vi:dup(vi:eraser vi:ext#2[vi:n32:eq](vi:n32 vi:bool:if[:root::numeric::N32::parse#2, :root::numeric::N32::parse#3](vi:interface(
+        vi:tuple(137 138 139)
         vi:enum:match[vi:enum#2, :root::logical::Option::assume#4, :root::logical::Option::assume#5](vi:interface(vi:dup(
-          vi:dup(119 vi:dup(110 113))
+          vi:dup(115 vi:dup(106 109))
           vi:dup(
             vi:dup(
-              vi:ext#2[vi:n32:mul](13 144)
+              vi:ext#2[vi:n32:mul](13 140)
               vi:dup(
-                vi:ext#2[vi:n32:mul_high](9 vi:ext#2[vi:n32:add](144 vi:ext#2[vi:n32:add](41 vi:dup(145 vi:ext#2[vi:n32:lt](146 vi:bool:if[:root::numeric::N64::lt#2, :root::numeric::N64::lt#3](vi:interface(
-                  vi:ref(147 148)
-                  vi:ref(145 149)
-                  vi:ref(150 151)
-                  vi:ref(152 153)
+                vi:ext#2[vi:n32:mul_high](9 vi:ext#2[vi:n32:add](140 vi:ext#2[vi:n32:add](8 vi:dup(141 vi:ext#2[vi:n32:lt](142 vi:bool:if[:root::numeric::N64::lt#2, :root::numeric::N64::lt#3](vi:interface(
+                  vi:ref(143 144)
+                  vi:ref(141 145)
+                  vi:ref(146 147)
+                  vi:ref(148 149)
                   vi:bool:if[:root::numeric::N64::diff#2, :root::numeric::N64::diff#3](vi:interface(
-                    vi:tuple(151 153)
-                    vi:tuple(148 149)
-                    vi:tuple(154 vi:dup(
-                      vi:ext#2[vi:n32:rem](132 vi:dup(155 vi:ext#2[vi:n32:ne](vi:n32 vi:bool:if[:root::numeric::N64::div_rem_n32#2, :root::numeric::N64::div_rem_n32#3](vi:interface(
-                        vi:ref(154 vi:dup(
-                          vi:ext#2[vi:n32:rem](129 vi:eraser)
-                          vi:ext#2[vi:n32:div](130 156)
+                    vi:tuple(147 149)
+                    vi:tuple(144 145)
+                    vi:tuple(150 vi:dup(
+                      vi:ext#2[vi:n32:rem](128 vi:dup(151 vi:ext#2[vi:n32:ne](vi:n32 vi:bool:if[:root::numeric::N64::div_rem_n32#2, :root::numeric::N64::div_rem_n32#3](vi:interface(
+                        vi:ref(150 vi:dup(
+                          vi:ext#2[vi:n32:rem](125 vi:eraser)
+                          vi:ext#2[vi:n32:div](126 152)
                         ))
-                        155
-                        131
-                        vi:ref(vi:n32 vi:ext#2[vi:n32:add](156 vi:dup(157 vi:dup(
+                        151
+                        127
+                        vi:ref(vi:n32 vi:ext#2[vi:n32:add](152 vi:dup(153 vi:dup(
                           vi:dup(
-                            vi:ext#2[vi:n32:mul](vi:n32 158)
+                            vi:ext#2[vi:n32:mul](vi:n32 154)
                             vi:dup(
-                              vi:ext#2[vi:n32:mul_high](85 vi:ext#2[vi:n32:add](158 vi:ext#2[vi:n32:add](159 vi:ext#2[vi:n32:add](105 vi:ext#2[vi:n32:add](160 161)))))
-                              vi:ext#2[vi:n32:mul](86 vi:dup(
-                                vi:ext#2[vi:n32:add_high](107 vi:ext#1[vi:bool:to_n32](160))
-                                vi:ext#2[vi:n32:add](108 162)
+                              vi:ext#2[vi:n32:mul_high](81 vi:ext#2[vi:n32:add](154 vi:ext#2[vi:n32:add](155 vi:ext#2[vi:n32:add](101 vi:ext#2[vi:n32:add](156 157)))))
+                              vi:ext#2[vi:n32:mul](82 vi:dup(
+                                vi:ext#2[vi:n32:add_high](103 vi:ext#1[vi:bool:to_n32](156))
+                                vi:ext#2[vi:n32:add](104 158)
                               ))
                             )
                           )
                           vi:dup(
-                            vi:ext#2[vi:n32:mul](vi:n32 163)
+                            vi:ext#2[vi:n32:mul](vi:n32 159)
                             vi:dup(
-                              vi:ext#2[vi:n32:mul_high](56 vi:ext#2[vi:n32:add](163 vi:ext#2[vi:n32:add](164 vi:ext#2[vi:n32:add](112 vi:ext#2[vi:n32:add](165 166)))))
-                              vi:ext#2[vi:n32:mul](57 vi:dup(
-                                vi:ext#2[vi:n32:add_high](114 vi:ext#1[vi:bool:to_n32](165))
-                                vi:ext#2[vi:n32:add](115 vi:dup(vi:eraser vi:ext#2[vi:n32:eq](17 vi:bool:if[
+                              vi:ext#2[vi:n32:mul_high](52 vi:ext#2[vi:n32:add](159 vi:ext#2[vi:n32:add](160 vi:ext#2[vi:n32:add](108 vi:ext#2[vi:n32:add](161 162)))))
+                              vi:ext#2[vi:n32:mul](53 vi:dup(
+                                vi:ext#2[vi:n32:add_high](110 vi:ext#1[vi:bool:to_n32](161))
+                                vi:ext#2[vi:n32:add](111 vi:dup(vi:eraser vi:ext#2[vi:n32:eq](17 vi:bool:if[
                                   :root::ops::comparison::Eq::tuple::eq#2[vi:synthetic:Tuple#2, :root::numeric::N32, :root::ops::comparison::Eq::unary[:root::numeric::N32]],
                                   :root::ops::comparison::Eq::tuple::eq#3[vi:synthetic:Tuple#2, :root::numeric::N32, :root::ops::comparison::Eq::unary[:root::numeric::N32]],
                                 ](vi:interface(
-                                  vi:ref(vi:tuple(166) vi:eraser)
+                                  vi:ref(vi:tuple(162) vi:eraser)
                                   vi:ref(vi:tuple(24) vi:eraser)
                                   vi:bool:if[:day_13::main#13, :day_13::main#14](vi:interface(
                                     vi:ref(29 39)
                                     vi:tuple(4 11)
-                                    vi:tuple(157 167)
-                                    vi:tuple(101 117)
-                                    vi:tuple(162 161)
+                                    vi:tuple(153 163)
+                                    vi:tuple(97 113)
+                                    vi:tuple(158 157)
                                   ))
                                 )))))
                               ))
@@ -77336,76 +77320,76 @@ vi:synthetic[vi:synthetic:string#0x7200000069000000610000005000000004] {
                           )
                         ))))
                       )))))
-                      vi:ext#2[vi:n32:div](133 vi:dup(167 vi:dup(
-                        vi:ext#2[vi:n32:mul](84 159)
-                        vi:ext#2[vi:n32:mul](55 164)
+                      vi:ext#2[vi:n32:div](129 vi:dup(163 vi:dup(
+                        vi:ext#2[vi:n32:mul](80 155)
+                        vi:ext#2[vi:n32:mul](51 160)
                       )))
                     ))
                   ))
                 )))))))
-                vi:ext#2[vi:n32:mul](10 147)
+                vi:ext#2[vi:n32:mul](10 143)
               )
             )
             vi:dup(
-              vi:ext#2[vi:n32:mul](126 63)
-              vi:dup(vi:ext#2[vi:n32:mul](168 vi:dup(169 vi:ext#2[vi:n32:lt](170 vi:bool:if[:root::numeric::N32::diff#2, :root::numeric::N32::diff#3](vi:interface(171 169 vi:ext#2[vi:n32:div](134 vi:dup(66 vi:dup(120 62)))))))) 127)
+              vi:ext#2[vi:n32:mul](122 59)
+              vi:dup(vi:ext#2[vi:n32:mul](164 vi:dup(165 vi:ext#2[vi:n32:lt](166 vi:bool:if[:root::numeric::N32::diff#2, :root::numeric::N32::diff#3](vi:interface(167 165 vi:ext#2[vi:n32:div](130 vi:dup(62 vi:dup(116 58)))))))) 123)
             )
           )
         )))
-      ))))) 142 143)
-      vi:enum:match[vi:enum#2, :root::logical::Option::assume#4, :root::logical::Option::assume#5](vi:interface(vi:tuple(vi:dup(172 vi:dup(vi:eraser 173)) 174 175)))
+      ))))) 138 139)
+      vi:enum:match[vi:enum#2, :root::logical::Option::assume#4, :root::logical::Option::assume#5](vi:interface(vi:tuple(vi:dup(168 vi:dup(vi:eraser 169)) 170 171)))
     )
   )))
-  vi:n32#10 = vi:ext#2[vi:n32:le](173 vi:bool:if[:root::unicode::String::split_once#2, :root::unicode::String::split_once#3](vi:interface(
-    vi:tuple(vi:n32#10 vi:tuple(vi:n32#10 vi:tuple(vi:n32#80 vi:tuple(vi:n32#114 vi:tuple(vi:n32#105 vi:tuple(vi:n32#122 vi:tuple(vi:n32#101 vi:tuple(vi:n32#58 vi:tuple(vi:n32#32 vi:tuple(vi:n32#88 vi:tuple(vi:n32#61 176)))))))))) 176)
-    vi:tuple(vi:n32 177 177)
-    vi:tuple(172 174 175)
+  vi:n32#10 = vi:ext#2[vi:n32:le](169 vi:bool:if[:root::unicode::String::split_once#2, :root::unicode::String::split_once#3](vi:interface(
+    vi:tuple(vi:n32#10 vi:tuple(vi:n32#10 vi:tuple(vi:n32#80 vi:tuple(vi:n32#114 vi:tuple(vi:n32#105 vi:tuple(vi:n32#122 vi:tuple(vi:n32#101 vi:tuple(vi:n32#58 vi:tuple(vi:n32#32 vi:tuple(vi:n32#88 vi:tuple(vi:n32#61 172)))))))))) 172)
+    vi:tuple(vi:n32 173 173)
+    vi:tuple(168 170 171)
     vi:tuple(
-      vi:tuple(vi:dup(178 vi:dup(vi:eraser vi:ext#2[vi:n32:eq](vi:n32 vi:bool:if[:root::numeric::N32::parse#2, :root::numeric::N32::parse#3](vi:interface(
-        vi:tuple(178 179 180)
+      vi:tuple(vi:dup(174 vi:dup(vi:eraser vi:ext#2[vi:n32:eq](vi:n32 vi:bool:if[:root::numeric::N32::parse#2, :root::numeric::N32::parse#3](vi:interface(
+        vi:tuple(174 175 176)
         vi:enum:match[vi:enum#2, :root::logical::Option::assume#4, :root::logical::Option::assume#5](vi:interface(vi:dup(
-          vi:dup(118 vi:dup(103 106))
+          vi:dup(114 vi:dup(99 102))
           vi:dup(
             vi:dup(
-              vi:ext#2[vi:n32:mul](26 181)
+              vi:ext#2[vi:n32:mul](26 177)
               vi:dup(
-                vi:ext#2[vi:n32:mul_high](22 vi:ext#2[vi:n32:add](181 vi:ext#2[vi:n32:add](40 vi:dup(152 146))))
-                vi:ext#2[vi:n32:mul](23 150)
+                vi:ext#2[vi:n32:mul_high](22 vi:ext#2[vi:n32:add](177 vi:ext#2[vi:n32:add](21 vi:dup(148 142))))
+                vi:ext#2[vi:n32:mul](23 146)
               )
             )
             vi:dup(
-              vi:ext#2[vi:n32:mul](125 121)
-              vi:dup(vi:ext#2[vi:n32:mul](182 vi:dup(171 170)) 72)
+              vi:ext#2[vi:n32:mul](121 117)
+              vi:dup(vi:ext#2[vi:n32:mul](178 vi:dup(167 166)) 68)
             )
           )
         )))
-      ))))) 179 180)
-      vi:enum:match[vi:enum#2, :root::logical::Option::assume#4, :root::logical::Option::assume#5](vi:interface(vi:tuple(vi:dup(183 vi:dup(vi:eraser 184)) 185 186)))
+      ))))) 175 176)
+      vi:enum:match[vi:enum#2, :root::logical::Option::assume#4, :root::logical::Option::assume#5](vi:interface(vi:tuple(vi:dup(179 vi:dup(vi:eraser 180)) 181 182)))
     )
   )))
-  vi:n32#4 = vi:ext#2[vi:n32:le](184 vi:bool:if[:root::unicode::String::split_once#2, :root::unicode::String::split_once#3](vi:interface(
-    vi:tuple(vi:n32#4 vi:tuple(vi:n32#44 vi:tuple(vi:n32#32 vi:tuple(vi:n32#89 vi:tuple(vi:n32#61 187)))) 187)
-    vi:tuple(vi:n32 188 188)
-    vi:tuple(183 185 186)
+  vi:n32#4 = vi:ext#2[vi:n32:le](180 vi:bool:if[:root::unicode::String::split_once#2, :root::unicode::String::split_once#3](vi:interface(
+    vi:tuple(vi:n32#4 vi:tuple(vi:n32#44 vi:tuple(vi:n32#32 vi:tuple(vi:n32#89 vi:tuple(vi:n32#61 183)))) 183)
+    vi:tuple(vi:n32 184 184)
+    vi:tuple(179 181 182)
     vi:tuple(
-      vi:tuple(vi:dup(189 vi:dup(vi:eraser vi:ext#2[vi:n32:eq](vi:n32 vi:bool:if[:root::numeric::N32::parse#2, :root::numeric::N32::parse#3](vi:interface(
-        vi:tuple(189 190 191)
+      vi:tuple(vi:dup(185 vi:dup(vi:eraser vi:ext#2[vi:n32:eq](vi:n32 vi:bool:if[:root::numeric::N32::parse#2, :root::numeric::N32::parse#3](vi:interface(
+        vi:tuple(185 186 187)
         vi:enum:match[vi:enum#2, :root::logical::Option::assume#4, :root::logical::Option::assume#5](vi:interface(vi:dup(
-          vi:dup(vi:dup(14 16) 64)
-          vi:dup(122 182)
+          vi:dup(vi:dup(14 16) 60)
+          vi:dup(118 178)
         )))
-      ))))) 190 191)
-      vi:enum:match[vi:enum#2, :root::logical::Option::assume#4, :root::logical::Option::assume#5](vi:interface(vi:tuple(vi:dup(192 vi:dup(vi:eraser 193)) 194 195)))
+      ))))) 186 187)
+      vi:enum:match[vi:enum#2, :root::logical::Option::assume#4, :root::logical::Option::assume#5](vi:interface(vi:tuple(vi:dup(188 vi:dup(vi:eraser 189)) 190 191)))
     )
   )))
-  vi:n32#1 = vi:ext#2[vi:n32:le](193 vi:bool:if[:root::unicode::String::split_once#2, :root::unicode::String::split_once#3](vi:interface(
-    vi:tuple(vi:n32#1 vi:tuple(vi:n32#10 196) 196)
-    vi:tuple(vi:n32 197 197)
-    vi:tuple(192 194 195)
-    vi:tuple(vi:tuple(vi:dup(198 vi:dup(vi:eraser vi:ext#2[vi:n32:eq](vi:n32 vi:bool:if[:root::numeric::N32::parse#2, :root::numeric::N32::parse#3](vi:interface(
-      vi:tuple(198 199 200)
-      vi:enum:match[vi:enum#2, :root::logical::Option::assume#4, :root::logical::Option::assume#5](vi:interface(vi:dup(65 vi:dup(69 168))))
-    ))))) 199 200) vi:eraser)
+  vi:n32#1 = vi:ext#2[vi:n32:le](189 vi:bool:if[:root::unicode::String::split_once#2, :root::unicode::String::split_once#3](vi:interface(
+    vi:tuple(vi:n32#1 vi:tuple(vi:n32#10 192) 192)
+    vi:tuple(vi:n32 193 193)
+    vi:tuple(188 190 191)
+    vi:tuple(vi:tuple(vi:dup(194 vi:dup(vi:eraser vi:ext#2[vi:n32:eq](vi:n32 vi:bool:if[:root::numeric::N32::parse#2, :root::numeric::N32::parse#3](vi:interface(
+      vi:tuple(194 195 196)
+      vi:enum:match[vi:enum#2, :root::logical::Option::assume#4, :root::logical::Option::assume#5](vi:interface(vi:dup(61 vi:dup(65 164))))
+    ))))) 195 196) vi:eraser)
   )))
 }
 

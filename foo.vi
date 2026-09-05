@@ -1,0 +1,4 @@
+
+pub fn main(&io: &IO) {
+  4 * black_box(5) * 6;
+}

@@ -45,12 +45,18 @@ fn into_opt<'r>(
     .chain(bare_ext(opt).map(|(path, _)| path))
     .map(|path| (table.add_name(path), path))
     .collect::<HashMap<_, _>>();
-  (Translate([vi.ext], move |mut node, _, net| {
-    if let Some(&path) = strip.get(&node.name.children[0]) {
-      node.name = path.into();
-    }
-    net.push(node);
-  }),)
+  (
+    Translate([vi.ext], move |mut node, _, net| {
+      if let Some(&path) = strip.get(&node.name.children[0]) {
+        node.name = path.into();
+      }
+      net.push(node);
+    }),
+    Translate([opt.n32_mul], move |mut node, _, net| {
+      node.name.payload = Nat::from(1u32);
+      net.push(node);
+    }),
+  )
 }
 
 fn from_opt<'r>(
@@ -64,6 +70,7 @@ fn from_opt<'r>(
     .collect::<HashMap<_, _>>();
   (
     insert_constant(vi, opt.n32_add, 0),
+    insert_constant(vi, opt.n32_mul, 1),
     chain_binary([opt.n32_add, opt.n32_mul]),
     elide_unary([opt.n32_add, opt.n32_mul]),
     Translate(
@@ -170,9 +177,6 @@ fn regroup<'r, F: 'r + Fn(u32, u32) -> u32>(
     let arity = ports.len() - 1;
     if !engine.ports(node).take(arity).any(|arg_| {
       let arg = engine.follow(arg_);
-      if !arg.is_principal() {
-        return false;
-      }
       let name = engine.name(arg.node);
       name.path == path || name.path == vi.n32
     }) {
