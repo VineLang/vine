@@ -59,25 +59,36 @@ fn from_opt<'r>(
   table: &mut Table,
 ) -> impl Register<Translator<'r>> {
   let restore = bare_ext(opt)
-    .chain([(opt.n32_add, 2)])
+    .chain([(opt.n32_add, 2), (opt.n32_mul, 2)])
     .map(|(path, arity)| (path, (table.add_name(path), arity)))
     .collect::<HashMap<_, _>>();
   (
-    Translate([opt.n32_add], move |mut node, _, net| {
-      let payload = replace(&mut node.name.payload, Nat::ZERO);
-      if payload.as_u32().unwrap() != 0 {
-        node.aux.insert(node.aux.len() - 1, net.make(vi.n32.with_payload(payload), []));
-      }
-      net.push(node);
-    }),
-    chain_binary([opt.n32_add]),
-    elide_unary([opt.n32_add]),
-    Translate(bare_ext(opt).map(|(path, _)| path).chain([opt.n32_add]), move |mut node, _, net| {
-      let (name_id, arity) = restore[&node.name.path];
-      node.name = vi.ext.with_children([name_id]).with_payload(arity as u32);
-      net.push(node);
-    }),
+    insert_constant(vi, opt.n32_add, 0),
+    chain_binary([opt.n32_add, opt.n32_mul]),
+    elide_unary([opt.n32_add, opt.n32_mul]),
+    Translate(
+      bare_ext(opt).map(|(path, _)| path).chain([opt.n32_add, opt.n32_mul]),
+      move |mut node, _, net| {
+        let (name_id, arity) = restore[&node.name.path];
+        node.name = vi.ext.with_children([name_id]).with_payload(arity as u32);
+        net.push(node);
+      },
+    ),
   )
+}
+
+fn insert_constant<'r>(
+  vi: &'r Guide,
+  path: PathId,
+  identity: u32,
+) -> impl Register<Translator<'r>> {
+  Translate([path], move |mut node, _, net| {
+    let payload = replace(&mut node.name.payload, Nat::ZERO);
+    if payload.as_u32().unwrap() != identity {
+      node.aux.insert(node.aux.len() - 1, net.make(vi.n32.with_payload(payload), []));
+    }
+    net.push(node);
+  })
 }
 
 guide!(pub OptGuide {
@@ -89,11 +100,11 @@ guide!(pub OptGuide {
 });
 
 fn fancy_ext(opt: &OptGuide) -> impl Iterator<Item = PathId> {
-  [opt.n32_add].into_iter()
+  [opt.n32_add, opt.n32_mul].into_iter()
 }
 
 fn bare_ext(opt: &OptGuide) -> impl Iterator<Item = (PathId, usize)> {
-  [(opt.n32_div, 2), (opt.n32_mul, 2), (opt.n32_shr, 2), (opt.n32_shl, 2)].into_iter()
+  [(opt.n32_div, 2), (opt.n32_shr, 2), (opt.n32_shl, 2)].into_iter()
 }
 
 fn optimizations<'r>(
@@ -125,6 +136,7 @@ fn optimizations<'r>(
       true
     }),
     regroup(vi, opt.n32_add, |a, b| a.wrapping_add(b)),
+    regroup(vi, opt.n32_mul, |a, b| a.wrapping_mul(b)),
     Rewrite([vi.bool_if], move |engine, _, net, node| {
       let name = engine.name(node);
       let cond = engine.follow(node.port(0));
