@@ -1,0 +1,3907 @@
+
+iv:main {
+  ^ = ivm:x(0 1)
+  ivm:graft[:primenesses::main] = ivm:x(ivm:x(0 1) ivm:eraser)
+}
+
+:root::util::duplicate {
+  ^ = ivm:x(ivm:x(ivm:y(0 1) 0) 1)
+}
+
+:root::util::erase {
+  ^ = ivm:x(ivm:eraser ivm:eraser)
+}
+
+:root::util::transmute {
+  ^ = ivm:x(0 0)
+}
+
+:root::debug::Show::_format {
+  ^ = ivm:x(
+    ivm:x(ivm:ext:merge[ivm:branch](
+      ivm:branch[:root::debug::Show::_format#46, :root::debug::Show::_format#47, :root::debug::Show::_format#48, :root::debug::Show::_format#49, :root::debug::Show::_format#50]
+      ivm:x(ivm:x(0 ivm:x(1 2)) 3)
+    ) 3)
+    ivm:x(0 ivm:x(1 2))
+  )
+}
+
+:root::debug::enabled {
+  ^ = ivm:n32
+}
+
+:primenesses::main {
+  ^ = ivm:x(ivm:x(0 1) ivm:eraser)
+  ivm:graft[:primenesses::primenesses] = ivm:x(ivm:x(ivm:n32 ivm:x(2 2)) 3)
+  ivm:graft[:primenesses::primenesses] = ivm:x(ivm:x(ivm:n32#6 ivm:x(ivm:x(ivm:n32#2 ivm:x(ivm:n32#3 ivm:x(ivm:n32#5 ivm:x(ivm:n32#7 ivm:x(ivm:n32#11 ivm:x(ivm:n32#13 4)))))) 4)) 5)
+  ivm:graft[:primenesses::primenesses] = ivm:x(ivm:x(ivm:n32#4 ivm:x(ivm:x(ivm:n32#1 ivm:x(ivm:n32#2 ivm:x(ivm:n32#3 ivm:x(ivm:n32#4 6)))) 6)) 7)
+  ivm:graft[:primenesses::primenesses] = ivm:x(ivm:x(ivm:n32#4 ivm:x(ivm:x(ivm:n32#3 ivm:x(ivm:n32#5 ivm:x(ivm:n32#7 ivm:x(ivm:n32#9 8)))) 8)) 9)
+  ivm:graft[:primenesses::primenesses] = ivm:x(ivm:x(ivm:n32#5 ivm:x(ivm:x(ivm:n32#2 ivm:x(ivm:n32#3 ivm:x(ivm:n32#5 ivm:x(ivm:n32 ivm:x(ivm:n32#9 10))))) 10)) 11)
+  ivm:graft[:primenesses::primenesses] = ivm:x(ivm:x(ivm:n32#5 ivm:x(ivm:x(ivm:n32#2 ivm:x(ivm:n32#3 ivm:x(ivm:n32#5 ivm:x(ivm:n32#8 ivm:x(ivm:n32#13 12))))) 12)) 13)
+  ivm:graft[:root::data::List::show[:root::logical::Result[:root::data::List[:root::logical::Bool], :root::unicode::String]]] = ivm:x(ivm:x(ivm:x(ivm:n32#6 ivm:x(ivm:x(3 ivm:x(5 ivm:x(7 ivm:x(9 ivm:x(11 ivm:x(13 14)))))) 14)) 15) 16)
+  ivm:graft[:root::debug::Show::cast] = ivm:x(16 17)
+  ivm:graft[:root::IO::println] = ivm:x(
+    ivm:x(0 1)
+    ivm:x(17 ivm:eraser)
+  )
+  ivm:graft[:root::util::erase::drop] = ivm:x(15 ivm:eraser)
+}
+
+:root::data::List::Stream::pair {
+  ^ = ivm:x(0 0)
+}
+
+vi:synthetic[vi:synthetic:debug_state] {
+  ^ = ivm:x(ivm:n32 ivm:eraser)
+}
+
+:root::debug::enabled#4 {
+  ^ = ivm:x(ivm:n32 ivm:eraser)
+}
+
+:root::debug::enabled#5 {
+  ^ = ivm:x(ivm:n32#1 ivm:x(0 0))
+}
+
+:root::ops::flex::Drop::ref::drop {
+  ^ = ivm:x(ivm:x(0 0) ivm:eraser)
+}
+
+:root::util::duplicate::fork {
+  ^ = ivm:x(ivm:x(ivm:y(0 1) 0) 1)
+}
+
+:root::util::erase::drop {
+  ^ = ivm:x(ivm:eraser ivm:eraser)
+}
+
+:root::util::eraser {
+  ^ = ivm:eraser
+}
+
+:root::ops::flex::Fork::ref::fork {
+  ^ = ivm:x(
+    ivm:x(
+      ivm:x(0 1)
+      ivm:x(2 1)
+    )
+    ivm:x(0 2)
+  )
+}
+
+:root::debug::error_node {
+  ^ = ivm:error
+}
+
+:root::logical::Default::nil::default {
+  ^ = ivm:eraser
+}
+
+:root::logical::Option::default {
+  ^ = ivm:x(ivm:n32 ivm:eraser)
+}
+
+:root::data::List::pop_front {
+  ^ = ivm:x(ivm:x(
+    ivm:x(
+      ivm:y(0 ivm:ext:merge[vi:n32:ne](ivm:n32 ivm:ext:merge[ivm:branch](
+        ivm:branch[:root::data::List::pop_front#3, :root::data::List::pop_front#2]
+        ivm:x(
+          ivm:x(0 1)
+          ivm:x(ivm:x(2 3) 4)
+        )
+      )))
+      ivm:x(2 5)
+    )
+    ivm:x(1 ivm:x(3 5))
+  ) 4)
+}
+
+:root::numeric::N32::ne {
+  ^ = ivm:x(
+    ivm:x(ivm:y(0 ivm:ext:merge[vi:n32:ne](1 2)) 0)
+    ivm:x(ivm:x(ivm:y(3 1) 3) 2)
+  )
+}
+
+:root::data::List::pop_front#2 {
+  ^ = ivm:x(
+    ivm:x(ivm:ext:merge[vi:n32:sub](ivm:n32#1 0) 0)
+    ivm:x(
+      ivm:x(ivm:x(1 2) 2)
+      ivm:x(ivm:n32#1 1)
+    )
+  )
+}
+
+:root::data::List::pop_front#3 {
+  ^ = ivm:x(
+    ivm:x(0 0)
+    ivm:x(
+      ivm:x(1 1)
+      ivm:x(ivm:n32 ivm:eraser)
+    )
+  )
+}
+
+:root::numeric::N32::sub {
+  ^ = ivm:x(
+    ivm:ext:merge[vi:n32:sub](0 1)
+    ivm:x(0 1)
+  )
+}
+
+:root::data::List::Stream::pop {
+  ^ = ivm:x(ivm:x(ivm:x(0 1) 1) 0)
+}
+
+:root::util::transmute::cast {
+  ^ = ivm:x(0 0)
+}
+
+:root::numeric::N32::add {
+  ^ = ivm:x(
+    ivm:ext:merge[vi:n32:add](0 1)
+    ivm:x(0 1)
+  )
+}
+
+:root::numeric::N32::mul {
+  ^ = ivm:x(
+    ivm:ext:merge[vi:n32:mul](0 1)
+    ivm:x(0 1)
+  )
+}
+
+:root::unicode::String::iter::iter {
+  ^ = ivm:x(0 0)
+}
+
+:root::unicode::String::concat {
+  ^ = ivm:x(
+    ivm:x(
+      ivm:ext:merge[vi:n32:add](0 1)
+      ivm:x(2 3)
+    )
+    ivm:x(
+      ivm:x(0 ivm:x(3 4))
+      ivm:x(1 ivm:x(2 4))
+    )
+  )
+}
+
+:root::data::List::Iter::advance {
+  ^ = ivm:x(ivm:x(
+    ivm:y(0 ivm:ext:merge[vi:n32:ne](ivm:n32 ivm:ext:merge[ivm:branch](
+      ivm:branch[:root::data::List::Iter::advance#3, :root::data::List::Iter::advance#2]
+      ivm:x(0 ivm:x(1 ivm:x(2 3)))
+    )))
+    ivm:x(1 2)
+  ) 3)
+}
+
+:root::unicode::Char::eq {
+  ^ = ivm:x(
+    ivm:x(ivm:y(0 ivm:ext:merge[vi:n32:eq](1 2)) 0)
+    ivm:x(ivm:x(ivm:y(3 1) 3) 2)
+  )
+}
+
+:root::ops::comparison::Le::from_ord::le[:root::unicode::Char] {
+  ^ = ivm:x(
+    ivm:x(ivm:y(0 ivm:ext:merge[vi:n32:le](1 2)) 0)
+    ivm:x(ivm:x(ivm:y(3 1) 3) 2)
+  )
+}
+
+:root::ops::comparison::Lt::from_ord::lt[:root::unicode::Char] {
+  ^ = ivm:x(
+    ivm:x(ivm:y(0 ivm:ext:merge[vi:n32:lt](1 2)) 0)
+    ivm:x(ivm:x(ivm:y(3 1) 3) 2)
+  )
+}
+
+:root::numeric::N32::to_hex_fixed {
+  ^ = ivm:x(0 ivm:x(ivm:y(1 2) 3))
+  ivm:n32 = ivm:ext:merge[vi:n32:lt](2 ivm:ext:merge[ivm:branch](
+    ivm:branch[
+      :root::ops::Range::exclusive_iter::advance#3[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32],
+      :root::ops::Range::exclusive_iter::advance#2[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32],
+    ]
+    ivm:x(ivm:n32 ivm:x(1 ivm:x(ivm:ext:merge[ivm:branch](
+      ivm:branch[:root::numeric::N32::to_hex_fixed#4, :root::numeric::N32::to_hex_fixed#5]
+      ivm:x(ivm:x(0 ivm:x(ivm:x(ivm:n32 ivm:x(4 4)) 3)) 5)
+    ) 5)))
+  ))
+}
+
+:root::ops::Cast::identity::cast {
+  ^ = ivm:x(0 0)
+}
+
+:root::data::List::iter::iter {
+  ^ = ivm:x(0 0)
+}
+
+:root::data::List::Iter::advance#2 {
+  ^ = ivm:x(
+    ivm:ext:merge[vi:n32:sub](ivm:n32#1 0)
+    ivm:x(
+      ivm:x(1 2)
+      ivm:x(3 ivm:x(ivm:n32#1 ivm:x(1 ivm:x(0 ivm:x(2 3)))))
+    )
+  )
+}
+
+:root::data::List::Iter::advance#3 {
+  ^ = ivm:x(ivm:eraser ivm:x(ivm:eraser ivm:x(ivm:eraser ivm:x(ivm:n32 ivm:eraser))))
+}
+
+:root::unicode::Char::le {
+  ^ = ivm:x(
+    ivm:x(ivm:y(0 ivm:ext:merge[vi:n32:le](1 2)) 0)
+    ivm:x(ivm:x(ivm:y(3 1) 3) 2)
+  )
+}
+
+:root::unicode::Char::lt {
+  ^ = ivm:x(
+    ivm:x(ivm:y(0 ivm:ext:merge[vi:n32:lt](1 2)) 0)
+    ivm:x(ivm:x(ivm:y(3 1) 3) 2)
+  )
+}
+
+:root::data::Iterator::Iterate::iterator::iter[:root::ops::Range::exclusive_iter[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32]] {
+  ^ = ivm:x(0 0)
+}
+
+:root::numeric::N32::to_hex_fixed#1 {
+  ^ = ivm:x(0 ivm:x(1 ivm:x(
+    ivm:y(2 ivm:ext:merge[vi:n32:lt](3 ivm:ext:merge[ivm:branch](
+      ivm:branch[
+        :root::ops::Range::exclusive_iter::advance#3[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32],
+        :root::ops::Range::exclusive_iter::advance#2[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32],
+      ]
+      ivm:x(2 ivm:x(4 ivm:x(ivm:ext:merge[ivm:branch](
+        ivm:branch[:root::numeric::N32::to_hex_fixed#4, :root::numeric::N32::to_hex_fixed#5]
+        ivm:x(ivm:x(0 1) 5)
+      ) 5)))
+    )))
+    ivm:y(4 3)
+  )))
+}
+
+:root::ops::Range::exclusive_iter::advance[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32] {
+  ^ = ivm:x(ivm:x(
+    ivm:y(0 ivm:ext:merge[vi:n32:lt](1 ivm:ext:merge[ivm:branch](
+      ivm:branch[
+        :root::ops::Range::exclusive_iter::advance#3[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32],
+        :root::ops::Range::exclusive_iter::advance#2[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32],
+      ]
+      ivm:x(0 ivm:x(2 3))
+    )))
+    ivm:y(2 1)
+  ) 3)
+}
+
+:root::numeric::N32::to_hex_fixed#4 {
+  ^ = ivm:x(ivm:x(ivm:eraser ivm:x(0 0)) ivm:eraser)
+}
+
+:root::numeric::N32::to_hex_fixed#5 {
+  ^ = ivm:x(
+    ivm:x(
+      ivm:y(
+        ivm:ext:merge[vi:n32:shr](ivm:n32#4 0)
+        ivm:ext:merge[vi:n32:and](ivm:n32#15 ivm:y(1 ivm:ext:merge[vi:n32:lt](ivm:n32#10 ivm:ext:merge[ivm:branch](
+          ivm:branch[:root::numeric::N32::to_hex_fixed#8, :root::numeric::N32::to_hex_fixed#7]
+          ivm:x(1 2)
+        ))))
+      )
+      ivm:x(ivm:x(
+        ivm:ext:merge[vi:n32:add](ivm:n32#1 3)
+        ivm:x(4 5)
+      ) 6)
+    )
+    ivm:x(ivm:eraser ivm:x(
+      ivm:y(7 ivm:ext:merge[vi:n32:lt](8 ivm:ext:merge[ivm:branch](
+        ivm:branch[
+          :root::ops::Range::exclusive_iter::advance#3[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32],
+          :root::ops::Range::exclusive_iter::advance#2[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32],
+        ]
+        ivm:x(7 ivm:x(9 ivm:x(ivm:ext:merge[ivm:branch](
+          ivm:branch[:root::numeric::N32::to_hex_fixed#4, :root::numeric::N32::to_hex_fixed#5]
+          ivm:x(ivm:x(0 ivm:x(ivm:x(3 ivm:x(ivm:x(2 4) 5)) 6)) 10)
+        ) 10)))
+      )))
+      ivm:y(9 8)
+    ))
+  )
+}
+
+:root::numeric::N32::bit_and {
+  ^ = ivm:x(
+    ivm:ext:merge[vi:n32:and](0 1)
+    ivm:x(0 1)
+  )
+}
+
+:root::ops::comparison::Lt::from_ord::lt[:root::numeric::N32] {
+  ^ = ivm:x(
+    ivm:x(ivm:y(0 ivm:ext:merge[vi:n32:lt](1 2)) 0)
+    ivm:x(ivm:x(ivm:y(3 1) 3) 2)
+  )
+}
+
+:root::numeric::N32::to_hex_fixed#7 {
+  ^ = ivm:x(ivm:ext:merge[vi:n32:add](ivm:n32#48 0) 0)
+}
+
+:root::numeric::N32::to_hex_fixed#8 {
+  ^ = ivm:x(ivm:ext:merge[vi:n32:add](ivm:n32#87 0) 0)
+}
+
+:root::data::List::push_front {
+  ^ = ivm:x(
+    ivm:x(
+      ivm:x(
+        ivm:ext:merge[vi:n32:add](ivm:n32#1 0)
+        ivm:x(1 2)
+      )
+      ivm:x(0 ivm:x(ivm:x(3 1) 2))
+    )
+    ivm:x(3 ivm:eraser)
+  )
+}
+
+:root::numeric::N32::shr {
+  ^ = ivm:x(
+    ivm:ext:merge[vi:n32:shr](0 1)
+    ivm:x(0 1)
+  )
+}
+
+:root::unicode::Char::add_n32::add {
+  ^ = ivm:x(
+    ivm:ext:merge[vi:n32:add](0 1)
+    ivm:x(0 1)
+  )
+}
+
+:root::unicode::Char::sub_n32::sub {
+  ^ = ivm:x(
+    ivm:ext:merge[vi:n32:sub](0 1)
+    ivm:x(0 1)
+  )
+}
+
+:root::ops::Range::Bound::Exclusive::right_of[:root::numeric::N32] {
+  ^ = ivm:x(
+    ivm:x(ivm:y(0 1) 0)
+    ivm:x(ivm:x(ivm:y(2 ivm:ext:merge[vi:n32:lt](1 3)) 2) 3)
+  )
+}
+
+:root::ops::Range::exclusive_iter::advance#2[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32] {
+  ^ = ivm:x(
+    ivm:y(ivm:ext:merge[vi:n32:add](ivm:n32#1 0) 1)
+    ivm:x(2 ivm:x(ivm:n32#1 ivm:x(1 ivm:x(0 2))))
+  )
+}
+
+:root::ops::Range::exclusive_iter::advance#3[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32] {
+  ^ = ivm:x(ivm:eraser ivm:x(ivm:eraser ivm:x(ivm:n32 ivm:eraser)))
+}
+
+:root::ops::Range::Step::n32::step {
+  ^ = ivm:x(ivm:ext:merge[vi:n32:add](ivm:n32#1 0) 0)
+}
+
+:root::numeric::N32::lt {
+  ^ = ivm:x(
+    ivm:x(ivm:y(0 ivm:ext:merge[vi:n32:lt](1 2)) 0)
+    ivm:x(ivm:x(ivm:y(3 1) 3) 2)
+  )
+}
+
+:root::data::List::concat {
+  ^ = ivm:x(
+    ivm:x(
+      ivm:ext:merge[vi:n32:add](0 1)
+      ivm:x(2 3)
+    )
+    ivm:x(
+      ivm:x(0 ivm:x(3 4))
+      ivm:x(1 ivm:x(2 4))
+    )
+  )
+}
+
+:root::logical::Bool::to_string::cast {
+  ^ = ivm:x(ivm:ext:merge[ivm:branch](ivm:branch[:root::logical::Bool::to_string::cast#3, :root::logical::Bool::to_string::cast#2] 0) 0)
+}
+
+:root::logical::Bool::to_string::cast#2 {
+  ^ = ivm:x(ivm:n32#4 ivm:x(ivm:x(ivm:n32#116 ivm:x(ivm:n32#114 ivm:x(ivm:n32#117 ivm:x(ivm:n32#101 0)))) 0))
+}
+
+:root::logical::Bool::to_string::cast#3 {
+  ^ = ivm:x(ivm:n32#5 ivm:x(ivm:x(ivm:n32#102 ivm:x(ivm:n32#97 ivm:x(ivm:n32#108 ivm:x(ivm:n32#115 ivm:x(ivm:n32#101 0))))) 0))
+}
+
+:root::unicode::Char::to_string::cast {
+  ^ = ivm:x(0 ivm:x(ivm:n32#1 ivm:x(ivm:x(0 1) 1)))
+}
+
+:root::data::List::len {
+  ^ = ivm:x(ivm:x(
+    ivm:x(
+      ivm:y(0 1)
+      ivm:x(2 3)
+    )
+    ivm:x(0 ivm:x(2 3))
+  ) 1)
+}
+
+:root::numeric::N32::eq {
+  ^ = ivm:x(
+    ivm:x(ivm:y(0 ivm:ext:merge[vi:n32:eq](1 2)) 0)
+    ivm:x(ivm:x(ivm:y(3 1) 3) 2)
+  )
+}
+
+:root::debug::error[:root::ops::Cast::identity] {
+  ^ = ivm:x(ivm:eraser ivm:error)
+}
+
+:root::debug::error#4[:root::ops::Cast::identity] {
+  ^ = ivm:x(ivm:eraser ivm:eraser)
+}
+
+:root::debug::error#5[:root::ops::Cast::identity] {
+  ^ = ivm:x(
+    ivm:x(
+      ivm:ext:merge[vi:n32:add](ivm:n32#8 ivm:y(0 ivm:ext:merge[vi:n32:ne](ivm:n32 ivm:ext:merge[ivm:branch](
+        ivm:branch[:root::data::List::Iter::advance#3, :root::data::List::Iter::advance#2]
+        ivm:x(0 ivm:x(
+          ivm:x(ivm:n32#69 ivm:x(ivm:n32#82 ivm:x(ivm:n32#82 ivm:x(ivm:n32#79 ivm:x(ivm:n32#82 ivm:x(ivm:n32#58 ivm:x(ivm:n32#32 1)))))))
+          ivm:x(2 ivm:x(ivm:ext:merge[ivm:branch](
+            ivm:branch[:root::IO::print#4, :root::IO::print#5]
+            ivm:x(ivm:x(3 4) 5)
+          ) 5))
+        ))
+      ))))
+      ivm:x(1 ivm:x(ivm:n32#10 2))
+    )
+    ivm:x(ivm:x(3 ivm:y(6 ivm:x(ivm:x(ivm:n32 ivm:x(ivm:ext:merge[ivm:branch](
+      ivm:branch[:root::debug::Stack::advance#4, :root::debug::Stack::advance#5]
+      ivm:x(ivm:x(7 ivm:x(ivm:ext:merge[ivm:branch](
+        ivm:branch[
+          :root::debug::error#9[:root::ops::Cast::identity],
+          :root::debug::error#10[:root::ops::Cast::identity],
+        ]
+        ivm:x(ivm:x(ivm:x(4 6) 8) 9)
+      ) 9)) 10)
+    ) 10)) 7))) 8)
+  )
+}
+
+:root::IO::print {
+  ^ = ivm:x(0 ivm:x(ivm:x(
+    ivm:y(1 ivm:ext:merge[vi:n32:ne](ivm:n32 ivm:ext:merge[ivm:branch](
+      ivm:branch[:root::data::List::Iter::advance#3, :root::data::List::Iter::advance#2]
+      ivm:x(1 ivm:x(2 ivm:x(3 ivm:x(ivm:ext:merge[ivm:branch](
+        ivm:branch[:root::IO::print#4, :root::IO::print#5]
+        ivm:x(0 4)
+      ) 4))))
+    )))
+    ivm:x(2 3)
+  ) ivm:eraser))
+}
+
+:root::data::Iterator::Iterate::iterator::iter[:root::debug::Stack] {
+  ^ = ivm:x(0 0)
+}
+
+:root::debug::error#6[:root::ops::Cast::identity] {
+  ^ = ivm:x(0 ivm:x(ivm:x(ivm:n32 ivm:x(ivm:ext:merge[ivm:branch](
+    ivm:branch[:root::debug::Stack::advance#4, :root::debug::Stack::advance#5]
+    ivm:x(ivm:x(1 ivm:x(ivm:ext:merge[ivm:branch](
+      ivm:branch[
+        :root::debug::error#9[:root::ops::Cast::identity],
+        :root::debug::error#10[:root::ops::Cast::identity],
+      ]
+      ivm:x(0 2)
+    ) 2)) 3)
+  ) 3)) 1))
+}
+
+:root::debug::Stack::advance {
+  ^ = ivm:x(ivm:x(ivm:x(ivm:n32 ivm:x(ivm:ext:merge[ivm:branch](
+    ivm:branch[:root::debug::Stack::advance#4, :root::debug::Stack::advance#5]
+    ivm:x(ivm:x(0 1) 2)
+  ) 2)) 0) 1)
+}
+
+:root::debug::error#9[:root::ops::Cast::identity] {
+  ^ = ivm:x(ivm:x(0 0) ivm:eraser)
+}
+
+:root::debug::error#10[:root::ops::Cast::identity] {
+  ^ = ivm:x(
+    ivm:x(ivm:x(0 1) 2)
+    ivm:x(
+      ivm:x(
+        ivm:y(3 ivm:ext:merge[vi:n32:ne](ivm:n32 ivm:ext:merge[ivm:branch](
+          ivm:branch[:root::numeric::N32::to_string::cast#3, :root::numeric::N32::to_string::cast#2]
+          ivm:x(3 ivm:x(4 ivm:x(5 ivm:x(ivm:n32#41 ivm:x(ivm:n32#10 6)))))
+        )))
+        ivm:x(
+          ivm:x(7 ivm:x(8 ivm:x(ivm:n32#58 9)))
+          ivm:x(
+            ivm:y(10 ivm:ext:merge[vi:n32:ne](ivm:n32 ivm:ext:merge[ivm:branch](
+              ivm:branch[:root::numeric::N32::to_string::cast#3, :root::numeric::N32::to_string::cast#2]
+              ivm:x(10 ivm:x(11 ivm:x(9 ivm:x(ivm:n32#58 5))))
+            )))
+            ivm:x(
+              ivm:y(12 ivm:ext:merge[vi:n32:ne](ivm:n32 ivm:ext:merge[ivm:branch](
+                ivm:branch[:root::data::List::head_tail#3, :root::data::List::head_tail#2]
+                ivm:x(12 ivm:x(13 ivm:x(14 ivm:x(ivm:ext:merge[ivm:branch](
+                  ivm:branch[
+                    :root::data::List::join#4[:root::ops::Cast::identity],
+                    :root::data::List::join#5[:root::ops::Cast::identity],
+                  ]
+                  ivm:x(ivm:x(
+                    ivm:x(ivm:n32#2 ivm:x(ivm:x(ivm:n32#58 ivm:x(ivm:n32#58 15)) 15))
+                    ivm:x(
+                      ivm:ext:merge[vi:n32:add](ivm:n32#6 ivm:ext:merge[vi:n32:add](7 ivm:ext:merge[vi:n32:add](11 ivm:ext:merge[vi:n32:add](4 ivm:ext:merge[vi:n32:add](ivm:n32#5 ivm:y(16 ivm:ext:merge[vi:n32:ne](ivm:n32 ivm:ext:merge[ivm:branch](
+                        ivm:branch[:root::data::List::Iter::advance#3, :root::data::List::Iter::advance#2]
+                        ivm:x(16 ivm:x(
+                          ivm:x(ivm:n32#32 ivm:x(ivm:n32#32 ivm:x(ivm:n32#64 ivm:x(ivm:n32#32 ivm:x(ivm:n32#35 17)))))
+                          ivm:x(6 ivm:x(ivm:ext:merge[ivm:branch](
+                            ivm:branch[:root::IO::print#4, :root::IO::print#5]
+                            ivm:x(ivm:x(0 18) 19)
+                          ) 19))
+                        ))
+                      ))))))))
+                      ivm:x(17 ivm:x(ivm:n32#32 ivm:x(ivm:n32#40 8)))
+                    )
+                  ) 20)
+                ) 20))))
+              )))
+              ivm:x(13 14)
+            )
+          )
+        )
+      )
+      ivm:x(ivm:x(ivm:n32 ivm:x(ivm:ext:merge[ivm:branch](
+        ivm:branch[:root::debug::Stack::advance#4, :root::debug::Stack::advance#5]
+        ivm:x(ivm:x(21 ivm:x(ivm:ext:merge[ivm:branch](
+          ivm:branch[
+            :root::debug::error#9[:root::ops::Cast::identity],
+            :root::debug::error#10[:root::ops::Cast::identity],
+          ]
+          ivm:x(ivm:x(ivm:x(18 1) 2) 22)
+        ) 22)) 23)
+      ) 23)) 21)
+    )
+  )
+}
+
+:root::debug::Frame::to_string::cast {
+  ^ = ivm:x(
+    ivm:x(
+      ivm:y(0 ivm:ext:merge[vi:n32:ne](ivm:n32 ivm:ext:merge[ivm:branch](
+        ivm:branch[:root::numeric::N32::to_string::cast#3, :root::numeric::N32::to_string::cast#2]
+        ivm:x(0 ivm:x(1 ivm:x(2 ivm:x(ivm:n32#41 3))))
+      )))
+      ivm:x(
+        ivm:x(4 ivm:x(5 ivm:x(ivm:n32#58 6)))
+        ivm:x(
+          ivm:y(7 ivm:ext:merge[vi:n32:ne](ivm:n32 ivm:ext:merge[ivm:branch](
+            ivm:branch[:root::numeric::N32::to_string::cast#3, :root::numeric::N32::to_string::cast#2]
+            ivm:x(7 ivm:x(8 ivm:x(6 ivm:x(ivm:n32#58 2))))
+          )))
+          ivm:x(
+            ivm:y(9 ivm:ext:merge[vi:n32:ne](ivm:n32 ivm:ext:merge[ivm:branch](
+              ivm:branch[:root::data::List::head_tail#3, :root::data::List::head_tail#2]
+              ivm:x(9 ivm:x(10 ivm:x(11 ivm:x(ivm:ext:merge[ivm:branch](
+                ivm:branch[
+                  :root::data::List::join#4[:root::ops::Cast::identity],
+                  :root::data::List::join#5[:root::ops::Cast::identity],
+                ]
+                ivm:x(ivm:x(
+                  ivm:x(ivm:n32#2 ivm:x(ivm:x(ivm:n32#58 ivm:x(ivm:n32#58 12)) 12))
+                  ivm:x(
+                    ivm:ext:merge[vi:n32:add](ivm:n32#6 ivm:ext:merge[vi:n32:add](4 ivm:ext:merge[vi:n32:add](8 ivm:ext:merge[vi:n32:add](1 13))))
+                    ivm:x(14 ivm:x(ivm:n32#32 ivm:x(ivm:n32#40 5)))
+                  )
+                ) 15)
+              ) 15))))
+            )))
+            ivm:x(10 11)
+          )
+        )
+      )
+    )
+    ivm:x(13 ivm:x(ivm:x(ivm:n32#35 14) 3))
+  )
+}
+
+:root::IO::print#1 {
+  ^ = ivm:x(0 ivm:x(
+    ivm:y(1 ivm:ext:merge[vi:n32:ne](ivm:n32 ivm:ext:merge[ivm:branch](
+      ivm:branch[:root::data::List::Iter::advance#3, :root::data::List::Iter::advance#2]
+      ivm:x(1 ivm:x(2 ivm:x(3 ivm:x(ivm:ext:merge[ivm:branch](
+        ivm:branch[:root::IO::print#4, :root::IO::print#5]
+        ivm:x(0 4)
+      ) 4))))
+    )))
+    ivm:x(2 3)
+  ))
+}
+
+:root::IO::print#4 {
+  ^ = ivm:x(ivm:x(0 0) ivm:eraser)
+}
+
+:root::IO::print#5 {
+  ^ = ivm:x(
+    ivm:x(ivm:ext:merge[root:io:print_char](0 1) 2)
+    ivm:x(0 ivm:x(
+      ivm:y(3 ivm:ext:merge[vi:n32:ne](ivm:n32 ivm:ext:merge[ivm:branch](
+        ivm:branch[:root::data::List::Iter::advance#3, :root::data::List::Iter::advance#2]
+        ivm:x(3 ivm:x(4 ivm:x(5 ivm:x(ivm:ext:merge[ivm:branch](
+          ivm:branch[:root::IO::print#4, :root::IO::print#5]
+          ivm:x(ivm:x(1 2) 6)
+        ) 6))))
+      )))
+      ivm:x(4 5)
+    ))
+  )
+}
+
+:root::IO::print_char {
+  ^ = ivm:x(
+    ivm:x(ivm:ext:merge[root:io:print_char](0 1) 1)
+    ivm:x(0 ivm:eraser)
+  )
+}
+
+:root::debug::Lazy::get {
+  ^ = ivm:x(ivm:x(ivm:n32 0) 0)
+}
+
+:root::debug::Stack::advance#4 {
+  ^ = ivm:x(ivm:x(ivm:eraser ivm:x(ivm:n32 ivm:eraser)) ivm:eraser)
+}
+
+:root::debug::Stack::advance#5 {
+  ^ = ivm:x(ivm:x(0 ivm:x(ivm:n32#1 ivm:x(1 0))) 1)
+}
+
+:root::data::List::join[:root::ops::Cast::identity] {
+  ^ = ivm:x(
+    ivm:x(
+      ivm:y(0 ivm:ext:merge[vi:n32:ne](ivm:n32 ivm:ext:merge[ivm:branch](
+        ivm:branch[:root::data::List::head_tail#3, :root::data::List::head_tail#2]
+        ivm:x(0 ivm:x(1 ivm:x(2 ivm:x(ivm:ext:merge[ivm:branch](
+          ivm:branch[
+            :root::data::List::join#4[:root::ops::Cast::identity],
+            :root::data::List::join#5[:root::ops::Cast::identity],
+          ]
+          ivm:x(ivm:x(3 4) 5)
+        ) 5))))
+      )))
+      ivm:x(1 2)
+    )
+    ivm:x(3 4)
+  )
+}
+
+:root::numeric::N32::to_string::cast {
+  ^ = ivm:x(ivm:y(0 ivm:ext:merge[vi:n32:ne](ivm:n32 ivm:ext:merge[ivm:branch](
+    ivm:branch[:root::numeric::N32::to_string::cast#3, :root::numeric::N32::to_string::cast#2]
+    ivm:x(0 1)
+  ))) 1)
+}
+
+:root::data::List::head_tail {
+  ^ = ivm:x(ivm:x(
+    ivm:y(0 ivm:ext:merge[vi:n32:ne](ivm:n32 ivm:ext:merge[ivm:branch](
+      ivm:branch[:root::data::List::head_tail#3, :root::data::List::head_tail#2]
+      ivm:x(0 ivm:x(1 ivm:x(2 3)))
+    )))
+    ivm:x(1 2)
+  ) 3)
+}
+
+:root::data::List::join#4[:root::ops::Cast::identity] {
+  ^ = ivm:x(ivm:x(ivm:eraser ivm:x(ivm:n32 ivm:x(0 0))) ivm:eraser)
+}
+
+:root::data::List::join#5[:root::ops::Cast::identity] {
+  ^ = ivm:x(
+    ivm:x(0 1)
+    ivm:x(2 ivm:x(
+      ivm:y(3 ivm:ext:merge[vi:n32:ne](ivm:n32 ivm:ext:merge[ivm:branch](
+        ivm:branch[:root::data::List::Iter::advance#3, :root::data::List::Iter::advance#2]
+        ivm:x(3 ivm:x(4 ivm:x(5 ivm:x(ivm:ext:merge[ivm:branch](
+          ivm:branch[
+            :root::data::List::join#9[:root::ops::Cast::identity],
+            :root::data::List::join#10[:root::ops::Cast::identity],
+          ]
+          ivm:x(ivm:x(0 ivm:x(2 1)) 6)
+        ) 6))))
+      )))
+      ivm:x(4 5)
+    ))
+  )
+}
+
+:root::data::List::join#6[:root::ops::Cast::identity] {
+  ^ = ivm:x(0 ivm:x(1 ivm:x(
+    ivm:y(2 ivm:ext:merge[vi:n32:ne](ivm:n32 ivm:ext:merge[ivm:branch](
+      ivm:branch[:root::data::List::Iter::advance#3, :root::data::List::Iter::advance#2]
+      ivm:x(2 ivm:x(3 ivm:x(4 ivm:x(ivm:ext:merge[ivm:branch](
+        ivm:branch[
+          :root::data::List::join#9[:root::ops::Cast::identity],
+          :root::data::List::join#10[:root::ops::Cast::identity],
+        ]
+        ivm:x(ivm:x(0 1) 5)
+      ) 5))))
+    )))
+    ivm:x(3 4)
+  )))
+}
+
+:root::data::List::join#9[:root::ops::Cast::identity] {
+  ^ = ivm:x(ivm:x(ivm:eraser ivm:x(0 0)) ivm:eraser)
+}
+
+:root::data::List::join#10[:root::ops::Cast::identity] {
+  ^ = ivm:x(
+    ivm:x(
+      ivm:y(0 ivm:x(1 ivm:x(2 3)))
+      ivm:x(ivm:x(
+        ivm:ext:merge[vi:n32:add](4 5)
+        ivm:x(6 2)
+      ) 7)
+    )
+    ivm:x(
+      ivm:x(
+        ivm:ext:merge[vi:n32:add](1 4)
+        ivm:x(3 8)
+      )
+      ivm:x(
+        ivm:y(9 ivm:ext:merge[vi:n32:ne](ivm:n32 ivm:ext:merge[ivm:branch](
+          ivm:branch[:root::data::List::Iter::advance#3, :root::data::List::Iter::advance#2]
+          ivm:x(9 ivm:x(10 ivm:x(11 ivm:x(ivm:ext:merge[ivm:branch](
+            ivm:branch[
+              :root::data::List::join#9[:root::ops::Cast::identity],
+              :root::data::List::join#10[:root::ops::Cast::identity],
+            ]
+            ivm:x(ivm:x(0 ivm:x(ivm:x(5 ivm:x(6 8)) 7)) 12)
+          ) 12))))
+        )))
+        ivm:x(10 11)
+      )
+    )
+  )
+}
+
+:root::data::List::head_tail#2 {
+  ^ = ivm:x(
+    ivm:ext:merge[vi:n32:sub](ivm:n32#1 0)
+    ivm:x(
+      ivm:x(1 2)
+      ivm:x(3 ivm:x(ivm:n32#1 ivm:x(1 ivm:x(0 ivm:x(2 3)))))
+    )
+  )
+}
+
+:root::data::List::head_tail#3 {
+  ^ = ivm:x(ivm:eraser ivm:x(ivm:eraser ivm:x(ivm:eraser ivm:x(ivm:n32 ivm:eraser))))
+}
+
+:root::numeric::N32::to_string::cast#2 {
+  ^ = ivm:x(ivm:y(0 ivm:ext:merge[vi:n32:ne](ivm:n32 ivm:ext:merge[ivm:branch](
+    ivm:branch[:root::numeric::N32::to_string::cast#6, :root::numeric::N32::to_string::cast#5]
+    ivm:x(0 ivm:x(ivm:x(ivm:n32 ivm:x(1 1)) 2))
+  ))) 2)
+}
+
+:root::numeric::N32::to_string::cast#3 {
+  ^ = ivm:x(ivm:eraser ivm:x(ivm:n32#1 ivm:x(ivm:x(ivm:n32#48 0) 0)))
+}
+
+:root::numeric::N32::to_string::cast#4 {
+  ^ = ivm:x(ivm:y(0 ivm:ext:merge[vi:n32:ne](ivm:n32 ivm:ext:merge[ivm:branch](
+    ivm:branch[:root::numeric::N32::to_string::cast#6, :root::numeric::N32::to_string::cast#5]
+    ivm:x(0 1)
+  ))) 1)
+}
+
+:root::numeric::N32::to_string::cast#5 {
+  ^ = ivm:x(
+    ivm:y(
+      ivm:ext:merge[vi:n32:div](ivm:n32#10 ivm:y(0 ivm:ext:merge[vi:n32:ne](ivm:n32 ivm:ext:merge[ivm:branch](
+        ivm:branch[:root::numeric::N32::to_string::cast#6, :root::numeric::N32::to_string::cast#5]
+        ivm:x(0 ivm:x(ivm:x(1 ivm:x(ivm:x(2 3) 4)) 5))
+      ))))
+      ivm:ext:merge[vi:n32:rem](ivm:n32#10 ivm:ext:merge[vi:n32:add](ivm:n32#48 2))
+    )
+    ivm:x(ivm:x(
+      ivm:ext:merge[vi:n32:add](ivm:n32#1 1)
+      ivm:x(3 4)
+    ) 5)
+  )
+}
+
+:root::numeric::N32::to_string::cast#6 {
+  ^ = ivm:x(ivm:eraser ivm:x(0 0))
+}
+
+:root::numeric::N32::rem {
+  ^ = ivm:x(
+    ivm:ext:merge[vi:n32:rem](0 1)
+    ivm:x(0 1)
+  )
+}
+
+:root::numeric::N32::div {
+  ^ = ivm:x(
+    ivm:ext:merge[vi:n32:div](0 1)
+    ivm:x(0 1)
+  )
+}
+
+:root::numeric::N32::rem#2 {
+  ^ = ivm:x(0 ivm:x(ivm:y(1 ivm:ext:merge[vi:n32:eq](ivm:n32 ivm:ext:merge[ivm:branch](
+    ivm:branch[:root::numeric::N32::rem#5, :root::numeric::N32::rem#4]
+    ivm:x(0 ivm:x(1 2))
+  ))) 2))
+}
+
+:root::numeric::N32::rem#3 {
+  ^ = ivm:x(
+    ivm:ext:merge[vi:n32:rem](0 1)
+    ivm:x(0 1)
+  )
+}
+
+:root::numeric::N32::rem#4 {
+  ^ = ivm:x(ivm:eraser ivm:x(ivm:eraser ivm:error))
+}
+
+:root::numeric::N32::rem#5 {
+  ^ = ivm:x(
+    ivm:ext:merge[vi:n32:rem](0 1)
+    ivm:x(0 1)
+  )
+}
+
+:root::numeric::N32::rem#6 {
+  ^ = ivm:x(
+    ivm:ext:merge[vi:n32:rem](0 1)
+    ivm:x(0 1)
+  )
+}
+
+:root::numeric::N32::div#2 {
+  ^ = ivm:x(0 ivm:x(ivm:y(1 ivm:ext:merge[vi:n32:eq](ivm:n32 ivm:ext:merge[ivm:branch](
+    ivm:branch[:root::numeric::N32::div#5, :root::numeric::N32::div#4]
+    ivm:x(0 ivm:x(1 2))
+  ))) 2))
+}
+
+:root::numeric::N32::div#3 {
+  ^ = ivm:x(
+    ivm:ext:merge[vi:n32:div](0 1)
+    ivm:x(0 1)
+  )
+}
+
+:root::numeric::N32::div#4 {
+  ^ = ivm:x(ivm:eraser ivm:x(ivm:eraser ivm:error))
+}
+
+:root::numeric::N32::div#5 {
+  ^ = ivm:x(
+    ivm:ext:merge[vi:n32:div](0 1)
+    ivm:x(0 1)
+  )
+}
+
+:root::numeric::N32::div#6 {
+  ^ = ivm:x(
+    ivm:ext:merge[vi:n32:div](0 1)
+    ivm:x(0 1)
+  )
+}
+
+:root::data::List::Stream::push {
+  ^ = ivm:x(
+    ivm:x(0 ivm:x(1 0))
+    ivm:x(1 ivm:eraser)
+  )
+}
+
+:root::unicode::String::from_chars::cast {
+  ^ = ivm:x(0 0)
+}
+
+:root::data::List::iter_ref::iter {
+  ^ = ivm:x(
+    ivm:x(
+      ivm:x(
+        ivm:y(0 1)
+        ivm:x(2 3)
+      )
+      ivm:x(0 ivm:x(4 3))
+    )
+    ivm:x(1 ivm:x(2 4))
+  )
+}
+
+:root::data::List::IterRef::advance {
+  ^ = ivm:x(ivm:x(ivm:y(0 ivm:ext:merge[vi:n32:ne](ivm:n32 ivm:ext:merge[ivm:branch](
+    ivm:branch[:root::data::List::IterRef::advance#3, :root::data::List::IterRef::advance#2]
+    ivm:x(0 ivm:x(1 2))
+  ))) 1) 2)
+}
+
+:root::data::List::push_back {
+  ^ = ivm:x(
+    ivm:x(
+      ivm:x(
+        ivm:ext:merge[vi:n32:add](ivm:n32#1 0)
+        ivm:x(1 ivm:x(2 3))
+      )
+      ivm:x(0 ivm:x(1 3))
+    )
+    ivm:x(2 ivm:eraser)
+  )
+}
+
+:root::data::List::new[:root::util::duplicate, :root::util::erase] {
+  ^ = ivm:x(
+    ivm:y(0 ivm:y(1 2))
+    ivm:x(3 ivm:x(0 ivm:x(4 5)))
+  )
+  ivm:n32 = ivm:ext:merge[vi:n32:lt](2 ivm:ext:merge[ivm:branch](
+    ivm:branch[
+      :root::ops::Range::exclusive_iter::advance#3[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32],
+      :root::ops::Range::exclusive_iter::advance#2[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32],
+    ]
+    ivm:x(ivm:n32 ivm:x(1 ivm:x(ivm:ext:merge[ivm:branch](
+      ivm:branch[
+        :root::data::List::new#4[:root::util::duplicate, :root::util::erase],
+        :root::data::List::new#5[:root::util::duplicate, :root::util::erase],
+      ]
+      ivm:x(ivm:x(3 ivm:x(4 5)) 6)
+    ) 6)))
+  ))
+}
+
+:root::data::List::IterRef::advance#2 {
+  ^ = ivm:x(
+    ivm:ext:merge[vi:n32:sub](ivm:n32#1 0)
+    ivm:x(
+      ivm:x(
+        ivm:x(1 2)
+        ivm:x(3 4)
+      )
+      ivm:x(ivm:n32#1 ivm:x(
+        ivm:x(1 3)
+        ivm:x(0 ivm:x(2 4))
+      ))
+    )
+  )
+}
+
+:root::data::List::IterRef::advance#3 {
+  ^ = ivm:x(ivm:eraser ivm:x(
+    ivm:x(0 0)
+    ivm:x(ivm:n32 ivm:eraser)
+  ))
+}
+
+:root::data::List::Stream::head {
+  ^ = ivm:x(
+    ivm:x(
+      ivm:x(0 1)
+      ivm:x(2 1)
+    )
+    ivm:x(0 2)
+  )
+}
+
+:root::data::List::Stream::tail {
+  ^ = ivm:x(
+    ivm:x(
+      ivm:x(0 1)
+      ivm:x(0 2)
+    )
+    ivm:x(1 2)
+  )
+}
+
+:root::data::List::new#1[:root::util::duplicate, :root::util::erase] {
+  ^ = ivm:x(0 ivm:x(1 ivm:x(
+    ivm:y(2 ivm:ext:merge[vi:n32:lt](3 ivm:ext:merge[ivm:branch](
+      ivm:branch[
+        :root::ops::Range::exclusive_iter::advance#3[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32],
+        :root::ops::Range::exclusive_iter::advance#2[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32],
+      ]
+      ivm:x(2 ivm:x(4 ivm:x(ivm:ext:merge[ivm:branch](
+        ivm:branch[
+          :root::data::List::new#4[:root::util::duplicate, :root::util::erase],
+          :root::data::List::new#5[:root::util::duplicate, :root::util::erase],
+        ]
+        ivm:x(ivm:x(0 1) 5)
+      ) 5)))
+    )))
+    ivm:y(4 3)
+  )))
+}
+
+:root::data::List::new#4[:root::util::duplicate, :root::util::erase] {
+  ^ = ivm:x(ivm:x(ivm:eraser ivm:x(0 0)) ivm:eraser)
+}
+
+:root::data::List::new#5[:root::util::duplicate, :root::util::erase] {
+  ^ = ivm:x(
+    ivm:x(
+      ivm:y(0 1)
+      ivm:x(ivm:x(1 2) 3)
+    )
+    ivm:x(ivm:eraser ivm:x(
+      ivm:y(4 ivm:ext:merge[vi:n32:lt](5 ivm:ext:merge[ivm:branch](
+        ivm:branch[
+          :root::ops::Range::exclusive_iter::advance#3[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32],
+          :root::ops::Range::exclusive_iter::advance#2[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32],
+        ]
+        ivm:x(4 ivm:x(6 ivm:x(ivm:ext:merge[ivm:branch](
+          ivm:branch[
+            :root::data::List::new#4[:root::util::duplicate, :root::util::erase],
+            :root::data::List::new#5[:root::util::duplicate, :root::util::erase],
+          ]
+          ivm:x(ivm:x(0 ivm:x(2 3)) 7)
+        ) 7)))
+      )))
+      ivm:y(6 5)
+    ))
+  )
+}
+
+:root::data::List::Stream::back::push {
+  ^ = ivm:x(
+    ivm:x(ivm:x(0 1) 1)
+    ivm:x(0 ivm:eraser)
+  )
+}
+
+:root::ops::comparison::Lt::gt[:root::ops::comparison::Lt::from_ord[:root::numeric::N32]] {
+  ^ = ivm:x(
+    ivm:x(ivm:y(0 1) 0)
+    ivm:x(ivm:x(ivm:y(2 ivm:ext:merge[vi:n32:lt](1 3)) 2) 3)
+  )
+}
+
+:root::logical::Option::assume {
+  ^ = ivm:x(ivm:x(ivm:ext:merge[ivm:branch](
+    ivm:branch[:root::logical::Option::assume#4, :root::logical::Option::assume#5]
+    ivm:x(0 1)
+  ) 1) 0)
+}
+
+:root::logical::Option::assume#4 {
+  ^ = ivm:x(ivm:error ivm:eraser)
+}
+
+:root::logical::Option::assume#5 {
+  ^ = ivm:x(0 0)
+}
+
+:root::unicode::String::len {
+  ^ = ivm:x(ivm:x(
+    ivm:x(
+      ivm:y(0 1)
+      ivm:x(2 3)
+    )
+    ivm:x(0 ivm:x(2 3))
+  ) 1)
+}
+
+:root::ops::Cast::ref::cast[
+  :root::derive::Enum::cast_deconstruct[vi:synthetic:Enum[:root::logical::Result]],
+  :root::derive::Enum::cast_reconstruct[vi:synthetic:Enum[:root::logical::Result]],
+] {
+  ^ = ivm:x(
+    ivm:x(ivm:x(ivm:ext:merge[ivm:branch](
+      ivm:branch[
+        vi:synthetic#1[vi:synthetic:enum_deconstruct[:root::logical::Result]],
+        vi:synthetic#2[vi:synthetic:enum_deconstruct[:root::logical::Result]],
+      ]
+      ivm:x(0 1)
+    ) 1) 2)
+    ivm:x(0 ivm:x(ivm:ext:merge[ivm:branch](
+      ivm:branch[
+        vi:synthetic#1[vi:synthetic:enum_reconstruct[:root::logical::Result]],
+        vi:synthetic#2[vi:synthetic:enum_reconstruct[:root::logical::Result]],
+      ]
+      ivm:x(2 3)
+    ) 3))
+  )
+}
+
+:root::derive::Enum::cast_reconstruct::cast[vi:synthetic:Enum[:root::logical::Result]] {
+  ^ = ivm:x(ivm:x(ivm:ext:merge[ivm:branch](
+    ivm:branch[
+      vi:synthetic#1[vi:synthetic:enum_reconstruct[:root::logical::Result]],
+      vi:synthetic#2[vi:synthetic:enum_reconstruct[:root::logical::Result]],
+    ]
+    ivm:x(0 1)
+  ) 1) 0)
+}
+
+:root::derive::Enum::cast_deconstruct::cast[vi:synthetic:Enum[:root::logical::Result]] {
+  ^ = ivm:x(ivm:x(ivm:ext:merge[ivm:branch](
+    ivm:branch[
+      vi:synthetic#1[vi:synthetic:enum_deconstruct[:root::logical::Result]],
+      vi:synthetic#2[vi:synthetic:enum_deconstruct[:root::logical::Result]],
+    ]
+    ivm:x(0 1)
+  ) 1) 0)
+}
+
+vi:synthetic[vi:synthetic:enum_deconstruct[:root::logical::Result]] {
+  ^ = ivm:x(ivm:x(ivm:ext:merge[ivm:branch](
+    ivm:branch[
+      vi:synthetic#1[vi:synthetic:enum_deconstruct[:root::logical::Result]],
+      vi:synthetic#2[vi:synthetic:enum_deconstruct[:root::logical::Result]],
+    ]
+    ivm:x(0 1)
+  ) 1) 0)
+}
+
+vi:synthetic#1[vi:synthetic:enum_deconstruct[:root::logical::Result]] {
+  ^ = ivm:x(ivm:x(ivm:n32 0) 0)
+}
+
+vi:synthetic#2[vi:synthetic:enum_deconstruct[:root::logical::Result]] {
+  ^ = ivm:x(ivm:x(ivm:n32#1 ivm:x(ivm:n32 0)) 0)
+}
+
+vi:synthetic[vi:synthetic:enum_reconstruct[:root::logical::Result]] {
+  ^ = ivm:x(ivm:x(ivm:ext:merge[ivm:branch](
+    ivm:branch[
+      vi:synthetic#1[vi:synthetic:enum_reconstruct[:root::logical::Result]],
+      vi:synthetic#2[vi:synthetic:enum_reconstruct[:root::logical::Result]],
+    ]
+    ivm:x(0 1)
+  ) 1) 0)
+}
+
+vi:synthetic#1[vi:synthetic:enum_reconstruct[:root::logical::Result]] {
+  ^ = ivm:x(ivm:x(ivm:n32 0) 0)
+}
+
+vi:synthetic#2[vi:synthetic:enum_reconstruct[:root::logical::Result]] {
+  ^ = ivm:x(0 ivm:x(ivm:ext:merge[ivm:branch](
+    ivm:branch[
+      vi:synthetic#3[vi:synthetic:enum_reconstruct[:root::logical::Result]],
+      vi:synthetic#4[vi:synthetic:enum_reconstruct[:root::logical::Result]],
+    ]
+    ivm:x(0 1)
+  ) 1))
+}
+
+vi:synthetic#3[vi:synthetic:enum_reconstruct[:root::logical::Result]] {
+  ^ = ivm:x(ivm:x(ivm:n32#1 0) 0)
+}
+
+vi:synthetic#4[vi:synthetic:enum_reconstruct[:root::logical::Result]] {
+  ^ = ivm:x(0 0)
+}
+
+:root::ops::Cast::never::cast {
+  ^ = ivm:eraser
+}
+
+:root::unicode::String::show {
+  ^ = ivm:x(
+    ivm:x(ivm:y(0 ivm:x(
+      ivm:y(1 ivm:ext:merge[vi:n32:ne](ivm:n32 ivm:ext:merge[ivm:branch](
+        ivm:branch[:root::data::List::Iter::advance#3, :root::data::List::Iter::advance#2]
+        ivm:x(1 ivm:x(2 ivm:x(3 ivm:x(ivm:ext:merge[ivm:branch](
+          ivm:branch[:root::unicode::String::show#4, :root::unicode::String::show#5]
+          ivm:x(ivm:x(
+            ivm:x(ivm:n32 ivm:x(4 4))
+            ivm:x(
+              ivm:ext:merge[vi:n32:add](ivm:n32#2 5)
+              ivm:x(6 ivm:x(ivm:n32#34 7))
+            )
+          ) 8)
+        ) 8))))
+      )))
+      ivm:x(2 3)
+    )) 0)
+    ivm:x(ivm:n32 ivm:x(5 ivm:x(ivm:x(ivm:n32#34 6) 7)))
+  )
+}
+
+:root::debug::Show::cast {
+  ^ = ivm:x(0 1)
+  ivm:graft[:root::debug::Show::format] = ivm:x(0 ivm:x(ivm:n32#80 1))
+}
+
+:root::unicode::String::show#1 {
+  ^ = ivm:x(0 ivm:x(
+    ivm:y(1 ivm:ext:merge[vi:n32:ne](ivm:n32 ivm:ext:merge[ivm:branch](
+      ivm:branch[:root::data::List::Iter::advance#3, :root::data::List::Iter::advance#2]
+      ivm:x(1 ivm:x(2 ivm:x(3 ivm:x(ivm:ext:merge[ivm:branch](
+        ivm:branch[:root::unicode::String::show#4, :root::unicode::String::show#5]
+        ivm:x(0 4)
+      ) 4))))
+    )))
+    ivm:x(2 3)
+  ))
+}
+
+:root::unicode::String::show#4 {
+  ^ = ivm:x(ivm:x(0 0) ivm:eraser)
+}
+
+:root::unicode::String::show#5 {
+  ^ = ivm:x(
+    ivm:x(ivm:x(
+      ivm:ext:merge[vi:n32:add](0 1)
+      ivm:x(2 3)
+    ) 4)
+    ivm:x(
+      ivm:y(5 ivm:ext:merge[vi:n32:eq](ivm:n32#34 ivm:ext:merge[ivm:branch](
+        ivm:branch[:root::unicode::String::show#9, :root::unicode::String::show#8]
+        ivm:x(5 ivm:x(0 ivm:x(3 6)))
+      )))
+      ivm:x(
+        ivm:y(7 ivm:ext:merge[vi:n32:ne](ivm:n32 ivm:ext:merge[ivm:branch](
+          ivm:branch[:root::data::List::Iter::advance#3, :root::data::List::Iter::advance#2]
+          ivm:x(7 ivm:x(8 ivm:x(9 ivm:x(ivm:ext:merge[ivm:branch](
+            ivm:branch[:root::unicode::String::show#4, :root::unicode::String::show#5]
+            ivm:x(ivm:x(ivm:x(1 ivm:x(2 6)) 4) 10)
+          ) 10))))
+        )))
+        ivm:x(8 9)
+      )
+    )
+  )
+}
+
+:root::unicode::String::show#8 {
+  ^ = ivm:x(ivm:eraser ivm:x(ivm:n32#2 ivm:x(ivm:x(ivm:n32#92 ivm:x(ivm:n32#34 0)) 0)))
+}
+
+:root::unicode::String::show#9 {
+  ^ = ivm:x(ivm:y(0 ivm:ext:merge[vi:n32:eq](ivm:n32#123 ivm:ext:merge[ivm:branch](
+    ivm:branch[:root::unicode::String::show#12, :root::unicode::String::show#11]
+    ivm:x(0 1)
+  ))) 1)
+}
+
+:root::unicode::String::show#11 {
+  ^ = ivm:x(ivm:eraser ivm:x(ivm:n32#2 ivm:x(ivm:x(ivm:n32#92 ivm:x(ivm:n32#123 0)) 0)))
+}
+
+:root::unicode::String::show#12 {
+  ^ = ivm:x(ivm:y(0 ivm:ext:merge[vi:n32:eq](ivm:n32#92 ivm:ext:merge[ivm:branch](
+    ivm:branch[:root::unicode::Char::escape#4, :root::unicode::Char::escape#3]
+    ivm:x(0 1)
+  ))) 1)
+}
+
+:root::unicode::Char::escape {
+  ^ = ivm:x(ivm:y(0 ivm:ext:merge[vi:n32:eq](ivm:n32#92 ivm:ext:merge[ivm:branch](
+    ivm:branch[:root::unicode::Char::escape#4, :root::unicode::Char::escape#3]
+    ivm:x(0 1)
+  ))) 1)
+}
+
+:root::unicode::Char::escape#3 {
+  ^ = ivm:x(ivm:eraser ivm:x(ivm:n32#2 ivm:x(ivm:x(ivm:n32#92 ivm:x(ivm:n32#92 0)) 0)))
+}
+
+:root::unicode::Char::escape#4 {
+  ^ = ivm:x(ivm:y(ivm:y(0 ivm:ext:merge[vi:n32:le](ivm:n32#126 1)) 2) 3)
+  ivm:ext:merge[vi:n32:le](2 ivm:ext:merge[vi:n32:and](1 ivm:ext:merge[ivm:branch](
+    ivm:branch[:root::unicode::Char::escape#7, :root::unicode::Char::escape#6]
+    ivm:x(0 3)
+  ))) = ivm:n32#32
+}
+
+:root::unicode::Char::escape#6 {
+  ^ = ivm:x(0 ivm:x(ivm:n32#1 ivm:x(ivm:x(0 1) 1)))
+}
+
+:root::unicode::Char::escape#7 {
+  ^ = ivm:x(ivm:y(0 ivm:ext:merge[vi:n32:eq](ivm:n32 ivm:ext:merge[ivm:branch](
+    ivm:branch[:root::unicode::Char::escape#10, :root::unicode::Char::escape#9]
+    ivm:x(0 1)
+  ))) 1)
+}
+
+:root::unicode::Char::escape#9 {
+  ^ = ivm:x(ivm:eraser ivm:x(ivm:n32#2 ivm:x(ivm:x(ivm:n32#92 ivm:x(ivm:n32#48 0)) 0)))
+}
+
+:root::unicode::Char::escape#10 {
+  ^ = ivm:x(ivm:y(0 ivm:ext:merge[vi:n32:eq](ivm:n32#9 ivm:ext:merge[ivm:branch](
+    ivm:branch[:root::unicode::Char::escape#13, :root::unicode::Char::escape#12]
+    ivm:x(0 1)
+  ))) 1)
+}
+
+:root::unicode::Char::escape#12 {
+  ^ = ivm:x(ivm:eraser ivm:x(ivm:n32#2 ivm:x(ivm:x(ivm:n32#92 ivm:x(ivm:n32#116 0)) 0)))
+}
+
+:root::unicode::Char::escape#13 {
+  ^ = ivm:x(ivm:y(0 ivm:ext:merge[vi:n32:eq](ivm:n32#13 ivm:ext:merge[ivm:branch](
+    ivm:branch[:root::unicode::Char::escape#16, :root::unicode::Char::escape#15]
+    ivm:x(0 1)
+  ))) 1)
+}
+
+:root::unicode::Char::escape#15 {
+  ^ = ivm:x(ivm:eraser ivm:x(ivm:n32#2 ivm:x(ivm:x(ivm:n32#92 ivm:x(ivm:n32#114 0)) 0)))
+}
+
+:root::unicode::Char::escape#16 {
+  ^ = ivm:x(ivm:y(0 ivm:ext:merge[vi:n32:eq](ivm:n32#10 ivm:ext:merge[ivm:branch](
+    ivm:branch[:root::unicode::Char::escape#19, :root::unicode::Char::escape#18]
+    ivm:x(0 1)
+  ))) 1)
+}
+
+:root::unicode::Char::escape#18 {
+  ^ = ivm:x(ivm:eraser ivm:x(ivm:n32#2 ivm:x(ivm:x(ivm:n32#92 ivm:x(ivm:n32#110 0)) 0)))
+}
+
+:root::unicode::Char::escape#19 {
+  ^ = ivm:x(ivm:y(0 ivm:ext:merge[vi:n32:lt](ivm:n32#32 ivm:ext:merge[ivm:branch](
+    ivm:branch[:root::unicode::Char::escape#22, :root::unicode::Char::escape#21]
+    ivm:x(0 1)
+  ))) 1)
+}
+
+:root::unicode::Char::escape#21 {
+  ^ = ivm:x(
+    ivm:y(
+      ivm:ext:merge[vi:n32:shr](ivm:n32#4 ivm:y(
+        ivm:ext:merge[vi:n32:shr](ivm:n32#4 ivm:eraser)
+        ivm:ext:merge[vi:n32:and](ivm:n32#15 ivm:y(0 ivm:ext:merge[vi:n32:lt](ivm:n32#10 ivm:ext:merge[ivm:branch](
+          ivm:branch[:root::numeric::N32::to_hex_fixed#8, :root::numeric::N32::to_hex_fixed#7]
+          ivm:x(0 1)
+        ))))
+      ))
+      ivm:ext:merge[vi:n32:and](ivm:n32#15 ivm:y(2 ivm:ext:merge[vi:n32:lt](ivm:n32#10 ivm:ext:merge[ivm:branch](
+        ivm:branch[:root::numeric::N32::to_hex_fixed#8, :root::numeric::N32::to_hex_fixed#7]
+        ivm:x(2 3)
+      ))))
+    )
+    ivm:x(ivm:n32#4 ivm:x(ivm:x(ivm:n32#92 ivm:x(ivm:n32#120 ivm:x(1 ivm:x(3 4)))) 4))
+  )
+}
+
+:root::unicode::Char::escape#22 {
+  ^ = ivm:x(
+    ivm:y(
+      ivm:ext:merge[vi:n32:shr](ivm:n32#4 ivm:y(0 ivm:ext:merge[vi:n32:ne](ivm:n32 ivm:ext:merge[ivm:branch](
+        ivm:branch[:root::numeric::N32::to_hex_raw#7, :root::numeric::N32::to_hex_raw#6]
+        ivm:x(0 ivm:x(
+          ivm:x(ivm:n32#1 ivm:x(ivm:x(1 2) 2))
+          ivm:x(
+            ivm:ext:merge[vi:n32:add](ivm:n32#4 3)
+            ivm:x(4 ivm:x(ivm:n32#125 5))
+          )
+        ))
+      ))))
+      ivm:ext:merge[vi:n32:and](ivm:n32#15 ivm:y(6 ivm:ext:merge[vi:n32:lt](ivm:n32#10 ivm:ext:merge[ivm:branch](
+        ivm:branch[:root::numeric::N32::to_hex_raw#4, :root::numeric::N32::to_hex_raw#3]
+        ivm:x(6 1)
+      ))))
+    )
+    ivm:x(3 ivm:x(ivm:x(ivm:n32#92 ivm:x(ivm:n32#117 ivm:x(ivm:n32#123 4))) 5))
+  )
+}
+
+:root::numeric::N32::to_hex_raw {
+  ^ = ivm:x(ivm:y(
+    ivm:ext:merge[vi:n32:shr](ivm:n32#4 ivm:y(0 ivm:ext:merge[vi:n32:ne](ivm:n32 ivm:ext:merge[ivm:branch](
+      ivm:branch[:root::numeric::N32::to_hex_raw#7, :root::numeric::N32::to_hex_raw#6]
+      ivm:x(0 ivm:x(ivm:x(ivm:n32#1 ivm:x(ivm:x(1 2) 2)) 3))
+    ))))
+    ivm:ext:merge[vi:n32:and](ivm:n32#15 ivm:y(4 ivm:ext:merge[vi:n32:lt](ivm:n32#10 ivm:ext:merge[ivm:branch](
+      ivm:branch[:root::numeric::N32::to_hex_raw#4, :root::numeric::N32::to_hex_raw#3]
+      ivm:x(4 1)
+    ))))
+  ) 3)
+}
+
+:root::numeric::N32::to_hex_raw#1 {
+  ^ = ivm:x(
+    ivm:y(
+      ivm:ext:merge[vi:n32:shr](ivm:n32#4 ivm:y(0 ivm:ext:merge[vi:n32:ne](ivm:n32 ivm:ext:merge[ivm:branch](
+        ivm:branch[:root::numeric::N32::to_hex_raw#7, :root::numeric::N32::to_hex_raw#6]
+        ivm:x(0 ivm:x(ivm:x(1 ivm:x(ivm:x(2 3) 4)) 5))
+      ))))
+      ivm:ext:merge[vi:n32:and](ivm:n32#15 ivm:y(6 ivm:ext:merge[vi:n32:lt](ivm:n32#10 ivm:ext:merge[ivm:branch](
+        ivm:branch[:root::numeric::N32::to_hex_raw#4, :root::numeric::N32::to_hex_raw#3]
+        ivm:x(6 2)
+      ))))
+    )
+    ivm:x(ivm:x(
+      ivm:ext:merge[vi:n32:add](ivm:n32#1 1)
+      ivm:x(3 4)
+    ) 5)
+  )
+}
+
+:root::numeric::N32::to_hex_raw#3 {
+  ^ = ivm:x(ivm:ext:merge[vi:n32:add](ivm:n32#48 0) 0)
+}
+
+:root::numeric::N32::to_hex_raw#4 {
+  ^ = ivm:x(ivm:ext:merge[vi:n32:add](ivm:n32#87 0) 0)
+}
+
+:root::numeric::N32::to_hex_raw#6 {
+  ^ = ivm:x(
+    ivm:y(
+      ivm:ext:merge[vi:n32:shr](ivm:n32#4 ivm:y(0 ivm:ext:merge[vi:n32:ne](ivm:n32 ivm:ext:merge[ivm:branch](
+        ivm:branch[:root::numeric::N32::to_hex_raw#7, :root::numeric::N32::to_hex_raw#6]
+        ivm:x(0 ivm:x(ivm:x(1 ivm:x(ivm:x(2 3) 4)) 5))
+      ))))
+      ivm:ext:merge[vi:n32:and](ivm:n32#15 ivm:y(6 ivm:ext:merge[vi:n32:lt](ivm:n32#10 ivm:ext:merge[ivm:branch](
+        ivm:branch[:root::numeric::N32::to_hex_raw#4, :root::numeric::N32::to_hex_raw#3]
+        ivm:x(6 2)
+      ))))
+    )
+    ivm:x(ivm:x(
+      ivm:ext:merge[vi:n32:add](ivm:n32#1 1)
+      ivm:x(3 4)
+    ) 5)
+  )
+}
+
+:root::numeric::N32::to_hex_raw#7 {
+  ^ = ivm:x(ivm:eraser ivm:x(0 0))
+}
+
+:root::debug::Show::format {
+  ^ = ivm:x(0 ivm:x(1 2))
+  ivm:graft[:root::debug::Show::_format] = ivm:x(0 ivm:x(1 ivm:x(ivm:n32 ivm:x(3 2))))
+  ivm:graft[:root::util::erase::drop] = ivm:x(3 ivm:eraser)
+}
+
+:root::debug::Show::_format#46 {
+  ^ = ivm:x(
+    ivm:x(ivm:eraser ivm:x(ivm:eraser ivm:x(0 ivm:x(1 ivm:x(2 3)))))
+    ivm:x(
+      ivm:y(1 0)
+      ivm:x(2 3)
+    )
+  )
+}
+
+:root::debug::Show::_format#47 {
+  ^ = ivm:x(
+    ivm:x(0 ivm:x(1 2))
+    ivm:x(3 ivm:x(ivm:ext:merge[ivm:branch](
+      ivm:branch[:root::debug::Show::_format#16, :root::debug::Show::_format#17, :root::debug::Show::_format#18, :root::debug::Show::_format#19, :root::debug::Show::_format#20]
+      ivm:x(ivm:x(
+        ivm:ext:merge[ivm:branch](
+          ivm:branch[:root::debug::Show::_format#26, :root::debug::Show::_format#25]
+          ivm:x(3 ivm:x(4 ivm:x(5 2)))
+        )
+        ivm:x(ivm:ext:merge[ivm:branch](
+          ivm:branch[:root::debug::Show::_format#46, :root::debug::Show::_format#47, :root::debug::Show::_format#48, :root::debug::Show::_format#49, :root::debug::Show::_format#50]
+          ivm:x(ivm:x(0 ivm:x(1 ivm:x(4 5))) 6)
+        ) 6)
+      ) 7)
+    ) 7))
+  )
+}
+
+:root::debug::Show::_format#48 {
+  ^ = ivm:x(
+    ivm:x(0 ivm:x(1 2))
+    ivm:x(
+      ivm:y(3 ivm:y(ivm:eraser ivm:ext:merge[vi:n32:eq](ivm:n32 ivm:ext:merge[ivm:branch](
+        ivm:branch[:root::debug::Show::_format#31, :root::debug::Show::_format#30]
+        ivm:x(0 ivm:x(1 ivm:x(ivm:x(3 ivm:x(4 5)) 2)))
+      ))))
+      ivm:x(4 5)
+    )
+  )
+}
+
+:root::debug::Show::_format#49 {
+  ^ = ivm:x(
+    ivm:x(0 ivm:x(1 2))
+    ivm:x(
+      ivm:y(3 ivm:y(ivm:eraser ivm:ext:merge[vi:n32:eq](ivm:n32 ivm:ext:merge[ivm:branch](
+        ivm:branch[:root::debug::Show::_format#42, :root::debug::Show::_format#41]
+        ivm:x(0 ivm:x(1 ivm:x(ivm:x(3 ivm:x(4 5)) 2)))
+      ))))
+      ivm:x(4 5)
+    )
+  )
+}
+
+:root::debug::Show::_format#50 {
+  ^ = ivm:x(
+    ivm:x(0 ivm:x(1 2))
+    ivm:x(
+      ivm:y(3 ivm:y(ivm:eraser ivm:ext:merge[vi:n32:eq](ivm:n32 ivm:ext:merge[ivm:branch](
+        ivm:branch[:root::debug::Show::_format#38, :root::debug::Show::_format#37]
+        ivm:x(0 ivm:x(1 ivm:x(ivm:x(3 ivm:x(4 5)) 2)))
+      ))))
+      ivm:x(4 5)
+    )
+  )
+}
+
+:root::debug::Show::_format#1 {
+  ^ = ivm:x(ivm:eraser ivm:x(0 ivm:x(ivm:n32#1 ivm:x(ivm:x(0 1) 1))))
+}
+
+:root::debug::Show::_format#2 {
+  ^ = ivm:eraser
+}
+
+:root::debug::Show::_format#3 {
+  ^ = ivm:x(ivm:eraser ivm:eraser)
+}
+
+:root::debug::Show::_format#4 {
+  ^ = ivm:x(ivm:eraser ivm:x(0 ivm:x(ivm:n32#1 ivm:x(ivm:x(0 1) 1))))
+}
+
+:root::debug::Show::_format#5 {
+  ^ = ivm:eraser
+}
+
+:root::debug::Show::_format#6 {
+  ^ = ivm:x(ivm:eraser ivm:eraser)
+}
+
+:root::debug::Show::_format#7 {
+  ^ = ivm:x(ivm:eraser ivm:x(
+    ivm:x(0 1)
+    ivm:x(ivm:n32#3 ivm:x(ivm:x(0 ivm:x(
+      ivm:x(ivm:n32 ivm:x(ivm:n32#2 ivm:x(ivm:x(ivm:n32#58 ivm:x(ivm:n32#32 2)) 2)))
+      ivm:x(1 3)
+    )) 3))
+  ))
+}
+
+:root::debug::Show::_format#8 {
+  ^ = ivm:eraser
+}
+
+:root::debug::Show::_format#9 {
+  ^ = ivm:x(ivm:eraser ivm:eraser)
+}
+
+:root::debug::Show::_format#15 {
+  ^ = ivm:n32
+}
+
+:root::debug::Show::_format#23 {
+  ^ = ivm:n32
+}
+
+:root::debug::Show::_format#16 {
+  ^ = ivm:x(ivm:x(ivm:n32 ivm:x(ivm:n32 0)) 0)
+}
+
+:root::debug::Show::_format#17 {
+  ^ = ivm:x(ivm:x(ivm:n32 ivm:x(ivm:n32#1 0)) 0)
+}
+
+:root::debug::Show::_format#18 {
+  ^ = ivm:x(
+    ivm:x(0 ivm:x(ivm:n32#2 ivm:x(1 ivm:x(2 3))))
+    ivm:x(
+      ivm:y(1 ivm:y(ivm:eraser ivm:ext:merge[vi:n32:ne](ivm:n32#1 ivm:ext:merge[ivm:branch](ivm:branch[:root::debug::Show::_format#22, :root::debug::Show::_format#21] 0))))
+      ivm:x(2 3)
+    )
+  )
+}
+
+:root::debug::Show::_format#21 {
+  ^ = ivm:n32#1
+}
+
+:root::debug::Show::_format#22 {
+  ^ = ivm:n32
+}
+
+:root::debug::Show::_format#19 {
+  ^ = ivm:x(ivm:x(ivm:n32 ivm:x(ivm:n32#3 0)) 0)
+}
+
+:root::debug::Show::_format#20 {
+  ^ = ivm:x(ivm:x(ivm:n32 ivm:x(ivm:n32#4 0)) 0)
+}
+
+:root::debug::Show::_format#25 {
+  ^ = ivm:x(
+    ivm:x(
+      ivm:y(0 1)
+      ivm:x(2 3)
+    )
+    ivm:x(
+      ivm:ext:merge[vi:n32:add](1 4)
+      ivm:x(
+        ivm:x(
+          ivm:ext:merge[vi:n32:add](0 5)
+          ivm:x(3 6)
+        )
+        ivm:x(4 ivm:x(5 ivm:x(2 6)))
+      )
+    )
+  )
+}
+
+:root::debug::Show::_format#26 {
+  ^ = ivm:x(
+    ivm:x(
+      ivm:y(ivm:ext:merge[vi:n32:add](ivm:n32#2 ivm:ext:merge[vi:n32:add](0 1)) 2)
+      ivm:x(3 ivm:x(ivm:n32#40 4))
+    )
+    ivm:x(
+      ivm:ext:merge[vi:n32:add](2 ivm:ext:merge[vi:n32:add](ivm:n32#2 5))
+      ivm:x(
+        ivm:x(0 ivm:x(4 ivm:x(ivm:n32#41 6)))
+        ivm:x(5 ivm:x(1 ivm:x(3 6)))
+      )
+    )
+  )
+}
+
+:root::debug::Show::_format#30 {
+  ^ = ivm:x(ivm:eraser ivm:x(ivm:eraser ivm:x(ivm:eraser ivm:x(ivm:n32#2 ivm:x(ivm:n32#2 ivm:x(ivm:x(ivm:n32#40 ivm:x(ivm:n32#41 0)) 0))))))
+}
+
+:root::debug::Show::_format#31 {
+  ^ = ivm:x(0 ivm:x(1 ivm:x(ivm:x(
+    ivm:y(2 ivm:y(ivm:eraser ivm:ext:merge[vi:n32:eq](ivm:n32#1 ivm:ext:merge[ivm:branch](
+      ivm:branch[:root::debug::Show::_format#34, :root::debug::Show::_format#33]
+      ivm:x(0 ivm:x(1 ivm:x(ivm:x(2 ivm:x(3 4)) 5)))
+    ))))
+    ivm:x(3 4)
+  ) 5)))
+}
+
+:root::debug::Show::_format#33 {
+  ^ = ivm:x(0 ivm:x(1 ivm:x(
+    ivm:x(
+      ivm:y(2 ivm:ext:merge[vi:n32:ne](ivm:n32 ivm:ext:merge[ivm:branch](
+        ivm:branch[:root::data::List::pop_front#3, :root::data::List::pop_front#2]
+        ivm:x(
+          ivm:x(2 ivm:eraser)
+          ivm:x(
+            ivm:x(3 ivm:eraser)
+            ivm:x(ivm:ext:merge[ivm:branch](
+              ivm:branch[:root::logical::Option::assume#4, :root::logical::Option::assume#5]
+              ivm:x(ivm:x(ivm:ext:merge[ivm:branch](
+                ivm:branch[:root::debug::Show::_format#46, :root::debug::Show::_format#47, :root::debug::Show::_format#48, :root::debug::Show::_format#49, :root::debug::Show::_format#50]
+                ivm:x(ivm:x(0 ivm:x(1 ivm:x(
+                  ivm:ext:merge[vi:n32:add](ivm:n32#3 4)
+                  ivm:x(
+                    ivm:ext:merge[vi:n32:add](ivm:n32#3 5)
+                    ivm:x(6 ivm:x(ivm:n32#44 ivm:x(ivm:n32#41 7)))
+                  )
+                ))) 8)
+              ) 8) 9)
+            ) 9)
+          )
+        )
+      )))
+      ivm:x(3 ivm:eraser)
+    )
+    ivm:x(4 ivm:x(5 ivm:x(ivm:x(ivm:n32#40 6) 7)))
+  )))
+}
+
+:root::debug::Show::_format#34 {
+  ^ = ivm:x(
+    ivm:y(ivm:y(ivm:eraser ivm:ext:merge[vi:n32:lt](0 ivm:y(
+      ivm:ext:merge[ivm:branch](
+        ivm:branch[
+          :root::debug::Show::format_comma_sep#22[
+            :root::util::erase,
+            vi:closure:fork[:root::debug::Show::_format],
+            vi:closure:drop[:root::debug::Show::_format],
+            vi:closure[:root::debug::Show::_format],
+          ],
+          :root::debug::Show::format_comma_sep#21[
+            :root::util::erase,
+            vi:closure:fork[:root::debug::Show::_format],
+            vi:closure:drop[:root::debug::Show::_format],
+            vi:closure[:root::debug::Show::_format],
+          ],
+        ]
+        ivm:x(1 ivm:x(2 ivm:x(
+          ivm:ext:merge[vi:n32:add](ivm:n32#2 3)
+          ivm:x(4 ivm:x(ivm:n32#41 5))
+        )))
+      )
+      ivm:y(6 ivm:eraser)
+    ))) 7)
+    ivm:x(
+      ivm:y(1 8)
+      ivm:x(
+        ivm:x(
+          ivm:y(9 ivm:ext:merge[vi:n32:ne](ivm:n32 ivm:ext:merge[ivm:branch](
+            ivm:branch[:root::data::List::Iter::advance#3, :root::data::List::Iter::advance#2]
+            ivm:x(9 ivm:x(10 ivm:x(11 ivm:x(ivm:ext:merge[ivm:branch](
+              ivm:branch[
+                :root::debug::Show::format_comma_sep#4[
+                  :root::util::erase,
+                  vi:closure:fork[:root::debug::Show::_format],
+                  vi:closure:drop[:root::debug::Show::_format],
+                  vi:closure[:root::debug::Show::_format],
+                ],
+                :root::debug::Show::format_comma_sep#5[
+                  :root::util::erase,
+                  vi:closure:fork[:root::debug::Show::_format],
+                  vi:closure:drop[:root::debug::Show::_format],
+                  vi:closure[:root::debug::Show::_format],
+                ],
+              ]
+              ivm:x(ivm:x(ivm:eraser ivm:x(7 ivm:x(8 ivm:x(6 ivm:x(
+                ivm:x(ivm:n32 ivm:y(12 0))
+                ivm:x(ivm:x(ivm:x(ivm:n32 ivm:x(13 13)) 2) ivm:n32#1)
+              ))))) 14)
+            ) 14))))
+          )))
+          ivm:x(10 11)
+        )
+        ivm:x(12 ivm:x(3 ivm:x(ivm:x(ivm:n32#40 4) 5)))
+      )
+    )
+  )
+}
+
+:root::debug::Show::format_comma_sep[
+  :root::util::erase,
+  vi:closure:fork[:root::debug::Show::_format],
+  vi:closure:drop[:root::debug::Show::_format],
+  vi:closure[:root::debug::Show::_format],
+] {
+  ^ = ivm:x(
+    ivm:x(
+      ivm:y(0 ivm:ext:merge[vi:n32:ne](ivm:n32 ivm:ext:merge[ivm:branch](
+        ivm:branch[:root::data::List::Iter::advance#3, :root::data::List::Iter::advance#2]
+        ivm:x(0 ivm:x(1 ivm:x(2 ivm:x(ivm:ext:merge[ivm:branch](
+          ivm:branch[
+            :root::debug::Show::format_comma_sep#4[
+              :root::util::erase,
+              vi:closure:fork[:root::debug::Show::_format],
+              vi:closure:drop[:root::debug::Show::_format],
+              vi:closure[:root::debug::Show::_format],
+            ],
+            :root::debug::Show::format_comma_sep#5[
+              :root::util::erase,
+              vi:closure:fork[:root::debug::Show::_format],
+              vi:closure:drop[:root::debug::Show::_format],
+              vi:closure[:root::debug::Show::_format],
+            ],
+          ]
+          ivm:x(ivm:x(3 ivm:x(4 ivm:x(5 ivm:x(6 ivm:x(
+            ivm:x(ivm:n32 ivm:y(7 8))
+            ivm:x(ivm:x(ivm:x(ivm:n32 ivm:x(9 9)) 10) ivm:n32#1)
+          ))))) 11)
+        ) 11))))
+      )))
+      ivm:x(1 2)
+    )
+    ivm:x(3 ivm:x(
+      ivm:y(ivm:y(ivm:eraser ivm:ext:merge[vi:n32:lt](8 ivm:y(
+        ivm:ext:merge[ivm:branch](
+          ivm:branch[
+            :root::debug::Show::format_comma_sep#22[
+              :root::util::erase,
+              vi:closure:fork[:root::debug::Show::_format],
+              vi:closure:drop[:root::debug::Show::_format],
+              vi:closure[:root::debug::Show::_format],
+            ],
+            :root::debug::Show::format_comma_sep#21[
+              :root::util::erase,
+              vi:closure:fork[:root::debug::Show::_format],
+              vi:closure:drop[:root::debug::Show::_format],
+              vi:closure[:root::debug::Show::_format],
+            ],
+          ]
+          ivm:x(12 ivm:x(10 13))
+        )
+        ivm:y(6 14)
+      ))) 4)
+      ivm:x(
+        ivm:y(12 5)
+        ivm:x(7 ivm:x(13 14))
+      )
+    ))
+  )
+}
+
+:root::debug::Show::_format#37 {
+  ^ = ivm:x(ivm:eraser ivm:x(ivm:eraser ivm:x(ivm:eraser ivm:x(ivm:n32#2 ivm:x(ivm:n32#2 ivm:x(ivm:x(ivm:n32#91 ivm:x(ivm:n32#93 0)) 0))))))
+}
+
+:root::debug::Show::_format#38 {
+  ^ = ivm:x(
+    ivm:y(ivm:y(ivm:eraser ivm:ext:merge[vi:n32:lt](0 ivm:y(
+      ivm:ext:merge[ivm:branch](
+        ivm:branch[
+          :root::debug::Show::format_comma_sep#22[
+            :root::util::erase,
+            vi:closure:fork#1[:root::debug::Show::_format],
+            vi:closure:drop#1[:root::debug::Show::_format],
+            vi:closure#1[:root::debug::Show::_format],
+          ],
+          :root::debug::Show::format_comma_sep#21[
+            :root::util::erase,
+            vi:closure:fork#1[:root::debug::Show::_format],
+            vi:closure:drop#1[:root::debug::Show::_format],
+            vi:closure#1[:root::debug::Show::_format],
+          ],
+        ]
+        ivm:x(1 ivm:x(2 ivm:x(
+          ivm:ext:merge[vi:n32:add](ivm:n32#2 3)
+          ivm:x(4 ivm:x(ivm:n32#93 5))
+        )))
+      )
+      ivm:y(6 ivm:eraser)
+    ))) 7)
+    ivm:x(
+      ivm:y(1 8)
+      ivm:x(
+        ivm:x(
+          ivm:y(9 ivm:ext:merge[vi:n32:ne](ivm:n32 ivm:ext:merge[ivm:branch](
+            ivm:branch[:root::data::List::Iter::advance#3, :root::data::List::Iter::advance#2]
+            ivm:x(9 ivm:x(10 ivm:x(11 ivm:x(ivm:ext:merge[ivm:branch](
+              ivm:branch[
+                :root::debug::Show::format_comma_sep#4[
+                  :root::util::erase,
+                  vi:closure:fork#1[:root::debug::Show::_format],
+                  vi:closure:drop#1[:root::debug::Show::_format],
+                  vi:closure#1[:root::debug::Show::_format],
+                ],
+                :root::debug::Show::format_comma_sep#5[
+                  :root::util::erase,
+                  vi:closure:fork#1[:root::debug::Show::_format],
+                  vi:closure:drop#1[:root::debug::Show::_format],
+                  vi:closure#1[:root::debug::Show::_format],
+                ],
+              ]
+              ivm:x(ivm:x(ivm:eraser ivm:x(7 ivm:x(8 ivm:x(6 ivm:x(
+                ivm:x(ivm:n32 ivm:y(12 0))
+                ivm:x(ivm:x(ivm:x(ivm:n32 ivm:x(13 13)) 2) ivm:n32#1)
+              ))))) 14)
+            ) 14))))
+          )))
+          ivm:x(10 11)
+        )
+        ivm:x(12 ivm:x(3 ivm:x(ivm:x(ivm:n32#91 4) 5)))
+      )
+    )
+  )
+}
+
+:root::debug::Show::format_comma_sep[
+  :root::util::erase,
+  vi:closure:fork#1[:root::debug::Show::_format],
+  vi:closure:drop#1[:root::debug::Show::_format],
+  vi:closure#1[:root::debug::Show::_format],
+] {
+  ^ = ivm:x(
+    ivm:x(
+      ivm:y(0 ivm:ext:merge[vi:n32:ne](ivm:n32 ivm:ext:merge[ivm:branch](
+        ivm:branch[:root::data::List::Iter::advance#3, :root::data::List::Iter::advance#2]
+        ivm:x(0 ivm:x(1 ivm:x(2 ivm:x(ivm:ext:merge[ivm:branch](
+          ivm:branch[
+            :root::debug::Show::format_comma_sep#4[
+              :root::util::erase,
+              vi:closure:fork#1[:root::debug::Show::_format],
+              vi:closure:drop#1[:root::debug::Show::_format],
+              vi:closure#1[:root::debug::Show::_format],
+            ],
+            :root::debug::Show::format_comma_sep#5[
+              :root::util::erase,
+              vi:closure:fork#1[:root::debug::Show::_format],
+              vi:closure:drop#1[:root::debug::Show::_format],
+              vi:closure#1[:root::debug::Show::_format],
+            ],
+          ]
+          ivm:x(ivm:x(3 ivm:x(4 ivm:x(5 ivm:x(6 ivm:x(
+            ivm:x(ivm:n32 ivm:y(7 8))
+            ivm:x(ivm:x(ivm:x(ivm:n32 ivm:x(9 9)) 10) ivm:n32#1)
+          ))))) 11)
+        ) 11))))
+      )))
+      ivm:x(1 2)
+    )
+    ivm:x(3 ivm:x(
+      ivm:y(ivm:y(ivm:eraser ivm:ext:merge[vi:n32:lt](8 ivm:y(
+        ivm:ext:merge[ivm:branch](
+          ivm:branch[
+            :root::debug::Show::format_comma_sep#22[
+              :root::util::erase,
+              vi:closure:fork#1[:root::debug::Show::_format],
+              vi:closure:drop#1[:root::debug::Show::_format],
+              vi:closure#1[:root::debug::Show::_format],
+            ],
+            :root::debug::Show::format_comma_sep#21[
+              :root::util::erase,
+              vi:closure:fork#1[:root::debug::Show::_format],
+              vi:closure:drop#1[:root::debug::Show::_format],
+              vi:closure#1[:root::debug::Show::_format],
+            ],
+          ]
+          ivm:x(12 ivm:x(10 13))
+        )
+        ivm:y(6 14)
+      ))) 4)
+      ivm:x(
+        ivm:y(12 5)
+        ivm:x(7 ivm:x(13 14))
+      )
+    ))
+  )
+}
+
+:root::debug::Show::_format#41 {
+  ^ = ivm:x(ivm:eraser ivm:x(ivm:eraser ivm:x(ivm:eraser ivm:x(ivm:n32#2 ivm:x(ivm:n32#2 ivm:x(ivm:x(ivm:n32#123 ivm:x(ivm:n32#125 0)) 0))))))
+}
+
+:root::debug::Show::_format#42 {
+  ^ = ivm:x(
+    ivm:y(ivm:y(ivm:eraser ivm:ext:merge[vi:n32:lt](0 ivm:y(
+      ivm:ext:merge[ivm:branch](
+        ivm:branch[
+          :root::debug::Show::format_comma_sep#22[
+            :root::util::erase,
+            vi:closure:fork#2[:root::debug::Show::_format],
+            vi:closure:drop#2[:root::debug::Show::_format],
+            vi:closure#2[:root::debug::Show::_format],
+          ],
+          :root::debug::Show::format_comma_sep#21[
+            :root::util::erase,
+            vi:closure:fork#2[:root::debug::Show::_format],
+            vi:closure:drop#2[:root::debug::Show::_format],
+            vi:closure#2[:root::debug::Show::_format],
+          ],
+        ]
+        ivm:x(1 ivm:x(2 3))
+      )
+      ivm:y(4 ivm:ext:merge[ivm:branch](
+        ivm:branch[:root::debug::Show::_format#45, :root::debug::Show::_format#44]
+        ivm:x(3 5)
+      ))
+    ))) 6)
+    ivm:x(
+      ivm:y(1 7)
+      ivm:x(
+        ivm:x(
+          ivm:y(8 ivm:ext:merge[vi:n32:ne](ivm:n32 ivm:ext:merge[ivm:branch](
+            ivm:branch[:root::data::List::Iter::advance#3, :root::data::List::Iter::advance#2]
+            ivm:x(8 ivm:x(9 ivm:x(10 ivm:x(ivm:ext:merge[ivm:branch](
+              ivm:branch[
+                :root::debug::Show::format_comma_sep#4[
+                  :root::util::erase,
+                  vi:closure:fork#2[:root::debug::Show::_format],
+                  vi:closure:drop#2[:root::debug::Show::_format],
+                  vi:closure#2[:root::debug::Show::_format],
+                ],
+                :root::debug::Show::format_comma_sep#5[
+                  :root::util::erase,
+                  vi:closure:fork#2[:root::debug::Show::_format],
+                  vi:closure:drop#2[:root::debug::Show::_format],
+                  vi:closure#2[:root::debug::Show::_format],
+                ],
+              ]
+              ivm:x(ivm:x(ivm:eraser ivm:x(6 ivm:x(7 ivm:x(4 ivm:x(
+                ivm:x(ivm:n32 ivm:y(11 0))
+                ivm:x(ivm:x(ivm:x(ivm:n32 ivm:x(12 12)) 2) ivm:n32#1)
+              ))))) 13)
+            ) 13))))
+          )))
+          ivm:x(9 10)
+        )
+        ivm:x(11 5)
+      )
+    )
+  )
+}
+
+:root::debug::Show::format_comma_sep[
+  :root::util::erase,
+  vi:closure:fork#2[:root::debug::Show::_format],
+  vi:closure:drop#2[:root::debug::Show::_format],
+  vi:closure#2[:root::debug::Show::_format],
+] {
+  ^ = ivm:x(
+    ivm:x(
+      ivm:y(0 ivm:ext:merge[vi:n32:ne](ivm:n32 ivm:ext:merge[ivm:branch](
+        ivm:branch[:root::data::List::Iter::advance#3, :root::data::List::Iter::advance#2]
+        ivm:x(0 ivm:x(1 ivm:x(2 ivm:x(ivm:ext:merge[ivm:branch](
+          ivm:branch[
+            :root::debug::Show::format_comma_sep#4[
+              :root::util::erase,
+              vi:closure:fork#2[:root::debug::Show::_format],
+              vi:closure:drop#2[:root::debug::Show::_format],
+              vi:closure#2[:root::debug::Show::_format],
+            ],
+            :root::debug::Show::format_comma_sep#5[
+              :root::util::erase,
+              vi:closure:fork#2[:root::debug::Show::_format],
+              vi:closure:drop#2[:root::debug::Show::_format],
+              vi:closure#2[:root::debug::Show::_format],
+            ],
+          ]
+          ivm:x(ivm:x(3 ivm:x(4 ivm:x(5 ivm:x(6 ivm:x(
+            ivm:x(ivm:n32 ivm:y(7 8))
+            ivm:x(ivm:x(ivm:x(ivm:n32 ivm:x(9 9)) 10) ivm:n32#1)
+          ))))) 11)
+        ) 11))))
+      )))
+      ivm:x(1 2)
+    )
+    ivm:x(3 ivm:x(
+      ivm:y(ivm:y(ivm:eraser ivm:ext:merge[vi:n32:lt](8 ivm:y(
+        ivm:ext:merge[ivm:branch](
+          ivm:branch[
+            :root::debug::Show::format_comma_sep#22[
+              :root::util::erase,
+              vi:closure:fork#2[:root::debug::Show::_format],
+              vi:closure:drop#2[:root::debug::Show::_format],
+              vi:closure#2[:root::debug::Show::_format],
+            ],
+            :root::debug::Show::format_comma_sep#21[
+              :root::util::erase,
+              vi:closure:fork#2[:root::debug::Show::_format],
+              vi:closure:drop#2[:root::debug::Show::_format],
+              vi:closure#2[:root::debug::Show::_format],
+            ],
+          ]
+          ivm:x(12 ivm:x(10 13))
+        )
+        ivm:y(6 14)
+      ))) 4)
+      ivm:x(
+        ivm:y(12 5)
+        ivm:x(7 ivm:x(13 14))
+      )
+    ))
+  )
+}
+
+:root::debug::Show::_format#44 {
+  ^ = ivm:x(
+    ivm:x(
+      ivm:ext:merge[vi:n32:add](ivm:n32#2 0)
+      ivm:x(1 ivm:x(ivm:n32#125 2))
+    )
+    ivm:x(0 ivm:x(ivm:x(ivm:n32#123 1) 2))
+  )
+}
+
+:root::debug::Show::_format#45 {
+  ^ = ivm:x(
+    ivm:x(
+      ivm:ext:merge[vi:n32:add](ivm:n32#4 0)
+      ivm:x(1 ivm:x(ivm:n32#32 ivm:x(ivm:n32#125 2)))
+    )
+    ivm:x(0 ivm:x(ivm:x(ivm:n32#123 ivm:x(ivm:n32#32 1)) 2))
+  )
+}
+
+:root::debug::Show::format_comma_sep#1[
+  :root::util::erase,
+  vi:closure:fork[:root::debug::Show::_format],
+  vi:closure:drop[:root::debug::Show::_format],
+  vi:closure[:root::debug::Show::_format],
+] {
+  ^ = ivm:x(0 ivm:x(1 ivm:x(2 ivm:x(3 ivm:x(4 ivm:x(5 ivm:x(6 ivm:x(
+    ivm:y(7 ivm:ext:merge[vi:n32:ne](ivm:n32 ivm:ext:merge[ivm:branch](
+      ivm:branch[:root::data::List::Iter::advance#3, :root::data::List::Iter::advance#2]
+      ivm:x(7 ivm:x(8 ivm:x(9 ivm:x(ivm:ext:merge[ivm:branch](
+        ivm:branch[
+          :root::debug::Show::format_comma_sep#4[
+            :root::util::erase,
+            vi:closure:fork[:root::debug::Show::_format],
+            vi:closure:drop[:root::debug::Show::_format],
+            vi:closure[:root::debug::Show::_format],
+          ],
+          :root::debug::Show::format_comma_sep#5[
+            :root::util::erase,
+            vi:closure:fork[:root::debug::Show::_format],
+            vi:closure:drop[:root::debug::Show::_format],
+            vi:closure[:root::debug::Show::_format],
+          ],
+        ]
+        ivm:x(ivm:x(0 ivm:x(1 ivm:x(2 ivm:x(3 ivm:x(4 ivm:x(5 6)))))) 10)
+      ) 10))))
+    )))
+    ivm:x(8 9)
+  ))))))))
+}
+
+:root::debug::Show::format_comma_sep#21[
+  :root::util::erase,
+  vi:closure:fork[:root::debug::Show::_format],
+  vi:closure:drop[:root::debug::Show::_format],
+  vi:closure[:root::debug::Show::_format],
+] {
+  ^ = ivm:x(
+    ivm:y(
+      ivm:ext:merge[vi:n32:add](ivm:n32#1 0)
+      ivm:y(1 2)
+    )
+    ivm:x(
+      ivm:x(
+        ivm:ext:merge[vi:n32:add](0 3)
+        ivm:x(4 ivm:x(ivm:n32#10 5))
+      )
+      ivm:x(3 ivm:x(4 6))
+    )
+  )
+  ivm:n32 = ivm:ext:merge[vi:n32:lt](2 ivm:ext:merge[ivm:branch](
+    ivm:branch[
+      :root::ops::Range::exclusive_iter::advance#3[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32],
+      :root::ops::Range::exclusive_iter::advance#2[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32],
+    ]
+    ivm:x(ivm:n32 ivm:x(1 ivm:x(ivm:ext:merge[ivm:branch](
+      ivm:branch[
+        :root::data::List::new#4[:root::util::duplicate, :root::util::erase],
+        :root::data::List::new#5[:root::util::duplicate, :root::util::erase],
+      ]
+      ivm:x(ivm:x(ivm:n32#32 ivm:x(5 6)) 7)
+    ) 7)))
+  ))
+}
+
+:root::debug::Show::format_comma_sep#22[
+  :root::util::erase,
+  vi:closure:fork[:root::debug::Show::_format],
+  vi:closure:drop[:root::debug::Show::_format],
+  vi:closure[:root::debug::Show::_format],
+] {
+  ^ = ivm:x(ivm:eraser ivm:x(0 0))
+}
+
+:root::debug::Show::format_comma_sep#4[
+  :root::util::erase,
+  vi:closure:fork[:root::debug::Show::_format],
+  vi:closure:drop[:root::debug::Show::_format],
+  vi:closure[:root::debug::Show::_format],
+] {
+  ^ = ivm:x(ivm:x(ivm:eraser ivm:x(ivm:eraser ivm:x(ivm:eraser ivm:x(ivm:eraser ivm:x(
+    ivm:x(0 0)
+    ivm:x(ivm:x(1 1) ivm:eraser)
+  ))))) ivm:eraser)
+}
+
+:root::debug::Show::format_comma_sep#5[
+  :root::util::erase,
+  vi:closure:fork[:root::debug::Show::_format],
+  vi:closure:drop[:root::debug::Show::_format],
+  vi:closure[:root::debug::Show::_format],
+] {
+  ^ = ivm:x(
+    ivm:x(ivm:eraser ivm:x(
+      ivm:y(0 ivm:y(ivm:eraser 1))
+      ivm:x(
+        ivm:y(2 ivm:y(ivm:y(ivm:eraser ivm:ext:merge[vi:n32:add](ivm:n32#2 3)) 4))
+        ivm:x(
+          ivm:y(5 ivm:y(
+            ivm:ext:merge[ivm:branch](
+              ivm:branch[
+                :root::debug::Show::format_comma_sep#19[
+                  :root::util::erase,
+                  vi:closure:fork[:root::debug::Show::_format],
+                  vi:closure:drop[:root::debug::Show::_format],
+                  vi:closure[:root::debug::Show::_format],
+                ],
+                :root::debug::Show::format_comma_sep#18[
+                  :root::util::erase,
+                  vi:closure:fork[:root::debug::Show::_format],
+                  vi:closure:drop[:root::debug::Show::_format],
+                  vi:closure[:root::debug::Show::_format],
+                ],
+              ]
+              ivm:x(ivm:x(6 ivm:x(7 8)) 9)
+            )
+            ivm:ext:merge[ivm:branch](
+              ivm:branch[
+                :root::debug::Show::format_comma_sep#8[
+                  :root::util::erase,
+                  vi:closure:fork[:root::debug::Show::_format],
+                  vi:closure:drop[:root::debug::Show::_format],
+                  vi:closure[:root::debug::Show::_format],
+                ],
+                :root::debug::Show::format_comma_sep#7[
+                  :root::util::erase,
+                  vi:closure:fork[:root::debug::Show::_format],
+                  vi:closure:drop[:root::debug::Show::_format],
+                  vi:closure[:root::debug::Show::_format],
+                ],
+              ]
+              ivm:x(4 ivm:x(ivm:x(10 ivm:x(
+                ivm:ext:merge[vi:n32:add](11 6)
+                ivm:x(7 12)
+              )) 13))
+            )
+          ))
+          ivm:x(
+            ivm:x(ivm:ext:merge[vi:n32:add](ivm:n32#2 ivm:ext:merge[vi:n32:add](14 15)) 16)
+            ivm:x(ivm:x(10 17) 13)
+          )
+        )
+      )
+    ))
+    ivm:x(
+      ivm:x(ivm:ext:merge[ivm:branch](
+        ivm:branch[:root::debug::Show::_format#46, :root::debug::Show::_format#47, :root::debug::Show::_format#48, :root::debug::Show::_format#49, :root::debug::Show::_format#50]
+        ivm:x(ivm:x(1 ivm:x(3 ivm:x(14 ivm:x(11 ivm:x(12 8))))) 18)
+      ) 18)
+      ivm:x(
+        ivm:y(19 ivm:ext:merge[vi:n32:ne](ivm:n32 ivm:ext:merge[ivm:branch](
+          ivm:branch[:root::data::List::Iter::advance#3, :root::data::List::Iter::advance#2]
+          ivm:x(19 ivm:x(20 ivm:x(21 ivm:x(ivm:ext:merge[ivm:branch](
+            ivm:branch[
+              :root::debug::Show::format_comma_sep#4[
+                :root::util::erase,
+                vi:closure:fork[:root::debug::Show::_format],
+                vi:closure:drop[:root::debug::Show::_format],
+                vi:closure[:root::debug::Show::_format],
+              ],
+              :root::debug::Show::format_comma_sep#5[
+                :root::util::erase,
+                vi:closure:fork[:root::debug::Show::_format],
+                vi:closure:drop[:root::debug::Show::_format],
+                vi:closure[:root::debug::Show::_format],
+              ],
+            ]
+            ivm:x(ivm:x(ivm:eraser ivm:x(0 ivm:x(2 ivm:x(5 ivm:x(
+              ivm:x(15 16)
+              ivm:x(ivm:x(9 17) ivm:n32)
+            ))))) 22)
+          ) 22))))
+        )))
+        ivm:x(20 21)
+      )
+    )
+  )
+}
+
+:root::debug::Show::format_comma_sep#7[
+  :root::util::erase,
+  vi:closure:fork[:root::debug::Show::_format],
+  vi:closure:drop[:root::debug::Show::_format],
+  vi:closure[:root::debug::Show::_format],
+] {
+  ^ = ivm:x(
+    ivm:ext:merge[vi:n32:add](ivm:n32#2 ivm:y(
+      ivm:ext:merge[vi:n32:add](ivm:n32#1 0)
+      ivm:y(1 2)
+    ))
+    ivm:x(ivm:x(
+      ivm:x(
+        ivm:ext:merge[vi:n32:add](0 3)
+        ivm:x(4 ivm:x(ivm:n32#10 5))
+      )
+      ivm:x(3 ivm:x(4 6))
+    ) ivm:eraser)
+  )
+  ivm:n32 = ivm:ext:merge[vi:n32:lt](2 ivm:ext:merge[ivm:branch](
+    ivm:branch[
+      :root::ops::Range::exclusive_iter::advance#3[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32],
+      :root::ops::Range::exclusive_iter::advance#2[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32],
+    ]
+    ivm:x(ivm:n32 ivm:x(1 ivm:x(ivm:ext:merge[ivm:branch](
+      ivm:branch[
+        :root::data::List::new#4[:root::util::duplicate, :root::util::erase],
+        :root::data::List::new#5[:root::util::duplicate, :root::util::erase],
+      ]
+      ivm:x(ivm:x(ivm:n32#32 ivm:x(5 6)) 7)
+    ) 7)))
+  ))
+}
+
+:root::debug::Show::format_comma_sep#8[
+  :root::util::erase,
+  vi:closure:fork[:root::debug::Show::_format],
+  vi:closure:drop[:root::debug::Show::_format],
+  vi:closure[:root::debug::Show::_format],
+] {
+  ^ = ivm:x(ivm:eraser ivm:x(0 ivm:ext:merge[ivm:branch](ivm:branch[
+    :root::debug::Show::format_comma_sep#11[
+      :root::util::erase,
+      vi:closure:fork[:root::debug::Show::_format],
+      vi:closure:drop[:root::debug::Show::_format],
+      vi:closure[:root::debug::Show::_format],
+    ],
+    :root::debug::Show::format_comma_sep#10[
+      :root::util::erase,
+      vi:closure:fork[:root::debug::Show::_format],
+      vi:closure:drop[:root::debug::Show::_format],
+      vi:closure[:root::debug::Show::_format],
+    ],
+  ] 0)))
+}
+
+:root::debug::Show::format_comma_sep#12[
+  :root::util::erase,
+  vi:closure:fork[:root::debug::Show::_format],
+  vi:closure:drop[:root::debug::Show::_format],
+  vi:closure[:root::debug::Show::_format],
+] {
+  ^ = ivm:x(0 ivm:x(1 ivm:x(2 ivm:x(3 ivm:x(
+    ivm:y(4 ivm:ext:merge[vi:n32:ne](ivm:n32 ivm:ext:merge[ivm:branch](
+      ivm:branch[:root::data::List::Iter::advance#3, :root::data::List::Iter::advance#2]
+      ivm:x(4 ivm:x(5 ivm:x(6 ivm:x(ivm:ext:merge[ivm:branch](
+        ivm:branch[
+          :root::debug::Show::format_comma_sep#15[
+            :root::util::erase,
+            vi:closure:fork[:root::debug::Show::_format],
+            vi:closure:drop[:root::debug::Show::_format],
+            vi:closure[:root::debug::Show::_format],
+          ],
+          :root::debug::Show::format_comma_sep#16[
+            :root::util::erase,
+            vi:closure:fork[:root::debug::Show::_format],
+            vi:closure:drop[:root::debug::Show::_format],
+            vi:closure[:root::debug::Show::_format],
+          ],
+        ]
+        ivm:x(ivm:x(0 ivm:x(1 ivm:x(2 3))) 7)
+      ) 7))))
+    )))
+    ivm:x(5 6)
+  )))))
+}
+
+:root::debug::Show::format_comma_sep#18[
+  :root::util::erase,
+  vi:closure:fork[:root::debug::Show::_format],
+  vi:closure:drop[:root::debug::Show::_format],
+  vi:closure[:root::debug::Show::_format],
+] {
+  ^ = ivm:x(
+    ivm:x(
+      ivm:ext:merge[vi:n32:add](ivm:n32#1 0)
+      ivm:x(1 ivm:x(ivm:n32#44 2))
+    )
+    ivm:x(0 ivm:x(1 2))
+  )
+}
+
+:root::debug::Show::format_comma_sep#19[
+  :root::util::erase,
+  vi:closure:fork[:root::debug::Show::_format],
+  vi:closure:drop[:root::debug::Show::_format],
+  vi:closure[:root::debug::Show::_format],
+] {
+  ^ = ivm:x(0 0)
+}
+
+:root::debug::Show::newline {
+  ^ = ivm:x(
+    ivm:y(
+      ivm:ext:merge[vi:n32:add](ivm:n32#1 0)
+      ivm:y(1 2)
+    )
+    ivm:x(0 ivm:x(ivm:x(ivm:n32#10 3) 4))
+  )
+  ivm:n32 = ivm:ext:merge[vi:n32:lt](2 ivm:ext:merge[ivm:branch](
+    ivm:branch[
+      :root::ops::Range::exclusive_iter::advance#3[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32],
+      :root::ops::Range::exclusive_iter::advance#2[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32],
+    ]
+    ivm:x(ivm:n32 ivm:x(1 ivm:x(ivm:ext:merge[ivm:branch](
+      ivm:branch[
+        :root::data::List::new#4[:root::util::duplicate, :root::util::erase],
+        :root::data::List::new#5[:root::util::duplicate, :root::util::erase],
+      ]
+      ivm:x(ivm:x(ivm:n32#32 ivm:x(3 4)) 5)
+    ) 5)))
+  ))
+}
+
+:root::debug::Show::format_comma_sep#10[
+  :root::util::erase,
+  vi:closure:fork[:root::debug::Show::_format],
+  vi:closure:drop[:root::debug::Show::_format],
+  vi:closure[:root::debug::Show::_format],
+] {
+  ^ = ivm:x(0 0)
+}
+
+:root::debug::Show::format_comma_sep#11[
+  :root::util::erase,
+  vi:closure:fork[:root::debug::Show::_format],
+  vi:closure:drop[:root::debug::Show::_format],
+  vi:closure[:root::debug::Show::_format],
+] {
+  ^ = ivm:x(
+    ivm:x(
+      ivm:ext:merge[vi:n32:add](ivm:n32#2 0)
+      ivm:x(1 ivm:x(ivm:n32#44 ivm:x(ivm:n32#32 2)))
+    )
+    ivm:x(0 ivm:x(1 2))
+  )
+}
+
+:root::debug::Show::format_comma_sep#15[
+  :root::util::erase,
+  vi:closure:fork[:root::debug::Show::_format],
+  vi:closure:drop[:root::debug::Show::_format],
+  vi:closure[:root::debug::Show::_format],
+] {
+  ^ = ivm:x(ivm:x(ivm:eraser ivm:x(ivm:eraser ivm:x(
+    ivm:x(0 0)
+    ivm:x(1 1)
+  ))) ivm:eraser)
+}
+
+:root::debug::Show::format_comma_sep#16[
+  :root::util::erase,
+  vi:closure:fork[:root::debug::Show::_format],
+  vi:closure:drop[:root::debug::Show::_format],
+  vi:closure[:root::debug::Show::_format],
+] {
+  ^ = ivm:x(
+    ivm:x(
+      ivm:y(0 1)
+      ivm:x(
+        ivm:y(2 ivm:ext:merge[vi:n32:add](ivm:n32#2 3))
+        ivm:x(
+          ivm:x(ivm:ext:merge[vi:n32:add](4 5) 6)
+          ivm:x(ivm:x(
+            ivm:ext:merge[vi:n32:add](7 8)
+            ivm:x(9 10)
+          ) 11)
+        )
+      )
+    )
+    ivm:x(
+      ivm:x(ivm:ext:merge[ivm:branch](
+        ivm:branch[:root::debug::Show::_format#46, :root::debug::Show::_format#47, :root::debug::Show::_format#48, :root::debug::Show::_format#49, :root::debug::Show::_format#50]
+        ivm:x(ivm:x(1 ivm:x(3 ivm:x(4 ivm:x(7 ivm:x(10 12))))) 13)
+      ) 13)
+      ivm:x(
+        ivm:y(14 ivm:ext:merge[vi:n32:ne](ivm:n32 ivm:ext:merge[ivm:branch](
+          ivm:branch[:root::data::List::Iter::advance#3, :root::data::List::Iter::advance#2]
+          ivm:x(14 ivm:x(15 ivm:x(16 ivm:x(ivm:ext:merge[ivm:branch](
+            ivm:branch[
+              :root::debug::Show::format_comma_sep#15[
+                :root::util::erase,
+                vi:closure:fork[:root::debug::Show::_format],
+                vi:closure:drop[:root::debug::Show::_format],
+                vi:closure[:root::debug::Show::_format],
+              ],
+              :root::debug::Show::format_comma_sep#16[
+                :root::util::erase,
+                vi:closure:fork[:root::debug::Show::_format],
+                vi:closure:drop[:root::debug::Show::_format],
+                vi:closure[:root::debug::Show::_format],
+              ],
+            ]
+            ivm:x(ivm:x(0 ivm:x(2 ivm:x(
+              ivm:x(5 6)
+              ivm:x(ivm:x(8 ivm:x(9 12)) 11)
+            ))) 17)
+          ) 17))))
+        )))
+        ivm:x(15 16)
+      )
+    )
+  )
+}
+
+:root::debug::Show::format_comma_sep#1[
+  :root::util::erase,
+  vi:closure:fork#1[:root::debug::Show::_format],
+  vi:closure:drop#1[:root::debug::Show::_format],
+  vi:closure#1[:root::debug::Show::_format],
+] {
+  ^ = ivm:x(0 ivm:x(1 ivm:x(2 ivm:x(3 ivm:x(4 ivm:x(5 ivm:x(6 ivm:x(
+    ivm:y(7 ivm:ext:merge[vi:n32:ne](ivm:n32 ivm:ext:merge[ivm:branch](
+      ivm:branch[:root::data::List::Iter::advance#3, :root::data::List::Iter::advance#2]
+      ivm:x(7 ivm:x(8 ivm:x(9 ivm:x(ivm:ext:merge[ivm:branch](
+        ivm:branch[
+          :root::debug::Show::format_comma_sep#4[
+            :root::util::erase,
+            vi:closure:fork#1[:root::debug::Show::_format],
+            vi:closure:drop#1[:root::debug::Show::_format],
+            vi:closure#1[:root::debug::Show::_format],
+          ],
+          :root::debug::Show::format_comma_sep#5[
+            :root::util::erase,
+            vi:closure:fork#1[:root::debug::Show::_format],
+            vi:closure:drop#1[:root::debug::Show::_format],
+            vi:closure#1[:root::debug::Show::_format],
+          ],
+        ]
+        ivm:x(ivm:x(0 ivm:x(1 ivm:x(2 ivm:x(3 ivm:x(4 ivm:x(5 6)))))) 10)
+      ) 10))))
+    )))
+    ivm:x(8 9)
+  ))))))))
+}
+
+:root::debug::Show::format_comma_sep#21[
+  :root::util::erase,
+  vi:closure:fork#1[:root::debug::Show::_format],
+  vi:closure:drop#1[:root::debug::Show::_format],
+  vi:closure#1[:root::debug::Show::_format],
+] {
+  ^ = ivm:x(
+    ivm:y(
+      ivm:ext:merge[vi:n32:add](ivm:n32#1 0)
+      ivm:y(1 2)
+    )
+    ivm:x(
+      ivm:x(
+        ivm:ext:merge[vi:n32:add](0 3)
+        ivm:x(4 ivm:x(ivm:n32#10 5))
+      )
+      ivm:x(3 ivm:x(4 6))
+    )
+  )
+  ivm:n32 = ivm:ext:merge[vi:n32:lt](2 ivm:ext:merge[ivm:branch](
+    ivm:branch[
+      :root::ops::Range::exclusive_iter::advance#3[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32],
+      :root::ops::Range::exclusive_iter::advance#2[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32],
+    ]
+    ivm:x(ivm:n32 ivm:x(1 ivm:x(ivm:ext:merge[ivm:branch](
+      ivm:branch[
+        :root::data::List::new#4[:root::util::duplicate, :root::util::erase],
+        :root::data::List::new#5[:root::util::duplicate, :root::util::erase],
+      ]
+      ivm:x(ivm:x(ivm:n32#32 ivm:x(5 6)) 7)
+    ) 7)))
+  ))
+}
+
+:root::debug::Show::format_comma_sep#22[
+  :root::util::erase,
+  vi:closure:fork#1[:root::debug::Show::_format],
+  vi:closure:drop#1[:root::debug::Show::_format],
+  vi:closure#1[:root::debug::Show::_format],
+] {
+  ^ = ivm:x(ivm:eraser ivm:x(0 0))
+}
+
+:root::debug::Show::format_comma_sep#4[
+  :root::util::erase,
+  vi:closure:fork#1[:root::debug::Show::_format],
+  vi:closure:drop#1[:root::debug::Show::_format],
+  vi:closure#1[:root::debug::Show::_format],
+] {
+  ^ = ivm:x(ivm:x(ivm:eraser ivm:x(ivm:eraser ivm:x(ivm:eraser ivm:x(ivm:eraser ivm:x(
+    ivm:x(0 0)
+    ivm:x(ivm:x(1 1) ivm:eraser)
+  ))))) ivm:eraser)
+}
+
+:root::debug::Show::format_comma_sep#5[
+  :root::util::erase,
+  vi:closure:fork#1[:root::debug::Show::_format],
+  vi:closure:drop#1[:root::debug::Show::_format],
+  vi:closure#1[:root::debug::Show::_format],
+] {
+  ^ = ivm:x(
+    ivm:x(ivm:eraser ivm:x(
+      ivm:y(0 ivm:y(ivm:eraser 1))
+      ivm:x(
+        ivm:y(2 ivm:y(ivm:y(ivm:eraser ivm:ext:merge[vi:n32:add](ivm:n32#2 3)) 4))
+        ivm:x(
+          ivm:y(5 ivm:y(
+            ivm:ext:merge[ivm:branch](
+              ivm:branch[
+                :root::debug::Show::format_comma_sep#19[
+                  :root::util::erase,
+                  vi:closure:fork#1[:root::debug::Show::_format],
+                  vi:closure:drop#1[:root::debug::Show::_format],
+                  vi:closure#1[:root::debug::Show::_format],
+                ],
+                :root::debug::Show::format_comma_sep#18[
+                  :root::util::erase,
+                  vi:closure:fork#1[:root::debug::Show::_format],
+                  vi:closure:drop#1[:root::debug::Show::_format],
+                  vi:closure#1[:root::debug::Show::_format],
+                ],
+              ]
+              ivm:x(ivm:x(6 ivm:x(7 8)) 9)
+            )
+            ivm:ext:merge[ivm:branch](
+              ivm:branch[
+                :root::debug::Show::format_comma_sep#8[
+                  :root::util::erase,
+                  vi:closure:fork#1[:root::debug::Show::_format],
+                  vi:closure:drop#1[:root::debug::Show::_format],
+                  vi:closure#1[:root::debug::Show::_format],
+                ],
+                :root::debug::Show::format_comma_sep#7[
+                  :root::util::erase,
+                  vi:closure:fork#1[:root::debug::Show::_format],
+                  vi:closure:drop#1[:root::debug::Show::_format],
+                  vi:closure#1[:root::debug::Show::_format],
+                ],
+              ]
+              ivm:x(4 ivm:x(ivm:x(10 ivm:x(
+                ivm:ext:merge[vi:n32:add](11 6)
+                ivm:x(7 12)
+              )) 13))
+            )
+          ))
+          ivm:x(
+            ivm:x(ivm:ext:merge[vi:n32:add](ivm:n32#2 ivm:ext:merge[vi:n32:add](14 15)) 16)
+            ivm:x(ivm:x(10 17) 13)
+          )
+        )
+      )
+    ))
+    ivm:x(
+      ivm:x(ivm:ext:merge[ivm:branch](
+        ivm:branch[:root::debug::Show::_format#46, :root::debug::Show::_format#47, :root::debug::Show::_format#48, :root::debug::Show::_format#49, :root::debug::Show::_format#50]
+        ivm:x(ivm:x(1 ivm:x(3 ivm:x(14 ivm:x(11 ivm:x(12 8))))) 18)
+      ) 18)
+      ivm:x(
+        ivm:y(19 ivm:ext:merge[vi:n32:ne](ivm:n32 ivm:ext:merge[ivm:branch](
+          ivm:branch[:root::data::List::Iter::advance#3, :root::data::List::Iter::advance#2]
+          ivm:x(19 ivm:x(20 ivm:x(21 ivm:x(ivm:ext:merge[ivm:branch](
+            ivm:branch[
+              :root::debug::Show::format_comma_sep#4[
+                :root::util::erase,
+                vi:closure:fork#1[:root::debug::Show::_format],
+                vi:closure:drop#1[:root::debug::Show::_format],
+                vi:closure#1[:root::debug::Show::_format],
+              ],
+              :root::debug::Show::format_comma_sep#5[
+                :root::util::erase,
+                vi:closure:fork#1[:root::debug::Show::_format],
+                vi:closure:drop#1[:root::debug::Show::_format],
+                vi:closure#1[:root::debug::Show::_format],
+              ],
+            ]
+            ivm:x(ivm:x(ivm:eraser ivm:x(0 ivm:x(2 ivm:x(5 ivm:x(
+              ivm:x(15 16)
+              ivm:x(ivm:x(9 17) ivm:n32)
+            ))))) 22)
+          ) 22))))
+        )))
+        ivm:x(20 21)
+      )
+    )
+  )
+}
+
+:root::debug::Show::format_comma_sep#7[
+  :root::util::erase,
+  vi:closure:fork#1[:root::debug::Show::_format],
+  vi:closure:drop#1[:root::debug::Show::_format],
+  vi:closure#1[:root::debug::Show::_format],
+] {
+  ^ = ivm:x(
+    ivm:ext:merge[vi:n32:add](ivm:n32#2 ivm:y(
+      ivm:ext:merge[vi:n32:add](ivm:n32#1 0)
+      ivm:y(1 2)
+    ))
+    ivm:x(ivm:x(
+      ivm:x(
+        ivm:ext:merge[vi:n32:add](0 3)
+        ivm:x(4 ivm:x(ivm:n32#10 5))
+      )
+      ivm:x(3 ivm:x(4 6))
+    ) ivm:eraser)
+  )
+  ivm:n32 = ivm:ext:merge[vi:n32:lt](2 ivm:ext:merge[ivm:branch](
+    ivm:branch[
+      :root::ops::Range::exclusive_iter::advance#3[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32],
+      :root::ops::Range::exclusive_iter::advance#2[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32],
+    ]
+    ivm:x(ivm:n32 ivm:x(1 ivm:x(ivm:ext:merge[ivm:branch](
+      ivm:branch[
+        :root::data::List::new#4[:root::util::duplicate, :root::util::erase],
+        :root::data::List::new#5[:root::util::duplicate, :root::util::erase],
+      ]
+      ivm:x(ivm:x(ivm:n32#32 ivm:x(5 6)) 7)
+    ) 7)))
+  ))
+}
+
+:root::debug::Show::format_comma_sep#8[
+  :root::util::erase,
+  vi:closure:fork#1[:root::debug::Show::_format],
+  vi:closure:drop#1[:root::debug::Show::_format],
+  vi:closure#1[:root::debug::Show::_format],
+] {
+  ^ = ivm:x(ivm:eraser ivm:x(0 ivm:ext:merge[ivm:branch](ivm:branch[
+    :root::debug::Show::format_comma_sep#11[
+      :root::util::erase,
+      vi:closure:fork#1[:root::debug::Show::_format],
+      vi:closure:drop#1[:root::debug::Show::_format],
+      vi:closure#1[:root::debug::Show::_format],
+    ],
+    :root::debug::Show::format_comma_sep#10[
+      :root::util::erase,
+      vi:closure:fork#1[:root::debug::Show::_format],
+      vi:closure:drop#1[:root::debug::Show::_format],
+      vi:closure#1[:root::debug::Show::_format],
+    ],
+  ] 0)))
+}
+
+:root::debug::Show::format_comma_sep#12[
+  :root::util::erase,
+  vi:closure:fork#1[:root::debug::Show::_format],
+  vi:closure:drop#1[:root::debug::Show::_format],
+  vi:closure#1[:root::debug::Show::_format],
+] {
+  ^ = ivm:x(0 ivm:x(1 ivm:x(2 ivm:x(3 ivm:x(
+    ivm:y(4 ivm:ext:merge[vi:n32:ne](ivm:n32 ivm:ext:merge[ivm:branch](
+      ivm:branch[:root::data::List::Iter::advance#3, :root::data::List::Iter::advance#2]
+      ivm:x(4 ivm:x(5 ivm:x(6 ivm:x(ivm:ext:merge[ivm:branch](
+        ivm:branch[
+          :root::debug::Show::format_comma_sep#15[
+            :root::util::erase,
+            vi:closure:fork#1[:root::debug::Show::_format],
+            vi:closure:drop#1[:root::debug::Show::_format],
+            vi:closure#1[:root::debug::Show::_format],
+          ],
+          :root::debug::Show::format_comma_sep#16[
+            :root::util::erase,
+            vi:closure:fork#1[:root::debug::Show::_format],
+            vi:closure:drop#1[:root::debug::Show::_format],
+            vi:closure#1[:root::debug::Show::_format],
+          ],
+        ]
+        ivm:x(ivm:x(0 ivm:x(1 ivm:x(2 3))) 7)
+      ) 7))))
+    )))
+    ivm:x(5 6)
+  )))))
+}
+
+:root::debug::Show::format_comma_sep#18[
+  :root::util::erase,
+  vi:closure:fork#1[:root::debug::Show::_format],
+  vi:closure:drop#1[:root::debug::Show::_format],
+  vi:closure#1[:root::debug::Show::_format],
+] {
+  ^ = ivm:x(
+    ivm:x(
+      ivm:ext:merge[vi:n32:add](ivm:n32#1 0)
+      ivm:x(1 ivm:x(ivm:n32#44 2))
+    )
+    ivm:x(0 ivm:x(1 2))
+  )
+}
+
+:root::debug::Show::format_comma_sep#19[
+  :root::util::erase,
+  vi:closure:fork#1[:root::debug::Show::_format],
+  vi:closure:drop#1[:root::debug::Show::_format],
+  vi:closure#1[:root::debug::Show::_format],
+] {
+  ^ = ivm:x(0 0)
+}
+
+:root::debug::Show::format_comma_sep#10[
+  :root::util::erase,
+  vi:closure:fork#1[:root::debug::Show::_format],
+  vi:closure:drop#1[:root::debug::Show::_format],
+  vi:closure#1[:root::debug::Show::_format],
+] {
+  ^ = ivm:x(0 0)
+}
+
+:root::debug::Show::format_comma_sep#11[
+  :root::util::erase,
+  vi:closure:fork#1[:root::debug::Show::_format],
+  vi:closure:drop#1[:root::debug::Show::_format],
+  vi:closure#1[:root::debug::Show::_format],
+] {
+  ^ = ivm:x(
+    ivm:x(
+      ivm:ext:merge[vi:n32:add](ivm:n32#2 0)
+      ivm:x(1 ivm:x(ivm:n32#44 ivm:x(ivm:n32#32 2)))
+    )
+    ivm:x(0 ivm:x(1 2))
+  )
+}
+
+:root::debug::Show::format_comma_sep#15[
+  :root::util::erase,
+  vi:closure:fork#1[:root::debug::Show::_format],
+  vi:closure:drop#1[:root::debug::Show::_format],
+  vi:closure#1[:root::debug::Show::_format],
+] {
+  ^ = ivm:x(ivm:x(ivm:eraser ivm:x(ivm:eraser ivm:x(
+    ivm:x(0 0)
+    ivm:x(1 1)
+  ))) ivm:eraser)
+}
+
+:root::debug::Show::format_comma_sep#16[
+  :root::util::erase,
+  vi:closure:fork#1[:root::debug::Show::_format],
+  vi:closure:drop#1[:root::debug::Show::_format],
+  vi:closure#1[:root::debug::Show::_format],
+] {
+  ^ = ivm:x(
+    ivm:x(
+      ivm:y(0 1)
+      ivm:x(
+        ivm:y(2 ivm:ext:merge[vi:n32:add](ivm:n32#2 3))
+        ivm:x(
+          ivm:x(ivm:ext:merge[vi:n32:add](4 5) 6)
+          ivm:x(ivm:x(
+            ivm:ext:merge[vi:n32:add](7 8)
+            ivm:x(9 10)
+          ) 11)
+        )
+      )
+    )
+    ivm:x(
+      ivm:x(ivm:ext:merge[ivm:branch](
+        ivm:branch[:root::debug::Show::_format#46, :root::debug::Show::_format#47, :root::debug::Show::_format#48, :root::debug::Show::_format#49, :root::debug::Show::_format#50]
+        ivm:x(ivm:x(1 ivm:x(3 ivm:x(4 ivm:x(7 ivm:x(10 12))))) 13)
+      ) 13)
+      ivm:x(
+        ivm:y(14 ivm:ext:merge[vi:n32:ne](ivm:n32 ivm:ext:merge[ivm:branch](
+          ivm:branch[:root::data::List::Iter::advance#3, :root::data::List::Iter::advance#2]
+          ivm:x(14 ivm:x(15 ivm:x(16 ivm:x(ivm:ext:merge[ivm:branch](
+            ivm:branch[
+              :root::debug::Show::format_comma_sep#15[
+                :root::util::erase,
+                vi:closure:fork#1[:root::debug::Show::_format],
+                vi:closure:drop#1[:root::debug::Show::_format],
+                vi:closure#1[:root::debug::Show::_format],
+              ],
+              :root::debug::Show::format_comma_sep#16[
+                :root::util::erase,
+                vi:closure:fork#1[:root::debug::Show::_format],
+                vi:closure:drop#1[:root::debug::Show::_format],
+                vi:closure#1[:root::debug::Show::_format],
+              ],
+            ]
+            ivm:x(ivm:x(0 ivm:x(2 ivm:x(
+              ivm:x(5 6)
+              ivm:x(ivm:x(8 ivm:x(9 12)) 11)
+            ))) 17)
+          ) 17))))
+        )))
+        ivm:x(15 16)
+      )
+    )
+  )
+}
+
+:root::debug::Show::format_comma_sep#1[
+  :root::util::erase,
+  vi:closure:fork#2[:root::debug::Show::_format],
+  vi:closure:drop#2[:root::debug::Show::_format],
+  vi:closure#2[:root::debug::Show::_format],
+] {
+  ^ = ivm:x(0 ivm:x(1 ivm:x(2 ivm:x(3 ivm:x(4 ivm:x(5 ivm:x(6 ivm:x(
+    ivm:y(7 ivm:ext:merge[vi:n32:ne](ivm:n32 ivm:ext:merge[ivm:branch](
+      ivm:branch[:root::data::List::Iter::advance#3, :root::data::List::Iter::advance#2]
+      ivm:x(7 ivm:x(8 ivm:x(9 ivm:x(ivm:ext:merge[ivm:branch](
+        ivm:branch[
+          :root::debug::Show::format_comma_sep#4[
+            :root::util::erase,
+            vi:closure:fork#2[:root::debug::Show::_format],
+            vi:closure:drop#2[:root::debug::Show::_format],
+            vi:closure#2[:root::debug::Show::_format],
+          ],
+          :root::debug::Show::format_comma_sep#5[
+            :root::util::erase,
+            vi:closure:fork#2[:root::debug::Show::_format],
+            vi:closure:drop#2[:root::debug::Show::_format],
+            vi:closure#2[:root::debug::Show::_format],
+          ],
+        ]
+        ivm:x(ivm:x(0 ivm:x(1 ivm:x(2 ivm:x(3 ivm:x(4 ivm:x(5 6)))))) 10)
+      ) 10))))
+    )))
+    ivm:x(8 9)
+  ))))))))
+}
+
+:root::debug::Show::format_comma_sep#21[
+  :root::util::erase,
+  vi:closure:fork#2[:root::debug::Show::_format],
+  vi:closure:drop#2[:root::debug::Show::_format],
+  vi:closure#2[:root::debug::Show::_format],
+] {
+  ^ = ivm:x(
+    ivm:y(
+      ivm:ext:merge[vi:n32:add](ivm:n32#1 0)
+      ivm:y(1 2)
+    )
+    ivm:x(
+      ivm:x(
+        ivm:ext:merge[vi:n32:add](0 3)
+        ivm:x(4 ivm:x(ivm:n32#10 5))
+      )
+      ivm:x(3 ivm:x(4 6))
+    )
+  )
+  ivm:n32 = ivm:ext:merge[vi:n32:lt](2 ivm:ext:merge[ivm:branch](
+    ivm:branch[
+      :root::ops::Range::exclusive_iter::advance#3[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32],
+      :root::ops::Range::exclusive_iter::advance#2[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32],
+    ]
+    ivm:x(ivm:n32 ivm:x(1 ivm:x(ivm:ext:merge[ivm:branch](
+      ivm:branch[
+        :root::data::List::new#4[:root::util::duplicate, :root::util::erase],
+        :root::data::List::new#5[:root::util::duplicate, :root::util::erase],
+      ]
+      ivm:x(ivm:x(ivm:n32#32 ivm:x(5 6)) 7)
+    ) 7)))
+  ))
+}
+
+:root::debug::Show::format_comma_sep#22[
+  :root::util::erase,
+  vi:closure:fork#2[:root::debug::Show::_format],
+  vi:closure:drop#2[:root::debug::Show::_format],
+  vi:closure#2[:root::debug::Show::_format],
+] {
+  ^ = ivm:x(ivm:eraser ivm:x(0 0))
+}
+
+:root::debug::Show::format_comma_sep#4[
+  :root::util::erase,
+  vi:closure:fork#2[:root::debug::Show::_format],
+  vi:closure:drop#2[:root::debug::Show::_format],
+  vi:closure#2[:root::debug::Show::_format],
+] {
+  ^ = ivm:x(ivm:x(ivm:eraser ivm:x(ivm:eraser ivm:x(ivm:eraser ivm:x(ivm:eraser ivm:x(
+    ivm:x(0 0)
+    ivm:x(ivm:x(1 1) ivm:eraser)
+  ))))) ivm:eraser)
+}
+
+:root::debug::Show::format_comma_sep#5[
+  :root::util::erase,
+  vi:closure:fork#2[:root::debug::Show::_format],
+  vi:closure:drop#2[:root::debug::Show::_format],
+  vi:closure#2[:root::debug::Show::_format],
+] {
+  ^ = ivm:x(
+    ivm:x(ivm:eraser ivm:x(
+      ivm:y(0 ivm:y(ivm:y(ivm:y(ivm:eraser 1) ivm:eraser) 2))
+      ivm:x(
+        ivm:y(3 ivm:y(ivm:y(
+          ivm:y(
+            ivm:y(ivm:eraser ivm:ext:merge[vi:n32:add](ivm:n32#2 4))
+            ivm:ext:merge[vi:n32:add](ivm:n32#2 ivm:eraser)
+          )
+          ivm:ext:merge[vi:n32:add](ivm:n32#2 5)
+        ) 6))
+        ivm:x(
+          ivm:y(7 ivm:y(
+            ivm:ext:merge[ivm:branch](
+              ivm:branch[
+                :root::debug::Show::format_comma_sep#19[
+                  :root::util::erase,
+                  vi:closure:fork#2[:root::debug::Show::_format],
+                  vi:closure:drop#2[:root::debug::Show::_format],
+                  vi:closure#2[:root::debug::Show::_format],
+                ],
+                :root::debug::Show::format_comma_sep#18[
+                  :root::util::erase,
+                  vi:closure:fork#2[:root::debug::Show::_format],
+                  vi:closure:drop#2[:root::debug::Show::_format],
+                  vi:closure#2[:root::debug::Show::_format],
+                ],
+              ]
+              ivm:x(ivm:x(8 ivm:x(9 10)) 11)
+            )
+            ivm:ext:merge[ivm:branch](
+              ivm:branch[
+                :root::debug::Show::format_comma_sep#8[
+                  :root::util::erase,
+                  vi:closure:fork#2[:root::debug::Show::_format],
+                  vi:closure:drop#2[:root::debug::Show::_format],
+                  vi:closure#2[:root::debug::Show::_format],
+                ],
+                :root::debug::Show::format_comma_sep#7[
+                  :root::util::erase,
+                  vi:closure:fork#2[:root::debug::Show::_format],
+                  vi:closure:drop#2[:root::debug::Show::_format],
+                  vi:closure#2[:root::debug::Show::_format],
+                ],
+              ]
+              ivm:x(6 ivm:x(ivm:x(12 ivm:x(
+                ivm:ext:merge[vi:n32:add](13 ivm:ext:merge[vi:n32:add](ivm:n32#2 ivm:ext:merge[vi:n32:add](14 8)))
+                ivm:x(9 15)
+              )) 16))
+            )
+          ))
+          ivm:x(
+            ivm:x(ivm:ext:merge[vi:n32:add](ivm:n32#2 ivm:ext:merge[vi:n32:add](17 ivm:ext:merge[vi:n32:add](ivm:n32#2 ivm:ext:merge[vi:n32:add](18 19)))) 20)
+            ivm:x(ivm:x(12 21) 16)
+          )
+        )
+      )
+    ))
+    ivm:x(
+      ivm:x(
+        ivm:x(ivm:ext:merge[ivm:branch](
+          ivm:branch[:root::debug::Show::_format#46, :root::debug::Show::_format#47, :root::debug::Show::_format#48, :root::debug::Show::_format#49, :root::debug::Show::_format#50]
+          ivm:x(ivm:x(2 ivm:x(5 ivm:x(17 ivm:x(13 ivm:x(15 ivm:x(ivm:n32#58 ivm:x(ivm:n32#32 22))))))) 23)
+        ) 23)
+        ivm:x(ivm:ext:merge[ivm:branch](
+          ivm:branch[:root::debug::Show::_format#46, :root::debug::Show::_format#47, :root::debug::Show::_format#48, :root::debug::Show::_format#49, :root::debug::Show::_format#50]
+          ivm:x(ivm:x(1 ivm:x(4 ivm:x(18 ivm:x(14 ivm:x(22 10))))) 24)
+        ) 24)
+      )
+      ivm:x(
+        ivm:y(25 ivm:ext:merge[vi:n32:ne](ivm:n32 ivm:ext:merge[ivm:branch](
+          ivm:branch[:root::data::List::Iter::advance#3, :root::data::List::Iter::advance#2]
+          ivm:x(25 ivm:x(26 ivm:x(27 ivm:x(ivm:ext:merge[ivm:branch](
+            ivm:branch[
+              :root::debug::Show::format_comma_sep#4[
+                :root::util::erase,
+                vi:closure:fork#2[:root::debug::Show::_format],
+                vi:closure:drop#2[:root::debug::Show::_format],
+                vi:closure#2[:root::debug::Show::_format],
+              ],
+              :root::debug::Show::format_comma_sep#5[
+                :root::util::erase,
+                vi:closure:fork#2[:root::debug::Show::_format],
+                vi:closure:drop#2[:root::debug::Show::_format],
+                vi:closure#2[:root::debug::Show::_format],
+              ],
+            ]
+            ivm:x(ivm:x(ivm:eraser ivm:x(0 ivm:x(3 ivm:x(7 ivm:x(
+              ivm:x(19 20)
+              ivm:x(ivm:x(11 21) ivm:n32)
+            ))))) 28)
+          ) 28))))
+        )))
+        ivm:x(26 27)
+      )
+    )
+  )
+}
+
+:root::debug::Show::format_comma_sep#7[
+  :root::util::erase,
+  vi:closure:fork#2[:root::debug::Show::_format],
+  vi:closure:drop#2[:root::debug::Show::_format],
+  vi:closure#2[:root::debug::Show::_format],
+] {
+  ^ = ivm:x(
+    ivm:ext:merge[vi:n32:add](ivm:n32#2 ivm:y(
+      ivm:ext:merge[vi:n32:add](ivm:n32#1 0)
+      ivm:y(1 2)
+    ))
+    ivm:x(ivm:x(
+      ivm:x(
+        ivm:ext:merge[vi:n32:add](0 3)
+        ivm:x(4 ivm:x(ivm:n32#10 5))
+      )
+      ivm:x(3 ivm:x(4 6))
+    ) ivm:eraser)
+  )
+  ivm:n32 = ivm:ext:merge[vi:n32:lt](2 ivm:ext:merge[ivm:branch](
+    ivm:branch[
+      :root::ops::Range::exclusive_iter::advance#3[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32],
+      :root::ops::Range::exclusive_iter::advance#2[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32],
+    ]
+    ivm:x(ivm:n32 ivm:x(1 ivm:x(ivm:ext:merge[ivm:branch](
+      ivm:branch[
+        :root::data::List::new#4[:root::util::duplicate, :root::util::erase],
+        :root::data::List::new#5[:root::util::duplicate, :root::util::erase],
+      ]
+      ivm:x(ivm:x(ivm:n32#32 ivm:x(5 6)) 7)
+    ) 7)))
+  ))
+}
+
+:root::debug::Show::format_comma_sep#8[
+  :root::util::erase,
+  vi:closure:fork#2[:root::debug::Show::_format],
+  vi:closure:drop#2[:root::debug::Show::_format],
+  vi:closure#2[:root::debug::Show::_format],
+] {
+  ^ = ivm:x(ivm:eraser ivm:x(0 ivm:ext:merge[ivm:branch](ivm:branch[
+    :root::debug::Show::format_comma_sep#11[
+      :root::util::erase,
+      vi:closure:fork#2[:root::debug::Show::_format],
+      vi:closure:drop#2[:root::debug::Show::_format],
+      vi:closure#2[:root::debug::Show::_format],
+    ],
+    :root::debug::Show::format_comma_sep#10[
+      :root::util::erase,
+      vi:closure:fork#2[:root::debug::Show::_format],
+      vi:closure:drop#2[:root::debug::Show::_format],
+      vi:closure#2[:root::debug::Show::_format],
+    ],
+  ] 0)))
+}
+
+:root::debug::Show::format_comma_sep#12[
+  :root::util::erase,
+  vi:closure:fork#2[:root::debug::Show::_format],
+  vi:closure:drop#2[:root::debug::Show::_format],
+  vi:closure#2[:root::debug::Show::_format],
+] {
+  ^ = ivm:x(0 ivm:x(1 ivm:x(2 ivm:x(3 ivm:x(
+    ivm:y(4 ivm:ext:merge[vi:n32:ne](ivm:n32 ivm:ext:merge[ivm:branch](
+      ivm:branch[:root::data::List::Iter::advance#3, :root::data::List::Iter::advance#2]
+      ivm:x(4 ivm:x(5 ivm:x(6 ivm:x(ivm:ext:merge[ivm:branch](
+        ivm:branch[
+          :root::debug::Show::format_comma_sep#15[
+            :root::util::erase,
+            vi:closure:fork#2[:root::debug::Show::_format],
+            vi:closure:drop#2[:root::debug::Show::_format],
+            vi:closure#2[:root::debug::Show::_format],
+          ],
+          :root::debug::Show::format_comma_sep#16[
+            :root::util::erase,
+            vi:closure:fork#2[:root::debug::Show::_format],
+            vi:closure:drop#2[:root::debug::Show::_format],
+            vi:closure#2[:root::debug::Show::_format],
+          ],
+        ]
+        ivm:x(ivm:x(0 ivm:x(1 ivm:x(2 3))) 7)
+      ) 7))))
+    )))
+    ivm:x(5 6)
+  )))))
+}
+
+:root::debug::Show::format_comma_sep#18[
+  :root::util::erase,
+  vi:closure:fork#2[:root::debug::Show::_format],
+  vi:closure:drop#2[:root::debug::Show::_format],
+  vi:closure#2[:root::debug::Show::_format],
+] {
+  ^ = ivm:x(
+    ivm:x(
+      ivm:ext:merge[vi:n32:add](ivm:n32#1 0)
+      ivm:x(1 ivm:x(ivm:n32#44 2))
+    )
+    ivm:x(0 ivm:x(1 2))
+  )
+}
+
+:root::debug::Show::format_comma_sep#19[
+  :root::util::erase,
+  vi:closure:fork#2[:root::debug::Show::_format],
+  vi:closure:drop#2[:root::debug::Show::_format],
+  vi:closure#2[:root::debug::Show::_format],
+] {
+  ^ = ivm:x(0 0)
+}
+
+:root::debug::Show::format_comma_sep#10[
+  :root::util::erase,
+  vi:closure:fork#2[:root::debug::Show::_format],
+  vi:closure:drop#2[:root::debug::Show::_format],
+  vi:closure#2[:root::debug::Show::_format],
+] {
+  ^ = ivm:x(0 0)
+}
+
+:root::debug::Show::format_comma_sep#11[
+  :root::util::erase,
+  vi:closure:fork#2[:root::debug::Show::_format],
+  vi:closure:drop#2[:root::debug::Show::_format],
+  vi:closure#2[:root::debug::Show::_format],
+] {
+  ^ = ivm:x(
+    ivm:x(
+      ivm:ext:merge[vi:n32:add](ivm:n32#2 0)
+      ivm:x(1 ivm:x(ivm:n32#44 ivm:x(ivm:n32#32 2)))
+    )
+    ivm:x(0 ivm:x(1 2))
+  )
+}
+
+:root::debug::Show::format_comma_sep#15[
+  :root::util::erase,
+  vi:closure:fork#2[:root::debug::Show::_format],
+  vi:closure:drop#2[:root::debug::Show::_format],
+  vi:closure#2[:root::debug::Show::_format],
+] {
+  ^ = ivm:x(ivm:x(ivm:eraser ivm:x(ivm:eraser ivm:x(
+    ivm:x(0 0)
+    ivm:x(1 1)
+  ))) ivm:eraser)
+}
+
+:root::debug::Show::format_comma_sep#16[
+  :root::util::erase,
+  vi:closure:fork#2[:root::debug::Show::_format],
+  vi:closure:drop#2[:root::debug::Show::_format],
+  vi:closure#2[:root::debug::Show::_format],
+] {
+  ^ = ivm:x(
+    ivm:x(
+      ivm:y(0 1)
+      ivm:x(
+        ivm:y(2 ivm:ext:merge[vi:n32:add](ivm:n32#2 3))
+        ivm:x(
+          ivm:x(ivm:ext:merge[vi:n32:add](4 5) 6)
+          ivm:x(ivm:x(
+            ivm:ext:merge[vi:n32:add](7 8)
+            ivm:x(9 10)
+          ) 11)
+        )
+      )
+    )
+    ivm:x(
+      ivm:x(ivm:ext:merge[ivm:branch](
+        ivm:branch[:root::debug::Show::_format#46, :root::debug::Show::_format#47, :root::debug::Show::_format#48, :root::debug::Show::_format#49, :root::debug::Show::_format#50]
+        ivm:x(ivm:x(1 ivm:x(3 ivm:x(4 ivm:x(7 ivm:x(10 12))))) 13)
+      ) 13)
+      ivm:x(
+        ivm:y(14 ivm:ext:merge[vi:n32:ne](ivm:n32 ivm:ext:merge[ivm:branch](
+          ivm:branch[:root::data::List::Iter::advance#3, :root::data::List::Iter::advance#2]
+          ivm:x(14 ivm:x(15 ivm:x(16 ivm:x(ivm:ext:merge[ivm:branch](
+            ivm:branch[
+              :root::debug::Show::format_comma_sep#15[
+                :root::util::erase,
+                vi:closure:fork#2[:root::debug::Show::_format],
+                vi:closure:drop#2[:root::debug::Show::_format],
+                vi:closure#2[:root::debug::Show::_format],
+              ],
+              :root::debug::Show::format_comma_sep#16[
+                :root::util::erase,
+                vi:closure:fork#2[:root::debug::Show::_format],
+                vi:closure:drop#2[:root::debug::Show::_format],
+                vi:closure#2[:root::debug::Show::_format],
+              ],
+            ]
+            ivm:x(ivm:x(0 ivm:x(2 ivm:x(
+              ivm:x(5 6)
+              ivm:x(ivm:x(8 ivm:x(9 12)) 11)
+            ))) 17)
+          ) 17))))
+        )))
+        ivm:x(15 16)
+      )
+    )
+  )
+}
+
+:root::ops::comparison::Le::from_ord::le[:root::numeric::N32] {
+  ^ = ivm:x(
+    ivm:x(ivm:y(0 ivm:ext:merge[vi:n32:le](1 2)) 0)
+    ivm:x(ivm:x(ivm:y(3 1) 3) 2)
+  )
+}
+
+:root::numeric::N32::le {
+  ^ = ivm:x(
+    ivm:x(ivm:y(0 ivm:ext:merge[vi:n32:le](1 2)) 0)
+    ivm:x(ivm:x(ivm:y(3 1) 3) 2)
+  )
+}
+
+:root::debug::Show::ShowVariant::never::show_variant {
+  ^ = ivm:x(
+    ivm:x(ivm:y(0 ivm:eraser) 0)
+    ivm:x(ivm:eraser ivm:eraser)
+  )
+}
+
+:root::logical::Bool::show {
+  ^ = ivm:x(
+    ivm:x(ivm:y(0 ivm:ext:merge[ivm:branch](ivm:branch[:root::logical::Bool::to_string::cast#3, :root::logical::Bool::to_string::cast#2] 1)) 0)
+    ivm:x(ivm:n32 1)
+  )
+}
+
+:root::IO::println {
+  ^ = ivm:x(
+    ivm:x(0 1)
+    ivm:x(2 ivm:eraser)
+  )
+  ivm:graft[:root::IO::print] = ivm:x(
+    ivm:x(0 3)
+    ivm:x(2 4)
+  )
+  ivm:graft[:root::util::erase::drop] = ivm:x(4 ivm:eraser)
+  ivm:graft[:root::IO::print_char] = ivm:x(
+    ivm:x(3 1)
+    ivm:x(ivm:n32#10 5)
+  )
+  ivm:graft[:root::util::erase::drop] = ivm:x(5 ivm:eraser)
+  ivm:eraser = ivm:eraser
+}
+
+:primenesses::primenesses {
+  ^ = ivm:x(ivm:x(
+    ivm:y(0 ivm:ext:merge[vi:n32:ne](ivm:n32 ivm:ext:merge[ivm:branch](
+      ivm:branch[:root::data::List::Iter::advance#3, :root::data::List::Iter::advance#2]
+      ivm:x(0 ivm:x(1 ivm:x(2 ivm:x(ivm:ext:merge[ivm:branch](
+        ivm:branch[:primenesses::primenesses#4, :primenesses::primenesses#5]
+        ivm:x(ivm:x(ivm:x(ivm:n32 ivm:x(3 3)) 4) 5)
+      ) 5))))
+    )))
+    ivm:x(1 2)
+  ) 4)
+}
+
+:root::data::List::show[:root::logical::Result[:root::data::List[:root::logical::Bool], :root::unicode::String]] {
+  ^ = ivm:x(
+    ivm:x(0 1)
+    ivm:x(ivm:n32#4 2)
+  )
+  ivm:graft[:root::data::List::map_ref[:root::util::duplicate, :root::util::erase, vi:fn[:root::debug::Show::show[:root::logical::Result[:root::data::List[:root::logical::Bool], :root::unicode::String]]]]] = ivm:x(
+    ivm:x(0 1)
+    ivm:x(ivm:eraser 2)
+  )
+}
+
+:root::data::Iterator::Iterate::iterator::iter[:root::data::List::Iter] {
+  ^ = ivm:x(0 0)
+}
+
+:primenesses::primenesses#1 {
+  ^ = ivm:x(0 ivm:x(1 ivm:x(
+    ivm:y(2 ivm:ext:merge[vi:n32:ne](ivm:n32 ivm:ext:merge[ivm:branch](
+      ivm:branch[:root::data::List::Iter::advance#3, :root::data::List::Iter::advance#2]
+      ivm:x(2 ivm:x(3 ivm:x(4 ivm:x(ivm:ext:merge[ivm:branch](
+        ivm:branch[:primenesses::primenesses#4, :primenesses::primenesses#5]
+        ivm:x(ivm:x(0 1) 5)
+      ) 5))))
+    )))
+    ivm:x(3 4)
+  )))
+}
+
+:primenesses::primenesses#4 {
+  ^ = ivm:x(ivm:x(0 ivm:x(ivm:n32 0)) ivm:eraser)
+}
+
+:primenesses::primenesses#5 {
+  ^ = ivm:x(
+    ivm:x(0 1)
+    ivm:x(ivm:y(2 ivm:ext:merge[vi:n32:le](ivm:n32 ivm:ext:merge[ivm:branch](
+      ivm:branch[:primenesses::primeness#3, :primenesses::primeness#2]
+      ivm:x(2 ivm:x(ivm:ext:merge[ivm:branch](
+        ivm:branch[:primenesses::primenesses#9, :primenesses::primenesses#10]
+        ivm:x(ivm:x(3 ivm:x(1 ivm:x(4 ivm:x(0 3)))) 5)
+      ) 5))
+    ))) 4)
+  )
+}
+
+:primenesses::primeness {
+  ^ = ivm:x(ivm:y(0 ivm:ext:merge[vi:n32:le](ivm:n32 ivm:ext:merge[ivm:branch](
+    ivm:branch[:primenesses::primeness#3, :primenesses::primeness#2]
+    ivm:x(0 1)
+  ))) 1)
+}
+
+:primenesses::primenesses#9 {
+  ^ = ivm:x(ivm:x(0 ivm:x(1 ivm:x(
+    ivm:x(
+      ivm:y(2 ivm:ext:merge[vi:n32:ne](ivm:n32 ivm:ext:merge[ivm:branch](
+        ivm:branch[:root::data::List::Iter::advance#3, :root::data::List::Iter::advance#2]
+        ivm:x(2 ivm:x(3 ivm:x(4 ivm:x(ivm:ext:merge[ivm:branch](
+          ivm:branch[:primenesses::primenesses#4, :primenesses::primenesses#5]
+          ivm:x(ivm:x(0 1) 5)
+        ) 5))))
+      )))
+      ivm:x(3 4)
+    )
+    ivm:x(
+      ivm:x(
+        ivm:ext:merge[vi:n32:add](ivm:n32#1 6)
+        ivm:x(7 ivm:x(8 9))
+      )
+      ivm:x(6 ivm:x(7 9))
+    )
+  ))) 8)
+}
+
+:primenesses::primenesses#10 {
+  ^ = ivm:x(ivm:x(ivm:eraser ivm:x(
+    ivm:x(ivm:n32#1 0)
+    ivm:x(ivm:eraser ivm:x(1 1))
+  )) 0)
+}
+
+:primenesses::primeness#2 {
+  ^ = ivm:x(ivm:eraser ivm:x(ivm:n32#1 ivm:x(ivm:n32#27 ivm:x(ivm:x(ivm:n32#112 ivm:x(ivm:n32#114 ivm:x(ivm:n32#105 ivm:x(ivm:n32#109 ivm:x(ivm:n32#101 ivm:x(ivm:n32#115 ivm:x(ivm:n32#32 ivm:x(ivm:n32#104 ivm:x(ivm:n32#97 ivm:x(ivm:n32#118 ivm:x(ivm:n32#101 ivm:x(ivm:n32#32 ivm:x(ivm:n32#116 ivm:x(ivm:n32#111 ivm:x(ivm:n32#32 ivm:x(ivm:n32#98 ivm:x(ivm:n32#101 ivm:x(ivm:n32#32 ivm:x(ivm:n32#112 ivm:x(ivm:n32#111 ivm:x(ivm:n32#115 ivm:x(ivm:n32#105 ivm:x(ivm:n32#116 ivm:x(ivm:n32#105 ivm:x(ivm:n32#118 ivm:x(ivm:n32#101 ivm:x(ivm:n32#33 0))))))))))))))))))))))))))) 0))))
+}
+
+:primenesses::primeness#3 {
+  ^ = ivm:x(ivm:y(0 ivm:ext:merge[vi:n32:eq](ivm:n32#1 ivm:ext:merge[ivm:branch](
+    ivm:branch[:primenesses::primeness#6, :primenesses::primeness#5]
+    ivm:x(0 1)
+  ))) 1)
+}
+
+:primenesses::primeness#5 {
+  ^ = ivm:x(ivm:eraser ivm:x(ivm:n32#1 ivm:x(ivm:n32#20 ivm:x(ivm:x(ivm:n32#100 ivm:x(ivm:n32#101 ivm:x(ivm:n32#112 ivm:x(ivm:n32#101 ivm:x(ivm:n32#110 ivm:x(ivm:n32#100 ivm:x(ivm:n32#115 ivm:x(ivm:n32#32 ivm:x(ivm:n32#119 ivm:x(ivm:n32#104 ivm:x(ivm:n32#111 ivm:x(ivm:n32#39 ivm:x(ivm:n32#115 ivm:x(ivm:n32#32 ivm:x(ivm:n32#97 ivm:x(ivm:n32#115 ivm:x(ivm:n32#107 ivm:x(ivm:n32#105 ivm:x(ivm:n32#110 ivm:x(ivm:n32#103 0)))))))))))))))))))) 0))))
+}
+
+:primenesses::primeness#6 {
+  ^ = ivm:x(ivm:y(0 1) 2)
+  ivm:n32#2 = ivm:ext:merge[vi:n32:mul](ivm:n32#2 ivm:y(ivm:eraser ivm:ext:merge[vi:n32:le](1 ivm:ext:merge[ivm:branch](
+    ivm:branch[:primenesses::primeness#9, :primenesses::primeness#8]
+    ivm:x(0 ivm:x(ivm:n32#2 2))
+  ))))
+}
+
+:primenesses::primeness#7 {
+  ^ = ivm:x(
+    ivm:y(0 1)
+    ivm:x(ivm:y(2 ivm:y(3 ivm:ext:merge[vi:n32:mul](3 ivm:y(ivm:eraser ivm:ext:merge[vi:n32:le](1 ivm:ext:merge[ivm:branch](
+      ivm:branch[:primenesses::primeness#9, :primenesses::primeness#8]
+      ivm:x(0 ivm:x(2 4))
+    )))))) 4)
+  )
+}
+
+:primenesses::primeness#8 {
+  ^ = ivm:x(0 ivm:x(1 2))
+  ivm:graft[:root::util::duplicate::fork] = ivm:x(
+    ivm:x(0 3)
+    ivm:ext:merge[vi:n32:rem](4 ivm:y(ivm:eraser ivm:ext:merge[vi:n32:eq](ivm:n32 ivm:ext:merge[ivm:branch](
+      ivm:branch[:primenesses::primeness#12, :primenesses::primeness#11]
+      ivm:x(3 ivm:x(5 2))
+    ))))
+  )
+  ivm:graft[:root::util::duplicate::fork] = ivm:x(ivm:x(1 5) 4)
+}
+
+:primenesses::primeness#9 {
+  ^ = ivm:x(ivm:eraser ivm:x(ivm:eraser ivm:x(ivm:n32 ivm:n32#1)))
+}
+
+:primenesses::primeness#11 {
+  ^ = ivm:x(ivm:eraser ivm:x(ivm:eraser ivm:x(ivm:n32 ivm:n32)))
+}
+
+:primenesses::primeness#12 {
+  ^ = ivm:x(0 ivm:x(ivm:ext:merge[vi:n32:add](ivm:n32#1 1) 2))
+  ivm:x(0 ivm:x(1 2)) = ivm:graft[:primenesses::primeness#7]
+}
+
+:root::data::List::map_ref[:root::util::duplicate, :root::util::erase, vi:fn[:root::debug::Show::show[:root::logical::Result[:root::data::List[:root::logical::Bool], :root::unicode::String]]]] {
+  ^ = ivm:x(
+    ivm:x(0 1)
+    ivm:x(2 ivm:x(3 ivm:x(4 5)))
+  )
+  ivm:graft[:root::data::List::len] = ivm:x(ivm:x(0 6) 3)
+  ivm:graft[:root::data::List::Stream::pair] = ivm:x(4 7)
+  ivm:graft[:root::data::List::iter_ref::iter] = ivm:x(ivm:x(6 1) 8)
+  ivm:x(2 ivm:x(ivm:x(7 5) 8)) = ivm:graft[:root::data::List::map_ref#1[:root::util::duplicate, :root::util::erase, vi:fn[:root::debug::Show::show[:root::logical::Result[:root::data::List[:root::logical::Bool], :root::unicode::String]]]]]
+  ivm:graft[:root::util::erase::drop] = ivm:x(ivm:eraser ivm:eraser)
+}
+
+:root::data::List::map_ref#1[:root::util::duplicate, :root::util::erase, vi:fn[:root::debug::Show::show[:root::logical::Result[:root::data::List[:root::logical::Bool], :root::unicode::String]]]] {
+  ^ = ivm:x(0 ivm:x(1 ivm:x(ivm:y(2 ivm:ext:merge[vi:n32:ne](ivm:n32 ivm:ext:merge[ivm:branch](
+    ivm:branch[:root::data::List::IterRef::advance#3, :root::data::List::IterRef::advance#2]
+    ivm:x(2 ivm:x(3 ivm:x(ivm:ext:merge[ivm:branch](
+      ivm:branch[
+        :root::data::List::map_ref#4[:root::util::duplicate, :root::util::erase, vi:fn[:root::debug::Show::show[:root::logical::Result[:root::data::List[:root::logical::Bool], :root::unicode::String]]]],
+        :root::data::List::map_ref#5[:root::util::duplicate, :root::util::erase, vi:fn[:root::debug::Show::show[:root::logical::Result[:root::data::List[:root::logical::Bool], :root::unicode::String]]]],
+      ]
+      ivm:x(ivm:x(0 1) 4)
+    ) 4)))
+  ))) 3)))
+}
+
+:root::data::List::map_ref#4[:root::util::duplicate, :root::util::erase, vi:fn[:root::debug::Show::show[:root::logical::Result[:root::data::List[:root::logical::Bool], :root::unicode::String]]]] {
+  ^ = ivm:x(ivm:x(ivm:eraser ivm:x(0 0)) ivm:eraser)
+}
+
+:root::data::List::map_ref#5[:root::util::duplicate, :root::util::erase, vi:fn[:root::debug::Show::show[:root::logical::Result[:root::data::List[:root::logical::Bool], :root::unicode::String]]]] {
+  ^ = ivm:x(
+    ivm:x(0 ivm:x(ivm:x(1 2) 3))
+    ivm:x(
+      ivm:x(ivm:x(ivm:ext:merge[ivm:branch](
+        ivm:branch[
+          vi:synthetic#1[vi:synthetic:enum_deconstruct[:root::logical::Result]],
+          vi:synthetic#2[vi:synthetic:enum_deconstruct[:root::logical::Result]],
+        ]
+        ivm:x(ivm:x(ivm:ext:merge[ivm:branch](
+          ivm:branch[
+            :root::debug::Show::ShowVariant::variant::show_variant#4[
+              :root::data::List[:root::logical::Bool],
+              :root::debug::Show::ShowVariant::variant[:root::unicode::String, :root::debug::Show::ShowVariant::never],
+            ],
+            :root::debug::Show::ShowVariant::variant::show_variant#5[
+              :root::data::List[:root::logical::Bool],
+              :root::debug::Show::ShowVariant::variant[:root::unicode::String, :root::debug::Show::ShowVariant::never],
+            ],
+          ]
+          ivm:x(ivm:x(
+            ivm:x(ivm:n32#2 ivm:x(ivm:x(ivm:n32#79 ivm:x(ivm:n32#107 4)) 4))
+            ivm:x(
+              ivm:x(ivm:n32#1 ivm:x(ivm:x(ivm:x(ivm:n32#3 ivm:x(ivm:x(ivm:n32#69 ivm:x(ivm:n32#114 ivm:x(ivm:n32#114 5))) 5)) 6) 6))
+              ivm:x(1 ivm:x(ivm:ext:merge[ivm:branch](
+                ivm:branch[
+                  vi:synthetic#1[vi:synthetic:enum_reconstruct[:root::logical::Result]],
+                  vi:synthetic#2[vi:synthetic:enum_reconstruct[:root::logical::Result]],
+                ]
+                ivm:x(7 8)
+              ) 8))
+            )
+          ) 9)
+        ) 9) 10)
+      ) 10) 7)
+      ivm:x(ivm:y(11 ivm:ext:merge[vi:n32:ne](ivm:n32 ivm:ext:merge[ivm:branch](
+        ivm:branch[:root::data::List::IterRef::advance#3, :root::data::List::IterRef::advance#2]
+        ivm:x(11 ivm:x(12 ivm:x(ivm:ext:merge[ivm:branch](
+          ivm:branch[
+            :root::data::List::map_ref#4[:root::util::duplicate, :root::util::erase, vi:fn[:root::debug::Show::show[:root::logical::Result[:root::data::List[:root::logical::Bool], :root::unicode::String]]]],
+            :root::data::List::map_ref#5[:root::util::duplicate, :root::util::erase, vi:fn[:root::debug::Show::show[:root::logical::Result[:root::data::List[:root::logical::Bool], :root::unicode::String]]]],
+          ]
+          ivm:x(ivm:x(13 ivm:x(2 3)) 14)
+        ) 14)))
+      ))) 12)
+    )
+  )
+  ivm:graft[:root::util::duplicate::fork] = ivm:x(ivm:x(0 13) ivm:eraser)
+}
+
+vi:synthetic[
+  vi:synthetic:call_fn#1[:root::debug::Show::show],
+  :root::logical::Result[:root::data::List[:root::logical::Bool], :root::unicode::String],
+] {
+  ^ = ivm:x(ivm:eraser ivm:x(ivm:x(ivm:x(ivm:ext:merge[ivm:branch](
+    ivm:branch[
+      vi:synthetic#1[vi:synthetic:enum_deconstruct[:root::logical::Result]],
+      vi:synthetic#2[vi:synthetic:enum_deconstruct[:root::logical::Result]],
+    ]
+    ivm:x(ivm:x(ivm:ext:merge[ivm:branch](
+      ivm:branch[
+        :root::debug::Show::ShowVariant::variant::show_variant#4[
+          :root::data::List[:root::logical::Bool],
+          :root::debug::Show::ShowVariant::variant[:root::unicode::String, :root::debug::Show::ShowVariant::never],
+        ],
+        :root::debug::Show::ShowVariant::variant::show_variant#5[
+          :root::data::List[:root::logical::Bool],
+          :root::debug::Show::ShowVariant::variant[:root::unicode::String, :root::debug::Show::ShowVariant::never],
+        ],
+      ]
+      ivm:x(ivm:x(
+        ivm:x(ivm:n32#2 ivm:x(ivm:x(ivm:n32#79 ivm:x(ivm:n32#107 0)) 0))
+        ivm:x(
+          ivm:x(ivm:n32#1 ivm:x(ivm:x(ivm:x(ivm:n32#3 ivm:x(ivm:x(ivm:n32#69 ivm:x(ivm:n32#114 ivm:x(ivm:n32#114 1))) 1)) 2) 2))
+          ivm:x(3 ivm:x(ivm:ext:merge[ivm:branch](
+            ivm:branch[
+              vi:synthetic#1[vi:synthetic:enum_reconstruct[:root::logical::Result]],
+              vi:synthetic#2[vi:synthetic:enum_reconstruct[:root::logical::Result]],
+            ]
+            ivm:x(4 5)
+          ) 5))
+        )
+      ) 6)
+    ) 6) 7)
+  ) 7) 4) 3))
+}
+
+:root::debug::Show::enum_::show[
+  vi:synthetic:Enum[:root::logical::Result],
+  :root::debug::Show::ShowVariant::variant[
+    :root::data::List[:root::logical::Bool],
+    :root::debug::Show::ShowVariant::variant[:root::unicode::String, :root::debug::Show::ShowVariant::never],
+  ],
+] {
+  ^ = ivm:x(ivm:x(ivm:x(ivm:ext:merge[ivm:branch](
+    ivm:branch[
+      vi:synthetic#1[vi:synthetic:enum_deconstruct[:root::logical::Result]],
+      vi:synthetic#2[vi:synthetic:enum_deconstruct[:root::logical::Result]],
+    ]
+    ivm:x(ivm:x(ivm:ext:merge[ivm:branch](
+      ivm:branch[
+        :root::debug::Show::ShowVariant::variant::show_variant#4[
+          :root::data::List[:root::logical::Bool],
+          :root::debug::Show::ShowVariant::variant[:root::unicode::String, :root::debug::Show::ShowVariant::never],
+        ],
+        :root::debug::Show::ShowVariant::variant::show_variant#5[
+          :root::data::List[:root::logical::Bool],
+          :root::debug::Show::ShowVariant::variant[:root::unicode::String, :root::debug::Show::ShowVariant::never],
+        ],
+      ]
+      ivm:x(ivm:x(
+        ivm:x(ivm:n32#2 ivm:x(ivm:x(ivm:n32#79 ivm:x(ivm:n32#107 0)) 0))
+        ivm:x(
+          ivm:x(ivm:n32#1 ivm:x(ivm:x(ivm:x(ivm:n32#3 ivm:x(ivm:x(ivm:n32#69 ivm:x(ivm:n32#114 ivm:x(ivm:n32#114 1))) 1)) 2) 2))
+          ivm:x(3 ivm:x(ivm:ext:merge[ivm:branch](
+            ivm:branch[
+              vi:synthetic#1[vi:synthetic:enum_reconstruct[:root::logical::Result]],
+              vi:synthetic#2[vi:synthetic:enum_reconstruct[:root::logical::Result]],
+            ]
+            ivm:x(4 5)
+          ) 5))
+        )
+      ) 6)
+    ) 6) 7)
+  ) 7) 4) 3)
+}
+
+vi:synthetic[vi:synthetic:enum_variant_names[:root::logical::Result]] {
+  ^ = ivm:x(ivm:n32#2 ivm:x(ivm:x(
+    ivm:x(ivm:n32#2 ivm:x(ivm:x(ivm:n32#79 ivm:x(ivm:n32#107 0)) 0))
+    ivm:x(ivm:x(ivm:n32#3 ivm:x(ivm:x(ivm:n32#69 ivm:x(ivm:n32#114 ivm:x(ivm:n32#114 1))) 1)) 2)
+  ) 2))
+}
+
+:root::debug::Show::ShowVariant::variant::show_variant[
+  :root::data::List[:root::logical::Bool],
+  :root::debug::Show::ShowVariant::variant[:root::unicode::String, :root::debug::Show::ShowVariant::never],
+] {
+  ^ = ivm:x(
+    ivm:x(ivm:x(ivm:ext:merge[ivm:branch](
+      ivm:branch[
+        :root::debug::Show::ShowVariant::variant::show_variant#4[
+          :root::data::List[:root::logical::Bool],
+          :root::debug::Show::ShowVariant::variant[:root::unicode::String, :root::debug::Show::ShowVariant::never],
+        ],
+        :root::debug::Show::ShowVariant::variant::show_variant#5[
+          :root::data::List[:root::logical::Bool],
+          :root::debug::Show::ShowVariant::variant[:root::unicode::String, :root::debug::Show::ShowVariant::never],
+        ],
+      ]
+      ivm:x(ivm:x(0 ivm:x(1 ivm:x(2 3))) 4)
+    ) 4) 3)
+    ivm:x(ivm:x(
+      ivm:y(5 ivm:ext:merge[vi:n32:ne](ivm:n32 ivm:ext:merge[ivm:branch](
+        ivm:branch[:root::data::List::head_tail#3, :root::data::List::head_tail#2]
+        ivm:x(5 ivm:x(6 ivm:x(7 ivm:x(ivm:ext:merge[ivm:branch](
+          ivm:branch[:root::logical::Option::assume#4, :root::logical::Option::assume#5]
+          ivm:x(ivm:x(0 1) 8)
+        ) 8))))
+      )))
+      ivm:x(6 7)
+    ) 2)
+  )
+}
+
+:root::debug::Show::ShowVariant::variant::show_variant#4[
+  :root::data::List[:root::logical::Bool],
+  :root::debug::Show::ShowVariant::variant[:root::unicode::String, :root::debug::Show::ShowVariant::never],
+] {
+  ^ = ivm:x(
+    ivm:x(0 ivm:x(ivm:eraser ivm:x(
+      ivm:x(ivm:n32#1 ivm:x(0 ivm:x(ivm:n32#4 ivm:x(1 ivm:x(2 3)))))
+      ivm:x(ivm:n32 ivm:x(4 ivm:x(5 6)))
+    )))
+    ivm:x(
+      ivm:y(ivm:y(4 ivm:y(7 ivm:ext:merge[vi:n32:ne](ivm:n32 ivm:ext:merge[ivm:branch](
+        ivm:branch[:root::data::List::IterRef::advance#3, :root::data::List::IterRef::advance#2]
+        ivm:x(7 ivm:x(
+          ivm:x(8 5)
+          ivm:x(ivm:ext:merge[ivm:branch](
+            ivm:branch[
+              :root::data::List::map_ref#4[:root::util::duplicate, :root::util::erase, vi:fn[:root::debug::Show::show[:root::logical::Bool]]],
+              :root::data::List::map_ref#5[:root::util::duplicate, :root::util::erase, vi:fn[:root::debug::Show::show[:root::logical::Bool]]],
+            ]
+            ivm:x(ivm:x(ivm:eraser ivm:x(2 3)) 9)
+          ) 9)
+        ))
+      )))) 1)
+      ivm:x(8 6)
+    )
+  )
+}
+
+:root::debug::Show::ShowVariant::variant::show_variant#5[
+  :root::data::List[:root::logical::Bool],
+  :root::debug::Show::ShowVariant::variant[:root::unicode::String, :root::debug::Show::ShowVariant::never],
+] {
+  ^ = ivm:x(
+    ivm:x(ivm:eraser ivm:x(
+      ivm:x(
+        ivm:y(0 ivm:ext:merge[vi:n32:ne](ivm:n32 ivm:ext:merge[ivm:branch](
+          ivm:branch[:root::data::List::head_tail#3, :root::data::List::head_tail#2]
+          ivm:x(0 ivm:x(1 ivm:x(2 ivm:x(ivm:ext:merge[ivm:branch](
+            ivm:branch[:root::logical::Option::assume#4, :root::logical::Option::assume#5]
+            ivm:x(ivm:x(3 4) 5)
+          ) 5))))
+        )))
+        ivm:x(1 2)
+      )
+      ivm:x(6 ivm:x(ivm:n32#1 7))
+    ))
+    ivm:x(ivm:ext:merge[ivm:branch](
+      ivm:branch[
+        :root::debug::Show::ShowVariant::variant::show_variant#4[:root::unicode::String, :root::debug::Show::ShowVariant::never],
+        :root::debug::Show::ShowVariant::variant::show_variant#5[:root::unicode::String, :root::debug::Show::ShowVariant::never],
+      ]
+      ivm:x(ivm:x(3 ivm:x(4 ivm:x(6 7))) 8)
+    ) 8)
+  )
+}
+
+:root::data::List::show[:root::logical::Bool] {
+  ^ = ivm:x(
+    ivm:x(
+      ivm:x(
+        ivm:y(ivm:y(0 ivm:y(1 ivm:ext:merge[vi:n32:ne](ivm:n32 ivm:ext:merge[ivm:branch](
+          ivm:branch[:root::data::List::IterRef::advance#3, :root::data::List::IterRef::advance#2]
+          ivm:x(1 ivm:x(
+            ivm:x(2 3)
+            ivm:x(ivm:ext:merge[ivm:branch](
+              ivm:branch[
+                :root::data::List::map_ref#4[:root::util::duplicate, :root::util::erase, vi:fn[:root::debug::Show::show[:root::logical::Bool]]],
+                :root::data::List::map_ref#5[:root::util::duplicate, :root::util::erase, vi:fn[:root::debug::Show::show[:root::logical::Bool]]],
+              ]
+              ivm:x(ivm:x(ivm:eraser ivm:x(4 5)) 6)
+            ) 6)
+          ))
+        )))) 7)
+        ivm:x(2 8)
+      )
+      ivm:x(0 ivm:x(3 8))
+    )
+    ivm:x(ivm:n32#4 ivm:x(7 ivm:x(4 5)))
+  )
+}
+
+:root::debug::Show::ShowVariant::variant::show_variant[:root::unicode::String, :root::debug::Show::ShowVariant::never] {
+  ^ = ivm:x(
+    ivm:x(ivm:x(ivm:ext:merge[ivm:branch](
+      ivm:branch[
+        :root::debug::Show::ShowVariant::variant::show_variant#4[:root::unicode::String, :root::debug::Show::ShowVariant::never],
+        :root::debug::Show::ShowVariant::variant::show_variant#5[:root::unicode::String, :root::debug::Show::ShowVariant::never],
+      ]
+      ivm:x(ivm:x(0 ivm:x(1 ivm:x(2 3))) 4)
+    ) 4) 3)
+    ivm:x(ivm:x(
+      ivm:y(5 ivm:ext:merge[vi:n32:ne](ivm:n32 ivm:ext:merge[ivm:branch](
+        ivm:branch[:root::data::List::head_tail#3, :root::data::List::head_tail#2]
+        ivm:x(5 ivm:x(6 ivm:x(7 ivm:x(ivm:ext:merge[ivm:branch](
+          ivm:branch[:root::logical::Option::assume#4, :root::logical::Option::assume#5]
+          ivm:x(ivm:x(0 1) 8)
+        ) 8))))
+      )))
+      ivm:x(6 7)
+    ) 2)
+  )
+}
+
+:root::data::List::map_ref[:root::util::duplicate, :root::util::erase, vi:fn[:root::debug::Show::show[:root::logical::Bool]]] {
+  ^ = ivm:x(
+    ivm:x(
+      ivm:x(
+        ivm:y(ivm:y(0 ivm:y(1 ivm:ext:merge[vi:n32:ne](ivm:n32 ivm:ext:merge[ivm:branch](
+          ivm:branch[:root::data::List::IterRef::advance#3, :root::data::List::IterRef::advance#2]
+          ivm:x(1 ivm:x(
+            ivm:x(2 3)
+            ivm:x(ivm:ext:merge[ivm:branch](
+              ivm:branch[
+                :root::data::List::map_ref#4[:root::util::duplicate, :root::util::erase, vi:fn[:root::debug::Show::show[:root::logical::Bool]]],
+                :root::data::List::map_ref#5[:root::util::duplicate, :root::util::erase, vi:fn[:root::debug::Show::show[:root::logical::Bool]]],
+              ]
+              ivm:x(ivm:x(4 ivm:x(5 6)) 7)
+            ) 7)
+          ))
+        )))) 8)
+        ivm:x(2 9)
+      )
+      ivm:x(0 ivm:x(3 9))
+    )
+    ivm:x(4 ivm:x(8 ivm:x(5 6)))
+  )
+}
+
+:root::data::List::map_ref#1[:root::util::duplicate, :root::util::erase, vi:fn[:root::debug::Show::show[:root::logical::Bool]]] {
+  ^ = ivm:x(0 ivm:x(1 ivm:x(ivm:y(2 ivm:ext:merge[vi:n32:ne](ivm:n32 ivm:ext:merge[ivm:branch](
+    ivm:branch[:root::data::List::IterRef::advance#3, :root::data::List::IterRef::advance#2]
+    ivm:x(2 ivm:x(3 ivm:x(ivm:ext:merge[ivm:branch](
+      ivm:branch[
+        :root::data::List::map_ref#4[:root::util::duplicate, :root::util::erase, vi:fn[:root::debug::Show::show[:root::logical::Bool]]],
+        :root::data::List::map_ref#5[:root::util::duplicate, :root::util::erase, vi:fn[:root::debug::Show::show[:root::logical::Bool]]],
+      ]
+      ivm:x(ivm:x(0 1) 4)
+    ) 4)))
+  ))) 3)))
+}
+
+:root::data::List::map_ref#4[:root::util::duplicate, :root::util::erase, vi:fn[:root::debug::Show::show[:root::logical::Bool]]] {
+  ^ = ivm:x(ivm:x(ivm:eraser ivm:x(0 0)) ivm:eraser)
+}
+
+:root::data::List::map_ref#5[:root::util::duplicate, :root::util::erase, vi:fn[:root::debug::Show::show[:root::logical::Bool]]] {
+  ^ = ivm:x(
+    ivm:x(0 ivm:x(ivm:x(ivm:x(ivm:n32 1) 2) 3))
+    ivm:x(
+      ivm:x(ivm:y(4 ivm:ext:merge[ivm:branch](ivm:branch[:root::logical::Bool::to_string::cast#3, :root::logical::Bool::to_string::cast#2] 1)) 4)
+      ivm:x(ivm:y(5 ivm:ext:merge[vi:n32:ne](ivm:n32 ivm:ext:merge[ivm:branch](
+        ivm:branch[:root::data::List::IterRef::advance#3, :root::data::List::IterRef::advance#2]
+        ivm:x(5 ivm:x(6 ivm:x(ivm:ext:merge[ivm:branch](
+          ivm:branch[
+            :root::data::List::map_ref#4[:root::util::duplicate, :root::util::erase, vi:fn[:root::debug::Show::show[:root::logical::Bool]]],
+            :root::data::List::map_ref#5[:root::util::duplicate, :root::util::erase, vi:fn[:root::debug::Show::show[:root::logical::Bool]]],
+          ]
+          ivm:x(ivm:x(7 ivm:x(2 3)) 8)
+        ) 8)))
+      ))) 6)
+    )
+  )
+  ivm:graft[:root::util::duplicate::fork] = ivm:x(ivm:x(0 7) ivm:eraser)
+}
+
+vi:synthetic[vi:synthetic:call_fn#1[:root::debug::Show::show], :root::logical::Bool] {
+  ^ = ivm:x(ivm:eraser ivm:x(
+    ivm:x(ivm:y(0 ivm:ext:merge[ivm:branch](ivm:branch[:root::logical::Bool::to_string::cast#3, :root::logical::Bool::to_string::cast#2] 1)) 0)
+    ivm:x(ivm:n32 1)
+  ))
+}
+
+:root::debug::Show::ShowVariant::variant::show_variant#4[:root::unicode::String, :root::debug::Show::ShowVariant::never] {
+  ^ = ivm:x(
+    ivm:x(0 ivm:x(ivm:eraser ivm:x(
+      ivm:x(ivm:n32#1 ivm:x(0 ivm:x(ivm:n32 ivm:x(1 ivm:x(ivm:x(ivm:n32#34 2) 3)))))
+      ivm:x(ivm:n32 4)
+    )))
+    ivm:y(4 ivm:x(
+      ivm:y(5 ivm:ext:merge[vi:n32:ne](ivm:n32 ivm:ext:merge[ivm:branch](
+        ivm:branch[:root::data::List::Iter::advance#3, :root::data::List::Iter::advance#2]
+        ivm:x(5 ivm:x(6 ivm:x(7 ivm:x(ivm:ext:merge[ivm:branch](
+          ivm:branch[:root::unicode::String::show#4, :root::unicode::String::show#5]
+          ivm:x(ivm:x(
+            ivm:x(ivm:n32 ivm:x(8 8))
+            ivm:x(
+              ivm:ext:merge[vi:n32:add](ivm:n32#2 1)
+              ivm:x(2 ivm:x(ivm:n32#34 3))
+            )
+          ) 9)
+        ) 9))))
+      )))
+      ivm:x(6 7)
+    ))
+  )
+}
+
+:root::debug::Show::ShowVariant::variant::show_variant#5[:root::unicode::String, :root::debug::Show::ShowVariant::never] {
+  ^ = ivm:x(
+    ivm:x(ivm:eraser ivm:x(ivm:eraser ivm:x(ivm:eraser ivm:x(ivm:n32#1 0))))
+    ivm:y(0 ivm:eraser)
+  )
+}
+

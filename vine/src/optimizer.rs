@@ -362,7 +362,7 @@ pub fn arithmetic<'r>(
     }
   }
 
-  type Fns = HashMap<NameId, Box<dyn Fn(&mut Engine, &Guide, NetId, NodeId) -> bool>>;
+  type Fns = HashMap<NameId, Box<dyn Fn(usize, &mut Engine, &Guide, NetId, NodeId) -> bool>>;
 
   struct Arithmetic;
   impl Registry for Arithmetic {
@@ -383,12 +383,11 @@ pub fn arithmetic<'r>(
       name: &'static str,
       f: impl 'static + Send + Sync + Fn(I) -> O,
     ) {
+      let _name = name;
       let name = table.add_path_name(name);
       fns.insert(
         name,
-        Box::new(move |engine, vi, net, node| {
-          let name = engine.name(node);
-          let arity = name.payload.as_u32().unwrap() as usize;
+        Box::new(move |arity, engine, vi, net, node| {
           let inputs = engine.ports(node).take(arity).map(|p| engine.follow(p).node);
           let Some(inputs) = I::read_all(vi, engine, exact_size(inputs)) else { return false };
           let outputs = f(inputs);
@@ -443,6 +442,6 @@ pub fn arithmetic<'r>(
       return true;
     }
     let Some(f) = fns.get(&name) else { return false };
-    f(engine, vi, net, node)
+    f(arity, engine, vi, net, node)
   })
 }
