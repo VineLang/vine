@@ -171,7 +171,7 @@ fn regroup<'r, F: 'r + Fn(u32, u32) -> u32>(
       if name.path == path || name.path == vi.n32 {
         value = op(value, name.payload.as_u32().unwrap());
         let mut ports = engine.remove_node(arg.node);
-        let arg = ports.next().unwrap();
+        let arg = ports.next_back().unwrap();
         engine.remove_wire(arg, arg_);
         args.extend(ports);
       } else {

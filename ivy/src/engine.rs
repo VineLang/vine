@@ -158,7 +158,10 @@ impl Engine {
     **self.nodes[p.node].ports[p.index].as_ref().unwrap()
   }
 
-  pub fn ports(&self, node: NodeId) -> impl use<> + ExactSizeIterator<Item = PortRef> + Clone {
+  pub fn ports(
+    &self,
+    node: NodeId,
+  ) -> impl use<> + DoubleEndedIterator + ExactSizeIterator<Item = PortRef> + Clone {
     self.nodes[node].ports.keys().map(move |i| node.port(i))
   }
 
@@ -237,7 +240,7 @@ impl Engine {
     net: NetId,
     name: Name,
     len: usize,
-  ) -> impl use<> + ExactSizeIterator<Item = Port> {
+  ) -> impl use<> + DoubleEndedIterator + ExactSizeIterator<Item = Port> {
     self._insert_node(net, name, len).1
   }
 
@@ -250,7 +253,7 @@ impl Engine {
     net: NetId,
     name: Name,
     len: usize,
-  ) -> (NodeId, impl ExactSizeIterator<Item = Port> + use<>) {
+  ) -> (NodeId, impl DoubleEndedIterator + ExactSizeIterator<Item = Port> + use<>) {
     self.holes += len;
     let node = self.nodes.insert(Node { net, name, dirty: true, ports: IdxVec::new() });
     self.maybe_dirty.push(node);
@@ -261,7 +264,10 @@ impl Engine {
     (node, (0..len).map(move |i| Port(PortRef { node, index: PortIndex(i) })))
   }
 
-  pub fn remove_node(&mut self, node_id: NodeId) -> impl use<> + ExactSizeIterator<Item = Port> {
+  pub fn remove_node(
+    &mut self,
+    node_id: NodeId,
+  ) -> impl use<> + DoubleEndedIterator + ExactSizeIterator<Item = Port> {
     self.dead_nodes.push(node_id);
     self.nodes[node_id].ports.keys().map(move |index| Port(PortRef { node: node_id, index }))
   }
@@ -379,7 +385,7 @@ impl Engine {
     &mut self,
     from_id: NetId,
     into_id: NetId,
-  ) -> impl use<> + ExactSizeIterator<Item = Port> {
+  ) -> impl use<> + DoubleEndedIterator + ExactSizeIterator<Item = Port> {
     assert!(from_id != into_id);
 
     self.finish_edit();
