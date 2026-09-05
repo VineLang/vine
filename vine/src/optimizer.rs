@@ -9,7 +9,10 @@ use ivy::{
   guide,
   name::{FromTable, NameId, PathId, Table},
   net::FlatNet,
-  translate::{Translate, Translator, common::chain_binary},
+  translate::{
+    Translate, Translator,
+    common::{chain_binary, elide_unary},
+  },
 };
 use vine_util::{
   exact_size,
@@ -68,6 +71,7 @@ fn from_opt<'r>(
       net.push(node);
     }),
     chain_binary([opt.n32_add]),
+    elide_unary([opt.n32_add]),
     Translate(bare_ext(opt).map(|(path, _)| path).chain([opt.n32_add]), move |mut node, _, net| {
       let (name_id, arity) = restore[&node.name.path];
       node.name = vi.ext.with_children([name_id]).with_payload(arity as u32);
