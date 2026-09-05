@@ -1,14 +1,14 @@
 
 Interactions
-  Total           36_562_101
-  Annihilate      16_155_985
+  Total           36_513_955
+  Annihilate      16_154_996
   Commute            477_360
   Copy             5_204_366
   Erase            2_669_286
   Graft            3_524_392
-  Extrinsic        8_530_712
+  Extrinsic        8_483_555
 
 Memory
   Heap             2_114_112 B
-  Allocated      775_456_192 B
-  Freed          775_456_192 B
+  Allocated      774_670_032 B
+  Freed          774_670_032 B
