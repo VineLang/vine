@@ -1,7 +1,7 @@
 
 iv:main {
   ^ = vi:tuple(0 1)
-  vi:graft[:day_06::main] = vi:fn(vi:ref(0 1) vi:tuple)
+  vi:graft[:option_party::main] = vi:fn(vi:ref(0 1) vi:tuple)
 }
 
 :root::util::duplicate {
@@ -12,256 +12,397 @@ iv:main {
   ^ = vi:fn(vi:eraser vi:tuple)
 }
 
-:root::util::transmute {
-  ^ = vi:fn(0 0)
+:root::debug::Show::_format {
+  ^ = vi:fn(vi:enum:match[vi:enum#5, :root::debug::Show::_format#46, :root::debug::Show::_format#47, :root::debug::Show::_format#48, :root::debug::Show::_format#49, :root::debug::Show::_format#50](vi:interface(0 1 2)) 0 1 2)
 }
 
-:root::data::Array::from_list::cast {
-  ^ = vi:fn(vi:tuple(vi:dup(0 vi:ext#2[vi:n32:eq](vi:n32 vi:bool:if[
-    :root::data::Array::from_fn#5[
-      vi:closure:fork[:root::data::Array::from_list::cast],
-      vi:closure:drop[:root::data::Array::from_list::cast],
-      vi:closure[:root::data::Array::from_list::cast],
-    ],
-    :root::data::Array::from_fn#6[
-      vi:closure:fork[:root::data::Array::from_list::cast],
-      vi:closure:drop[:root::data::Array::from_list::cast],
-      vi:closure[:root::data::Array::from_list::cast],
-    ],
-  ](vi:interface(0 vi:interface(vi:ref(1 vi:tuple)) 2)))) 1 vi:tuple) 2)
-}
-
-:root::data::Array::from_fn[
-  vi:closure:fork[:root::data::Array::from_list::cast],
-  vi:closure:drop[:root::data::Array::from_list::cast],
-  vi:closure[:root::data::Array::from_list::cast],
-] {
-  ^ = vi:fn(vi:dup(0 vi:ext#2[vi:n32:eq](vi:n32 vi:bool:if[
-    :root::data::Array::from_fn#5[
-      vi:closure:fork[:root::data::Array::from_list::cast],
-      vi:closure:drop[:root::data::Array::from_list::cast],
-      vi:closure[:root::data::Array::from_list::cast],
-    ],
-    :root::data::Array::from_fn#6[
-      vi:closure:fork[:root::data::Array::from_list::cast],
-      vi:closure:drop[:root::data::Array::from_list::cast],
-      vi:closure[:root::data::Array::from_list::cast],
-    ],
-  ](vi:interface(0 1 2)))) 1 2)
-}
-
-:root::data::Array::for_each[
-  vi:closure:fork[:root::data::Array::from_fn[
-    vi:closure:fork[:root::data::Array::from_list::cast],
-    vi:closure:drop[:root::data::Array::from_list::cast],
-    vi:closure[:root::data::Array::from_list::cast],
-  ]],
-  vi:closure:drop[:root::data::Array::from_fn[
-    vi:closure:fork[:root::data::Array::from_list::cast],
-    vi:closure:drop[:root::data::Array::from_list::cast],
-    vi:closure[:root::data::Array::from_list::cast],
-  ]],
-  vi:closure[:root::data::Array::from_fn[
-    vi:closure:fork[:root::data::Array::from_list::cast],
-    vi:closure:drop[:root::data::Array::from_list::cast],
-    vi:closure[:root::data::Array::from_list::cast],
-  ]],
-] {
-  ^ = vi:fn(vi:tuple(vi:dup(0 vi:ext#2[vi:n32:eq](vi:n32 vi:bool:if[
-    :root::data::Array::fold_front#2[
-      vi:closure:fork[:root::data::Array::for_each[
-        vi:closure:fork[:root::data::Array::from_fn[
-          vi:closure:fork[:root::data::Array::from_list::cast],
-          vi:closure:drop[:root::data::Array::from_list::cast],
-          vi:closure[:root::data::Array::from_list::cast],
-        ]],
-        vi:closure:drop[:root::data::Array::from_fn[
-          vi:closure:fork[:root::data::Array::from_list::cast],
-          vi:closure:drop[:root::data::Array::from_list::cast],
-          vi:closure[:root::data::Array::from_list::cast],
-        ]],
-        vi:closure[:root::data::Array::from_fn[
-          vi:closure:fork[:root::data::Array::from_list::cast],
-          vi:closure:drop[:root::data::Array::from_list::cast],
-          vi:closure[:root::data::Array::from_list::cast],
-        ]],
-      ]],
-      vi:closure:drop[:root::data::Array::for_each[
-        vi:closure:fork[:root::data::Array::from_fn[
-          vi:closure:fork[:root::data::Array::from_list::cast],
-          vi:closure:drop[:root::data::Array::from_list::cast],
-          vi:closure[:root::data::Array::from_list::cast],
-        ]],
-        vi:closure:drop[:root::data::Array::from_fn[
-          vi:closure:fork[:root::data::Array::from_list::cast],
-          vi:closure:drop[:root::data::Array::from_list::cast],
-          vi:closure[:root::data::Array::from_list::cast],
-        ]],
-        vi:closure[:root::data::Array::from_fn[
-          vi:closure:fork[:root::data::Array::from_list::cast],
-          vi:closure:drop[:root::data::Array::from_list::cast],
-          vi:closure[:root::data::Array::from_list::cast],
-        ]],
-      ]],
-      vi:closure[:root::data::Array::for_each[
-        vi:closure:fork[:root::data::Array::from_fn[
-          vi:closure:fork[:root::data::Array::from_list::cast],
-          vi:closure:drop[:root::data::Array::from_list::cast],
-          vi:closure[:root::data::Array::from_list::cast],
-        ]],
-        vi:closure:drop[:root::data::Array::from_fn[
-          vi:closure:fork[:root::data::Array::from_list::cast],
-          vi:closure:drop[:root::data::Array::from_list::cast],
-          vi:closure[:root::data::Array::from_list::cast],
-        ]],
-        vi:closure[:root::data::Array::from_fn[
-          vi:closure:fork[:root::data::Array::from_list::cast],
-          vi:closure:drop[:root::data::Array::from_list::cast],
-          vi:closure[:root::data::Array::from_list::cast],
-        ]],
-      ]],
-    ],
-    :root::data::Array::fold_front#3[
-      vi:closure:fork[:root::data::Array::for_each[
-        vi:closure:fork[:root::data::Array::from_fn[
-          vi:closure:fork[:root::data::Array::from_list::cast],
-          vi:closure:drop[:root::data::Array::from_list::cast],
-          vi:closure[:root::data::Array::from_list::cast],
-        ]],
-        vi:closure:drop[:root::data::Array::from_fn[
-          vi:closure:fork[:root::data::Array::from_list::cast],
-          vi:closure:drop[:root::data::Array::from_list::cast],
-          vi:closure[:root::data::Array::from_list::cast],
-        ]],
-        vi:closure[:root::data::Array::from_fn[
-          vi:closure:fork[:root::data::Array::from_list::cast],
-          vi:closure:drop[:root::data::Array::from_list::cast],
-          vi:closure[:root::data::Array::from_list::cast],
-        ]],
-      ]],
-      vi:closure:drop[:root::data::Array::for_each[
-        vi:closure:fork[:root::data::Array::from_fn[
-          vi:closure:fork[:root::data::Array::from_list::cast],
-          vi:closure:drop[:root::data::Array::from_list::cast],
-          vi:closure[:root::data::Array::from_list::cast],
-        ]],
-        vi:closure:drop[:root::data::Array::from_fn[
-          vi:closure:fork[:root::data::Array::from_list::cast],
-          vi:closure:drop[:root::data::Array::from_list::cast],
-          vi:closure[:root::data::Array::from_list::cast],
-        ]],
-        vi:closure[:root::data::Array::from_fn[
-          vi:closure:fork[:root::data::Array::from_list::cast],
-          vi:closure:drop[:root::data::Array::from_list::cast],
-          vi:closure[:root::data::Array::from_list::cast],
-        ]],
-      ]],
-      vi:closure[:root::data::Array::for_each[
-        vi:closure:fork[:root::data::Array::from_fn[
-          vi:closure:fork[:root::data::Array::from_list::cast],
-          vi:closure:drop[:root::data::Array::from_list::cast],
-          vi:closure[:root::data::Array::from_list::cast],
-        ]],
-        vi:closure:drop[:root::data::Array::from_fn[
-          vi:closure:fork[:root::data::Array::from_list::cast],
-          vi:closure:drop[:root::data::Array::from_list::cast],
-          vi:closure[:root::data::Array::from_list::cast],
-        ]],
-        vi:closure[:root::data::Array::from_fn[
-          vi:closure:fork[:root::data::Array::from_list::cast],
-          vi:closure:drop[:root::data::Array::from_list::cast],
-          vi:closure[:root::data::Array::from_list::cast],
-        ]],
-      ]],
-    ],
-  ](vi:interface(0 1 2 vi:interface vi:interface(vi:interface(vi:ref(3 3))))))) 1) 2 vi:tuple)
-}
-
-:root::debug::enabled {
-  ^ = vi:bool
-}
-
-:day_06::main {
+:option_party::main {
   ^ = vi:fn(vi:ref(0 1) vi:tuple)
-  vi:graft[:root::IO::full_input] = vi:fn(vi:ref(0 2) 3)
-  vi:graft[:root::unicode::String::split_trim] = vi:fn(3 vi:tuple(vi:n32#1 vi:tuple(vi:n32#10 4) 4) 5)
-  vi:graft[:root::data::Iterator::Iterate::iter_ref[:root::data::List::iter_ref]] = vi:fn(vi:ref(5 6) 7)
-  vi:graft[:root::data::Iterator::Iterate::iterator::iter[:root::data::List::IterRef]] = vi:fn(7 8)
-  vi:interface(vi:ref(vi:tuple(vi:n32 vi:n32) 9) vi:n32 8) = vi:graft[:day_06::main#4]
-  vi:graft[:root::util::erase::drop] = vi:fn(vi:tuple vi:tuple)
-  vi:graft[:root::data::List::map[
-    vi:closure:fork[:day_06::main],
-    vi:closure:drop[:day_06::main],
-    vi:closure[:day_06::main],
-  ]] = vi:fn(6 vi:interface 10)
-  vi:graft[:root::data::Array::from_list::cast] = vi:fn(10 11)
-  vi:graft[:day_06::walk] = vi:fn(
-    vi:ref(11 12)
-    13
-    vi:tuple(14 15)
-  )
-  vi:graft[:root::util::erase::drop] = vi:fn(14 vi:tuple)
-  vi:graft[:root::numeric::N32::to_string::cast] = vi:fn(15 vi:tuple(16 17 18))
-  vi:n32#8 = vi:ext#2[vi:n32:add](16 19)
   vi:graft[:root::IO::println] = vi:fn(
-    vi:ref(2 20)
-    vi:tuple(19 vi:tuple(vi:n32#80 vi:tuple(vi:n32#97 vi:tuple(vi:n32#114 vi:tuple(vi:n32#116 vi:tuple(vi:n32#32 vi:tuple(vi:n32#49 vi:tuple(vi:n32#58 vi:tuple(vi:n32#32 17)))))))) 18)
-    21
+    vi:ref(0 2)
+    vi:tuple(vi:n32#4 vi:tuple(vi:n32#109 vi:tuple(vi:n32#97 vi:tuple(vi:n32#112 vi:tuple(vi:n32#58 3)))) 3)
+    4
   )
-  vi:graft[:root::util::erase::drop] = vi:fn(21 vi:tuple)
-  vi:graft[:day_06::clear] = vi:fn(
-    vi:ref(12 22)
-    vi:ref(vi:tuple(vi:n32 23 23) 24)
+  vi:graft[:root::util::erase::drop] = vi:fn(4 vi:tuple)
+  vi:graft[:root::logical::Option::map[
+    vi:closure:drop#3[:option_party::main],
+    vi:closure#3[:option_party::main],
+  ]] = vi:fn(vi:enum:variant[vi:enum#2](vi:tuple) vi:interface 5)
+  vi:graft[:option_party::main#1] = vi:fn(
+    vi:interface(vi:ref(2 6))
+    vi:tuple(5)
+    7
+  )
+  vi:graft[:root::util::erase::drop] = vi:fn(7 vi:tuple)
+  vi:graft[:root::logical::Option::map[
+    vi:closure:drop#4[:option_party::main],
+    vi:closure#4[:option_party::main],
+  ]] = vi:fn(vi:enum:variant#1[vi:enum#2](vi:n32) vi:interface 8)
+  vi:graft[:option_party::main#1] = vi:fn(
+    vi:interface(vi:ref(6 9))
+    vi:tuple(8)
+    10
+  )
+  vi:graft[:root::util::erase::drop] = vi:fn(10 vi:tuple)
+  vi:graft[:root::logical::Option::map[
+    vi:closure:drop#5[:option_party::main],
+    vi:closure#5[:option_party::main],
+  ]] = vi:fn(vi:enum:variant#1[vi:enum#2](vi:n32#100) vi:interface 11)
+  vi:graft[:option_party::main#1] = vi:fn(
+    vi:interface(vi:ref(9 12))
+    vi:tuple(11)
+    13
+  )
+  vi:graft[:root::util::erase::drop] = vi:fn(13 vi:tuple)
+  vi:graft[:root::IO::println] = vi:fn(
+    vi:ref(12 14)
+    vi:tuple(vi:n32#17 vi:tuple(vi:n32#105 vi:tuple(vi:n32#110 vi:tuple(vi:n32#99 vi:tuple(vi:n32#114 vi:tuple(vi:n32#101 vi:tuple(vi:n32#109 vi:tuple(vi:n32#101 vi:tuple(vi:n32#110 vi:tuple(vi:n32#116 vi:tuple(vi:n32#95 vi:tuple(vi:n32#111 vi:tuple(vi:n32#112 vi:tuple(vi:n32#116 vi:tuple(vi:n32#105 vi:tuple(vi:n32#111 vi:tuple(vi:n32#110 vi:tuple(vi:n32#58 15))))))))))))))))) 15)
+    16
+  )
+  vi:graft[:root::util::erase::drop] = vi:fn(16 vi:tuple)
+  vi:graft[:option_party::increment_option] = vi:fn(vi:ref(vi:enum:variant[vi:enum#2](vi:tuple) 17) 18)
+  vi:graft[:root::util::erase::drop] = vi:fn(18 vi:tuple)
+  vi:graft[:option_party::main#1] = vi:fn(
+    vi:interface(vi:ref(14 19))
+    vi:tuple(17)
+    20
+  )
+  vi:graft[:root::util::erase::drop] = vi:fn(20 vi:tuple)
+  vi:graft[:option_party::increment_option] = vi:fn(vi:ref(vi:enum:variant#1[vi:enum#2](vi:n32) 21) 22)
+  vi:graft[:root::util::erase::drop] = vi:fn(22 vi:tuple)
+  vi:graft[:option_party::main#1] = vi:fn(
+    vi:interface(vi:ref(19 23))
+    vi:tuple(24)
     25
   )
   vi:graft[:root::util::erase::drop] = vi:fn(25 vi:tuple)
-  vi:graft[:root::data::List::iter::iter] = vi:fn(24 26)
-  vi:graft[:root::data::Iterator::Iterate::iterator::iter[:root::data::List::Iter]] = vi:fn(26 27)
-  vi:interface(
-    vi:ref(20 28)
-    29
-    22
-    vi:n32
-    vi:ref(vi:n32 30)
-    27
-  ) = vi:graft[:day_06::main#17]
-  vi:graft[:root::util::erase::drop] = vi:fn(vi:tuple vi:tuple)
-  vi:graft[:root::numeric::N32::to_string::cast] = vi:fn(30 vi:tuple(31 32 33))
-  vi:n32#8 = vi:ext#2[vi:n32:add](31 34)
-  vi:graft[:root::IO::println] = vi:fn(
-    vi:ref(28 1)
-    vi:tuple(34 vi:tuple(vi:n32#80 vi:tuple(vi:n32#97 vi:tuple(vi:n32#114 vi:tuple(vi:n32#116 vi:tuple(vi:n32#32 vi:tuple(vi:n32#50 vi:tuple(vi:n32#58 vi:tuple(vi:n32#32 32)))))))) 33)
-    35
+  vi:graft[:option_party::increment_option] = vi:fn(vi:ref(26 27) 28)
+  vi:graft[:root::util::erase::drop] = vi:fn(28 vi:tuple)
+  vi:graft[:option_party::main#1] = vi:fn(
+    vi:interface(vi:ref(23 29))
+    vi:tuple(27)
+    30
   )
-  vi:graft[:root::util::erase::drop] = vi:fn(35 vi:tuple)
-  vi:graft[:root::util::duplicate::fork] = vi:fn(vi:ref(9 29) 13)
+  vi:graft[:root::util::erase::drop] = vi:fn(30 vi:tuple)
+  vi:graft[:root::IO::println] = vi:fn(
+    vi:ref(29 31)
+    vi:tuple(vi:n32#8 vi:tuple(vi:n32#102 vi:tuple(vi:n32#108 vi:tuple(vi:n32#97 vi:tuple(vi:n32#116 vi:tuple(vi:n32#116 vi:tuple(vi:n32#101 vi:tuple(vi:n32#110 vi:tuple(vi:n32#58 32)))))))) 32)
+    33
+  )
+  vi:graft[:root::util::erase::drop] = vi:fn(33 vi:tuple)
+  vi:graft[:root::logical::Option::flatten] = vi:fn(vi:enum:variant[vi:enum#2](vi:tuple) 34)
+  vi:graft[:option_party::main#1] = vi:fn(
+    vi:interface(vi:ref(31 35))
+    vi:tuple(34)
+    36
+  )
+  vi:graft[:root::util::erase::drop] = vi:fn(36 vi:tuple)
+  vi:graft[:root::logical::Option::flatten] = vi:fn(vi:enum:variant#1[vi:enum#2](vi:enum:variant[vi:enum#2](vi:tuple)) 37)
+  vi:graft[:option_party::main#1] = vi:fn(
+    vi:interface(vi:ref(35 38))
+    vi:tuple(37)
+    39
+  )
+  vi:graft[:root::util::erase::drop] = vi:fn(39 vi:tuple)
+  vi:graft[:root::logical::Option::flatten] = vi:fn(vi:enum:variant#1[vi:enum#2](vi:enum:variant#1[vi:enum#2](vi:n32#123)) 40)
+  vi:graft[:option_party::main#1] = vi:fn(
+    vi:interface(vi:ref(38 41))
+    vi:tuple(40)
+    42
+  )
+  vi:graft[:root::util::erase::drop] = vi:fn(42 vi:tuple)
+  vi:graft[:root::IO::println] = vi:fn(
+    vi:ref(41 43)
+    vi:tuple(vi:n32#12 vi:tuple(vi:n32#97 vi:tuple(vi:n32#100 vi:tuple(vi:n32#100 vi:tuple(vi:n32#95 vi:tuple(vi:n32#111 vi:tuple(vi:n32#112 vi:tuple(vi:n32#116 vi:tuple(vi:n32#105 vi:tuple(vi:n32#111 vi:tuple(vi:n32#110 vi:tuple(vi:n32#115 vi:tuple(vi:n32#58 44)))))))))))) 44)
+    45
+  )
+  vi:graft[:root::util::erase::drop] = vi:fn(45 vi:tuple)
+  vi:graft[:option_party::add_options] = vi:fn(
+    vi:enum:variant[vi:enum#2](vi:tuple)
+    vi:enum:variant[vi:enum#2](vi:tuple)
+    46
+  )
+  vi:graft[:option_party::main#1] = vi:fn(
+    vi:interface(vi:ref(43 47))
+    vi:tuple(46)
+    48
+  )
+  vi:graft[:root::util::erase::drop] = vi:fn(48 vi:tuple)
+  vi:graft[:option_party::add_options] = vi:fn(
+    vi:enum:variant#1[vi:enum#2](vi:n32#1)
+    vi:enum:variant[vi:enum#2](vi:tuple)
+    49
+  )
+  vi:graft[:option_party::main#1] = vi:fn(
+    vi:interface(vi:ref(47 50))
+    vi:tuple(49)
+    51
+  )
+  vi:graft[:root::util::erase::drop] = vi:fn(51 vi:tuple)
+  vi:graft[:option_party::add_options] = vi:fn(
+    vi:enum:variant[vi:enum#2](vi:tuple)
+    vi:enum:variant#1[vi:enum#2](vi:n32#2)
+    52
+  )
+  vi:graft[:option_party::main#1] = vi:fn(
+    vi:interface(vi:ref(50 53))
+    vi:tuple(52)
+    54
+  )
+  vi:graft[:root::util::erase::drop] = vi:fn(54 vi:tuple)
+  vi:graft[:option_party::add_options] = vi:fn(
+    vi:enum:variant#1[vi:enum#2](vi:n32#1)
+    vi:enum:variant#1[vi:enum#2](vi:n32#2)
+    55
+  )
+  vi:graft[:option_party::main#1] = vi:fn(
+    vi:interface(vi:ref(53 56))
+    vi:tuple(55)
+    57
+  )
+  vi:graft[:root::util::erase::drop] = vi:fn(57 vi:tuple)
+  vi:graft[:root::IO::println] = vi:fn(
+    vi:ref(56 58)
+    vi:tuple(vi:n32#10 vi:tuple(vi:n32#111 vi:tuple(vi:n32#114 vi:tuple(vi:n32#95 vi:tuple(vi:n32#111 vi:tuple(vi:n32#112 vi:tuple(vi:n32#116 vi:tuple(vi:n32#105 vi:tuple(vi:n32#111 vi:tuple(vi:n32#110 vi:tuple(vi:n32#58 59)))))))))) 59)
+    60
+  )
+  vi:graft[:root::util::erase::drop] = vi:fn(60 vi:tuple)
+  vi:graft[:root::logical::Option::or_option[:root::util::erase]] = vi:fn(
+    vi:enum:variant[vi:enum#2](vi:tuple)
+    vi:enum:variant[vi:enum#2](vi:tuple)
+    61
+  )
+  vi:graft[:option_party::main#1] = vi:fn(
+    vi:interface(vi:ref(58 62))
+    vi:tuple(61)
+    63
+  )
+  vi:graft[:root::util::erase::drop] = vi:fn(63 vi:tuple)
+  vi:graft[:root::logical::Option::or_option[:root::util::erase]] = vi:fn(
+    vi:enum:variant#1[vi:enum#2](vi:n32#1)
+    vi:enum:variant[vi:enum#2](vi:tuple)
+    64
+  )
+  vi:graft[:option_party::main#1] = vi:fn(
+    vi:interface(vi:ref(62 65))
+    vi:tuple(64)
+    66
+  )
+  vi:graft[:root::util::erase::drop] = vi:fn(66 vi:tuple)
+  vi:graft[:root::logical::Option::or_option[:root::util::erase]] = vi:fn(
+    vi:enum:variant[vi:enum#2](vi:tuple)
+    vi:enum:variant#1[vi:enum#2](vi:n32#2)
+    67
+  )
+  vi:graft[:option_party::main#1] = vi:fn(
+    vi:interface(vi:ref(65 68))
+    vi:tuple(67)
+    69
+  )
+  vi:graft[:root::util::erase::drop] = vi:fn(69 vi:tuple)
+  vi:graft[:root::logical::Option::or_option[:root::util::erase]] = vi:fn(
+    vi:enum:variant#1[vi:enum#2](vi:n32#1)
+    vi:enum:variant#1[vi:enum#2](vi:n32#2)
+    70
+  )
+  vi:graft[:option_party::main#1] = vi:fn(
+    vi:interface(vi:ref(68 71))
+    vi:tuple(70)
+    72
+  )
+  vi:graft[:root::util::erase::drop] = vi:fn(72 vi:tuple)
+  vi:graft[:root::IO::println] = vi:fn(
+    vi:ref(71 73)
+    vi:tuple(vi:n32#7 vi:tuple(vi:n32#111 vi:tuple(vi:n32#114 vi:tuple(vi:n32#95 vi:tuple(vi:n32#117 vi:tuple(vi:n32#115 vi:tuple(vi:n32#101 vi:tuple(vi:n32#58 74))))))) 74)
+    75
+  )
+  vi:graft[:root::util::erase::drop] = vi:fn(75 vi:tuple)
+  vi:graft[:root::logical::Option::or_use[:root::util::erase]] = vi:fn(vi:enum:variant[vi:enum#2](vi:tuple) vi:n32 76)
+  vi:graft[:option_party::main#2] = vi:fn(
+    vi:interface(vi:ref(73 77))
+    vi:tuple(76)
+    78
+  )
+  vi:graft[:root::util::erase::drop] = vi:fn(78 vi:tuple)
+  vi:graft[:root::logical::Option::or_use[:root::util::erase]] = vi:fn(vi:enum:variant#1[vi:enum#2](vi:n32#1) vi:n32 79)
+  vi:graft[:option_party::main#2] = vi:fn(
+    vi:interface(vi:ref(77 80))
+    vi:tuple(79)
+    81
+  )
+  vi:graft[:root::util::erase::drop] = vi:fn(81 vi:tuple)
+  vi:graft[:root::IO::println] = vi:fn(
+    vi:ref(80 82)
+    vi:tuple(vi:n32#8 vi:tuple(vi:n32#105 vi:tuple(vi:n32#115 vi:tuple(vi:n32#95 vi:tuple(vi:n32#115 vi:tuple(vi:n32#111 vi:tuple(vi:n32#109 vi:tuple(vi:n32#101 vi:tuple(vi:n32#58 83)))))))) 83)
+    84
+  )
+  vi:graft[:root::util::erase::drop] = vi:fn(84 vi:tuple)
+  vi:enum:variant[vi:enum#2](vi:tuple) = vi:enum:match[vi:enum#2, :option_party::main#16, :option_party::main#17](vi:interface(85))
+  vi:graft[:option_party::main#3] = vi:fn(
+    vi:interface(vi:ref(82 86))
+    vi:tuple(85)
+    87
+  )
+  vi:graft[:root::util::erase::drop] = vi:fn(87 vi:tuple)
+  vi:enum:variant#1[vi:enum#2](vi:tuple) = vi:enum:match[vi:enum#2, :option_party::main#21, :option_party::main#22](vi:interface(88))
+  vi:graft[:option_party::main#3] = vi:fn(
+    vi:interface(vi:ref(86 89))
+    vi:tuple(88)
+    90
+  )
+  vi:graft[:root::util::erase::drop] = vi:fn(90 vi:tuple)
+  vi:graft[:root::IO::println] = vi:fn(
+    vi:ref(89 91)
+    vi:tuple(vi:n32#8 vi:tuple(vi:n32#105 vi:tuple(vi:n32#115 vi:tuple(vi:n32#95 vi:tuple(vi:n32#110 vi:tuple(vi:n32#111 vi:tuple(vi:n32#110 vi:tuple(vi:n32#101 vi:tuple(vi:n32#58 92)))))))) 92)
+    93
+  )
+  vi:graft[:root::util::erase::drop] = vi:fn(93 vi:tuple)
+  vi:enum:variant[vi:enum#2](vi:tuple) = vi:enum:match[vi:enum#2, :option_party::main#26, :option_party::main#27](vi:interface(94))
+  vi:graft[:option_party::main#3] = vi:fn(
+    vi:interface(vi:ref(91 95))
+    vi:tuple(94)
+    96
+  )
+  vi:graft[:root::util::erase::drop] = vi:fn(96 vi:tuple)
+  vi:enum:variant#1[vi:enum#2](vi:tuple) = vi:enum:match[vi:enum#2, :option_party::main#31, :option_party::main#32](vi:interface(97))
+  vi:graft[:option_party::main#3] = vi:fn(
+    vi:interface(vi:ref(95 98))
+    vi:tuple(97)
+    99
+  )
+  vi:graft[:root::util::erase::drop] = vi:fn(99 vi:tuple)
+  vi:graft[:root::IO::println] = vi:fn(
+    vi:ref(98 100)
+    vi:tuple(vi:n32#12 vi:tuple(vi:n32#105 vi:tuple(vi:n32#115 vi:tuple(vi:n32#95 vi:tuple(vi:n32#115 vi:tuple(vi:n32#111 vi:tuple(vi:n32#109 vi:tuple(vi:n32#101 vi:tuple(vi:n32#95 vi:tuple(vi:n32#97 vi:tuple(vi:n32#110 vi:tuple(vi:n32#100 vi:tuple(vi:n32#58 101)))))))))))) 101)
+    102
+  )
+  vi:graft[:root::util::erase::drop] = vi:fn(102 vi:tuple)
+  vi:enum:variant[vi:enum#2](vi:tuple) = vi:enum:match[vi:enum#2, :option_party::main#36, :option_party::main#37](vi:interface(103))
+  vi:graft[:option_party::main#3] = vi:fn(
+    vi:interface(vi:ref(100 104))
+    vi:tuple(103)
+    105
+  )
+  vi:graft[:root::util::erase::drop] = vi:fn(105 vi:tuple)
+  vi:enum:variant#1[vi:enum#2](vi:n32) = vi:enum:match[vi:enum#2, :option_party::main#44, :option_party::main#45](vi:interface(106))
+  vi:graft[:option_party::main#3] = vi:fn(
+    vi:interface(vi:ref(104 107))
+    vi:tuple(106)
+    108
+  )
+  vi:graft[:root::util::erase::drop] = vi:fn(108 vi:tuple)
+  vi:enum:variant#1[vi:enum#2](vi:n32#1) = vi:enum:match[vi:enum#2, :option_party::main#52, :option_party::main#53](vi:interface(109))
+  vi:graft[:option_party::main#3] = vi:fn(
+    vi:interface(vi:ref(107 110))
+    vi:tuple(109)
+    111
+  )
+  vi:graft[:root::util::erase::drop] = vi:fn(111 vi:tuple)
+  vi:graft[:root::IO::println] = vi:fn(
+    vi:ref(110 112)
+    vi:tuple(vi:n32#16 vi:tuple(vi:n32#105 vi:tuple(vi:n32#115 vi:tuple(vi:n32#95 vi:tuple(vi:n32#115 vi:tuple(vi:n32#111 vi:tuple(vi:n32#109 vi:tuple(vi:n32#101 vi:tuple(vi:n32#95 vi:tuple(vi:n32#105 vi:tuple(vi:n32#109 vi:tuple(vi:n32#112 vi:tuple(vi:n32#108 vi:tuple(vi:n32#105 vi:tuple(vi:n32#101 vi:tuple(vi:n32#115 vi:tuple(vi:n32#58 113)))))))))))))))) 113)
+    114
+  )
+  vi:graft[:root::util::erase::drop] = vi:fn(114 vi:tuple)
+  vi:enum:variant[vi:enum#2](vi:tuple) = vi:enum:match[vi:enum#2, :option_party::main#60, :option_party::main#61](vi:interface(115))
+  vi:graft[:option_party::main#3] = vi:fn(
+    vi:interface(vi:ref(112 116))
+    vi:tuple(115)
+    117
+  )
+  vi:graft[:root::util::erase::drop] = vi:fn(117 vi:tuple)
+  vi:enum:variant#1[vi:enum#2](vi:n32) = vi:enum:match[vi:enum#2, :option_party::main#68, :option_party::main#69](vi:interface(118))
+  vi:graft[:option_party::main#3] = vi:fn(
+    vi:interface(vi:ref(116 119))
+    vi:tuple(118)
+    120
+  )
+  vi:graft[:root::util::erase::drop] = vi:fn(120 vi:tuple)
+  vi:enum:variant#1[vi:enum#2](vi:n32#1) = vi:enum:match[vi:enum#2, :option_party::main#76, :option_party::main#77](vi:interface(121))
+  vi:graft[:option_party::main#3] = vi:fn(
+    vi:interface(vi:ref(119 122))
+    vi:tuple(121)
+    123
+  )
+  vi:graft[:root::util::erase::drop] = vi:fn(123 vi:tuple)
+  vi:graft[:root::IO::println] = vi:fn(
+    vi:ref(122 124)
+    vi:tuple(vi:n32#5 vi:tuple(vi:n32#116 vi:tuple(vi:n32#97 vi:tuple(vi:n32#107 vi:tuple(vi:n32#101 vi:tuple(vi:n32#58 125))))) 125)
+    126
+  )
+  vi:graft[:root::util::erase::drop] = vi:fn(126 vi:tuple)
+  vi:graft[:root::logical::Option::take] = vi:fn(vi:ref(vi:enum:variant#1[vi:enum#2](vi:n32#3) 127) 128)
+  vi:graft[:option_party::main#1] = vi:fn(
+    vi:interface(vi:ref(124 129))
+    vi:tuple(128)
+    130
+  )
+  vi:graft[:root::util::erase::drop] = vi:fn(130 vi:tuple)
+  vi:graft[:option_party::main#1] = vi:fn(
+    vi:interface(vi:ref(129 131))
+    vi:tuple(132)
+    133
+  )
+  vi:graft[:root::util::erase::drop] = vi:fn(133 vi:tuple)
+  vi:graft[:root::logical::Option::take] = vi:fn(vi:ref(134 135) 136)
+  vi:graft[:option_party::main#1] = vi:fn(
+    vi:interface(vi:ref(131 137))
+    vi:tuple(136)
+    138
+  )
+  vi:graft[:root::util::erase::drop] = vi:fn(138 vi:tuple)
+  vi:graft[:option_party::main#1] = vi:fn(
+    vi:interface(vi:ref(137 139))
+    vi:tuple(135)
+    140
+  )
+  vi:graft[:root::util::erase::drop] = vi:fn(140 vi:tuple)
+  vi:graft[:root::IO::println] = vi:fn(
+    vi:ref(139 141)
+    vi:tuple(vi:n32#7 vi:tuple(vi:n32#97 vi:tuple(vi:n32#115 vi:tuple(vi:n32#115 vi:tuple(vi:n32#117 vi:tuple(vi:n32#109 vi:tuple(vi:n32#101 vi:tuple(vi:n32#58 142))))))) 142)
+    143
+  )
+  vi:graft[:root::util::erase::drop] = vi:fn(143 vi:tuple)
+  vi:graft[:root::logical::Option::assume] = vi:fn(vi:enum:variant#1[vi:enum#2](vi:n32#42) 144)
+  vi:graft[:option_party::main#2] = vi:fn(
+    vi:interface(vi:ref(141 145))
+    vi:tuple(144)
+    146
+  )
+  vi:graft[:root::util::erase::drop] = vi:fn(146 vi:tuple)
+  vi:graft[:root::logical::Option::assume] = vi:fn(vi:enum:variant[vi:enum#2](vi:tuple) 147)
+  vi:graft[:option_party::main#2] = vi:fn(
+    vi:interface(vi:ref(145 148))
+    vi:tuple(147)
+    149
+  )
+  vi:graft[:root::util::erase::drop] = vi:fn(149 vi:tuple)
+  vi:graft[:root::IO::println] = vi:fn(
+    vi:ref(148 1)
+    vi:tuple(vi:n32#27 vi:tuple(vi:n32#105 vi:tuple(vi:n32#111 vi:tuple(vi:n32#32 vi:tuple(vi:n32#119 vi:tuple(vi:n32#105 vi:tuple(vi:n32#108 vi:tuple(vi:n32#108 vi:tuple(vi:n32#32 vi:tuple(vi:n32#110 vi:tuple(vi:n32#101 vi:tuple(vi:n32#118 vi:tuple(vi:n32#101 vi:tuple(vi:n32#114 vi:tuple(vi:n32#32 vi:tuple(vi:n32#119 vi:tuple(vi:n32#111 vi:tuple(vi:n32#114 vi:tuple(vi:n32#107 vi:tuple(vi:n32#32 vi:tuple(vi:n32#97 vi:tuple(vi:n32#103 vi:tuple(vi:n32#97 vi:tuple(vi:n32#105 vi:tuple(vi:n32#110 vi:tuple(vi:n32#32 vi:tuple(vi:n32#58 vi:tuple(vi:n32#40 150))))))))))))))))))))))))))) 150)
+    151
+  )
+  vi:graft[:root::util::erase::drop] = vi:fn(151 vi:tuple)
+  vi:graft[:root::util::duplicate::fork] = vi:fn(vi:ref(21 26) 24)
+  vi:graft[:root::util::duplicate::fork] = vi:fn(vi:ref(127 134) 132)
   vi:tuple = vi:tuple
 }
 
-:root::data::List::Stream::pair {
-  ^ = vi:tuple(0 0)
-}
-
-:root::data::Array::empty {
-  ^ = vi:tuple(vi:n32 vi:tuple)
-}
-
-vi:synthetic[vi:synthetic:debug_state] {
-  ^ = vi:fn(vi:enum:variant[vi:enum#2](vi:tuple))
-}
-
-:root::debug::enabled#4 {
-  ^0 = vi:interface(vi:bool)
-  ^1 = vi:tuple
-}
-
-:root::debug::enabled#5 {
-  ^0 = vi:interface(vi:bool#1)
-  ^1 = vi:ref(0 0)
-}
-
-:root::ops::flex::Drop::ref::drop {
-  ^ = vi:fn(vi:ref(0 0) vi:tuple)
+:option_party::add_options {
+  ^ = vi:fn(vi:enum:match[
+    vi:enum#2,
+    :root::logical::Option::map#4[
+      vi:closure:drop[:option_party::add_options],
+      vi:closure[:option_party::add_options],
+    ],
+    :root::logical::Option::map#5[
+      vi:closure:drop[:option_party::add_options],
+      vi:closure[:option_party::add_options],
+    ],
+  ](vi:interface(
+    vi:interface(0)
+    vi:enum:match[vi:enum#2, :root::logical::Option::flatten#4, :root::logical::Option::flatten#5](vi:interface(1))
+  )) 0 1)
 }
 
 :root::util::duplicate::fork {
@@ -272,53 +413,46 @@ vi:synthetic[vi:synthetic:debug_state] {
   ^ = vi:fn(vi:eraser vi:tuple)
 }
 
-:root::util::eraser {
-  ^ = vi:eraser
+vi:synthetic#1[vi:synthetic:enum_deconstruct[:root::logical::Option]] {
+  ^0 = vi:enum:variant[vi:enum#2](0)
+  ^1 = 0
 }
 
-:root::ops::flex::Fork::ref::fork {
-  ^ = vi:fn(
-    vi:ref(
-      vi:ref(0 1)
-      vi:ref(2 1)
-    )
-    vi:ref(0 2)
-  )
+vi:synthetic#2[vi:synthetic:enum_deconstruct[:root::logical::Option]] {
+  ^0 = vi:enum:variant#1[vi:enum#2](vi:enum:variant[vi:enum#2](0))
+  ^1 = 0
 }
 
-:root::debug::error_node {
-  ^ = vi:error
+vi:synthetic#1[vi:synthetic:enum_reconstruct[:root::logical::Option]] {
+  ^0 = vi:enum:variant[vi:enum#2](0)
+  ^1 = 0
 }
 
-:root::logical::Default::nil::default {
-  ^ = vi:tuple
+vi:synthetic#2[vi:synthetic:enum_reconstruct[:root::logical::Option]] {
+  ^0 = 0
+  ^1 = vi:enum:match[
+    vi:enum#2,
+    vi:synthetic#3[vi:synthetic:enum_reconstruct[:root::logical::Option]],
+    vi:synthetic#4[vi:synthetic:enum_reconstruct[:root::logical::Option]],
+  ](0)
 }
 
-:root::logical::Option::default {
-  ^ = vi:enum:variant[vi:enum#2](vi:tuple)
+vi:synthetic#3[vi:synthetic:enum_reconstruct[:root::logical::Option]] {
+  ^0 = vi:enum:variant#1[vi:enum#2](0)
+  ^1 = 0
 }
 
-:root::numeric::N32::maximum {
-  ^ = vi:n32#0xffffffff
+vi:synthetic#4[vi:synthetic:enum_reconstruct[:root::logical::Option]] {
+  ^0 = 0
+  ^1 = 0
 }
 
-:root::data::List::pop_front {
-  ^ = vi:fn(vi:ref(
-    vi:tuple(vi:dup(0 vi:ext#2[vi:n32:ne](vi:n32 vi:bool:if[:root::data::List::pop_front#2, :root::data::List::pop_front#3](vi:interface(
-      vi:ref(0 1)
-      vi:ref(2 3)
-      4
-    )))) 2 5)
-    vi:tuple(1 3 5)
-  ) 4)
-}
-
-:root::numeric::N32::ne {
-  ^ = vi:fn(
-    vi:ref(vi:dup(0 vi:ext#2[vi:n32:ne](1 2)) 0)
-    vi:ref(vi:dup(3 1) 3)
-    2
-  )
+:root::logical::Option::or_use[:root::util::erase] {
+  ^ = vi:fn(vi:enum:match[
+    vi:enum#2,
+    :root::logical::Option::or_use#4[:root::util::erase],
+    :root::logical::Option::or_use#5[:root::util::erase],
+  ](vi:interface(0 1)) 0 1)
 }
 
 :root::data::List::pop_front#2 {
@@ -337,78 +471,18 @@ vi:synthetic[vi:synthetic:debug_state] {
   )
 }
 
-:root::numeric::N32::sub {
-  ^ = vi:fn(vi:ext#2[vi:n32:sub](0 1) 0 1)
+:root::logical::Option::or_use#4[:root::util::erase] {
+  ^0 = vi:interface(0 0)
+  ^1 = vi:tuple
 }
 
-:root::data::List::Stream::pop {
-  ^ = vi:fn(vi:ref(vi:tuple(0 1) 1) 0)
-}
-
-:root::numeric::N32::pos {
-  ^ = vi:fn(0 0)
-}
-
-:root::util::transmute::cast {
-  ^ = vi:fn(0 0)
-}
-
-:root::numeric::N32::neg {
-  ^ = vi:fn(0 1)
-  vi:n32 = vi:ext#2[vi:n32:sub](0 1)
-}
-
-:root::numeric::I32::neg {
-  ^ = vi:fn(0 1)
-  vi:n32 = vi:ext#2[vi:n32:sub](0 1)
-}
-
-:root::numeric::I32::sub {
-  ^ = vi:fn(vi:ext#2[vi:n32:sub](0 1) 0 1)
+:root::logical::Option::or_use#5[:root::util::erase] {
+  ^0 = vi:interface(vi:eraser 0)
+  ^1 = 0
 }
 
 :root::numeric::N32::add {
   ^ = vi:fn(vi:ext#2[vi:n32:add](0 1) 0 1)
-}
-
-:root::numeric::N32::mul {
-  ^ = vi:fn(vi:ext#2[vi:n32:mul](0 1) 0 1)
-}
-
-:root::IO::eof {
-  ^ = vi:n32#0xffffffff
-}
-
-:root::unicode::String::iter::iter {
-  ^ = vi:fn(0 0)
-}
-
-:root::unicode::String::concat {
-  ^ = vi:fn(
-    vi:tuple(vi:ext#2[vi:n32:add](0 1) 2 3)
-    vi:tuple(0 3 4)
-    vi:tuple(1 2 4)
-  )
-}
-
-:root::data::List::Iter::advance {
-  ^ = vi:fn(vi:tuple(vi:dup(0 vi:ext#2[vi:n32:ne](vi:n32 vi:bool:if[:root::data::List::Iter::advance#2, :root::data::List::Iter::advance#3](vi:interface(0 1 2 3)))) 1 2) 3)
-}
-
-:root::unicode::Char::eq {
-  ^ = vi:fn(
-    vi:ref(vi:dup(0 vi:ext#2[vi:n32:eq](1 2)) 0)
-    vi:ref(vi:dup(3 1) 3)
-    2
-  )
-}
-
-:root::ops::Cast::identity::cast {
-  ^ = vi:fn(0 0)
-}
-
-:root::data::List::iter::iter {
-  ^ = vi:fn(0 0)
 }
 
 :root::data::List::Iter::advance#2 {
@@ -424,47 +498,6 @@ vi:synthetic[vi:synthetic:debug_state] {
   ^ = vi:interface(vi:eraser vi:tuple vi:tuple vi:enum:variant[vi:enum#2](vi:tuple))
 }
 
-:root::data::Iterator::Iterate::iterator::iter[:root::ops::Range::exclusive_iter[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32]] {
-  ^ = vi:fn(0 0)
-}
-
-:root::ops::Range::exclusive_iter::advance[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32] {
-  ^ = vi:fn(vi:tuple(
-    vi:dup(0 vi:ext#2[vi:n32:lt](1 vi:bool:if[
-      :root::ops::Range::exclusive_iter::advance#2[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32],
-      :root::ops::Range::exclusive_iter::advance#3[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32],
-    ](vi:interface(0 2 3))))
-    vi:dup(2 1)
-  ) 3)
-}
-
-:root::ops::comparison::Lt::from_ord::lt[:root::numeric::N32] {
-  ^ = vi:fn(
-    vi:ref(vi:dup(0 vi:ext#2[vi:n32:lt](1 2)) 0)
-    vi:ref(vi:dup(3 1) 3)
-    2
-  )
-}
-
-:root::data::List::push_front {
-  ^ = vi:fn(vi:ref(
-    vi:tuple(vi:ext#2[vi:n32:add](vi:n32#1 0) 1 2)
-    vi:tuple(0 vi:tuple(3 1) 2)
-  ) 3 vi:tuple)
-}
-
-:root::unicode::Char::add_n32::add {
-  ^ = vi:fn(vi:ext#2[vi:n32:add](0 1) 0 1)
-}
-
-:root::ops::Range::Bound::Exclusive::right_of[:root::numeric::N32] {
-  ^ = vi:fn(
-    vi:ref(vi:dup(0 1) 0)
-    vi:ref(vi:dup(2 vi:ext#2[vi:n32:lt](1 3)) 2)
-    3
-  )
-}
-
 :root::ops::Range::exclusive_iter::advance#2[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32] {
   ^ = vi:interface(
     vi:dup(vi:ext#2[vi:n32:add](vi:n32#1 0) 1)
@@ -477,153 +510,6 @@ vi:synthetic[vi:synthetic:debug_state] {
   ^ = vi:interface(vi:eraser vi:eraser vi:enum:variant[vi:enum#2](vi:tuple))
 }
 
-:root::ops::Range::Step::n32::step {
-  ^ = vi:fn(vi:ext#2[vi:n32:add](vi:n32#1 0) 0)
-}
-
-:root::numeric::N32::lt {
-  ^ = vi:fn(
-    vi:ref(vi:dup(0 vi:ext#2[vi:n32:lt](1 2)) 0)
-    vi:ref(vi:dup(3 1) 3)
-    2
-  )
-}
-
-:root::data::List::concat {
-  ^ = vi:fn(
-    vi:tuple(vi:ext#2[vi:n32:add](0 1) 2 3)
-    vi:tuple(0 3 4)
-    vi:tuple(1 2 4)
-  )
-}
-
-:root::data::List::len {
-  ^ = vi:fn(vi:ref(
-    vi:tuple(vi:dup(0 1) 2 3)
-    vi:tuple(0 2 3)
-  ) 1)
-}
-
-:root::numeric::N32::eq {
-  ^ = vi:fn(
-    vi:ref(vi:dup(0 vi:ext#2[vi:n32:eq](1 2)) 0)
-    vi:ref(vi:dup(3 1) 3)
-    2
-  )
-}
-
-:root::debug::error[:root::ops::Cast::identity] {
-  ^ = vi:fn(vi:eraser vi:error)
-}
-
-:root::debug::error#4[:root::ops::Cast::identity] {
-  ^0 = vi:eraser
-  ^1 = vi:tuple
-}
-
-:root::debug::error#5[:root::ops::Cast::identity] {
-  ^0 = vi:interface(vi:tuple(
-    vi:ext#2[vi:n32:add](vi:n32#8 vi:dup(0 vi:ext#2[vi:n32:ne](vi:n32 vi:bool:if[:root::data::List::Iter::advance#2, :root::data::List::Iter::advance#3](vi:interface(
-      0
-      vi:tuple(vi:n32#69 vi:tuple(vi:n32#82 vi:tuple(vi:n32#82 vi:tuple(vi:n32#79 vi:tuple(vi:n32#82 vi:tuple(vi:n32#58 vi:tuple(vi:n32#32 1)))))))
-      2
-      vi:enum:match[vi:enum#2, :root::IO::print#4, :root::IO::print#5](vi:interface(vi:ref(3 4)))
-    )))))
-    1
-    vi:tuple(vi:n32#10 2)
-  ))
-  ^1 = vi:ref(vi:tuple(3 vi:dup(5 vi:tuple(vi:enum:variant[vi:enum#1](vi:enum:match[vi:enum#2, :root::debug::Stack::advance#4, :root::debug::Stack::advance#5](vi:interface(6 vi:enum:match[
-    vi:enum#2,
-    :root::debug::error#9[:root::ops::Cast::identity],
-    :root::debug::error#10[:root::ops::Cast::identity],
-  ](vi:interface(vi:ref(vi:tuple(4 5) 7)))))) 6))) 7)
-}
-
-:root::IO::print {
-  ^ = vi:fn(0 vi:tuple(vi:dup(1 vi:ext#2[vi:n32:ne](vi:n32 vi:bool:if[:root::data::List::Iter::advance#2, :root::data::List::Iter::advance#3](vi:interface(1 2 3 vi:enum:match[vi:enum#2, :root::IO::print#4, :root::IO::print#5](vi:interface(0)))))) 2 3) vi:tuple)
-}
-
-:root::data::Iterator::Iterate::iterator::iter[:root::debug::Stack] {
-  ^ = vi:fn(0 0)
-}
-
-:root::debug::error#6[:root::ops::Cast::identity] {
-  ^ = vi:interface(0 vi:tuple(vi:enum:variant[vi:enum#1](vi:enum:match[vi:enum#2, :root::debug::Stack::advance#4, :root::debug::Stack::advance#5](vi:interface(1 vi:enum:match[
-    vi:enum#2,
-    :root::debug::error#9[:root::ops::Cast::identity],
-    :root::debug::error#10[:root::ops::Cast::identity],
-  ](vi:interface(0))))) 1))
-}
-
-:root::debug::Stack::advance {
-  ^ = vi:fn(vi:tuple(vi:enum:variant[vi:enum#1](vi:enum:match[vi:enum#2, :root::debug::Stack::advance#4, :root::debug::Stack::advance#5](vi:interface(0 1))) 0) 1)
-}
-
-:root::debug::error#9[:root::ops::Cast::identity] {
-  ^0 = vi:interface(vi:ref(0 0))
-  ^1 = vi:tuple
-}
-
-:root::debug::error#10[:root::ops::Cast::identity] {
-  ^0 = vi:interface(vi:ref(vi:tuple(0 1) 2))
-  ^1 = vi:tuple(
-    vi:tuple(
-      vi:dup(3 vi:ext#2[vi:n32:ne](vi:n32 vi:bool:if[:root::numeric::N32::to_string::cast#2, :root::numeric::N32::to_string::cast#3](vi:interface(3 vi:tuple(4 5 vi:tuple(vi:n32#41 vi:tuple(vi:n32#10 6)))))))
-      vi:tuple(7 8 vi:tuple(vi:n32#58 9))
-      vi:dup(10 vi:ext#2[vi:n32:ne](vi:n32 vi:bool:if[:root::numeric::N32::to_string::cast#2, :root::numeric::N32::to_string::cast#3](vi:interface(10 vi:tuple(11 9 vi:tuple(vi:n32#58 5))))))
-      vi:tuple(vi:dup(12 vi:ext#2[vi:n32:ne](vi:n32 vi:bool:if[:root::data::List::head_tail#2, :root::data::List::head_tail#3](vi:interface(12 13 14 vi:enum:match[
-        vi:enum#2,
-        :root::data::List::join#4[:root::ops::Cast::identity],
-        :root::data::List::join#5[:root::ops::Cast::identity],
-      ](vi:interface(
-        vi:tuple(vi:n32#2 vi:tuple(vi:n32#58 vi:tuple(vi:n32#58 15)) 15)
-        vi:tuple(
-          vi:ext#2[vi:n32:add](vi:n32#6 vi:ext#2[vi:n32:add](7 vi:ext#2[vi:n32:add](11 vi:ext#2[vi:n32:add](4 vi:ext#2[vi:n32:add](vi:n32#5 vi:dup(16 vi:ext#2[vi:n32:ne](vi:n32 vi:bool:if[:root::data::List::Iter::advance#2, :root::data::List::Iter::advance#3](vi:interface(
-            16
-            vi:tuple(vi:n32#32 vi:tuple(vi:n32#32 vi:tuple(vi:n32#64 vi:tuple(vi:n32#32 vi:tuple(vi:n32#35 17)))))
-            6
-            vi:enum:match[vi:enum#2, :root::IO::print#4, :root::IO::print#5](vi:interface(vi:ref(0 18)))
-          )))))))))
-          17
-          vi:tuple(vi:n32#32 vi:tuple(vi:n32#40 8))
-        )
-      )))))) 13 14)
-    )
-    vi:tuple(vi:enum:variant[vi:enum#1](vi:enum:match[vi:enum#2, :root::debug::Stack::advance#4, :root::debug::Stack::advance#5](vi:interface(19 vi:enum:match[
-      vi:enum#2,
-      :root::debug::error#9[:root::ops::Cast::identity],
-      :root::debug::error#10[:root::ops::Cast::identity],
-    ](vi:interface(vi:ref(vi:tuple(18 1) 2)))))) 19)
-  )
-}
-
-:root::debug::Frame::to_string::cast {
-  ^ = vi:fn(
-    vi:tuple(
-      vi:dup(0 vi:ext#2[vi:n32:ne](vi:n32 vi:bool:if[:root::numeric::N32::to_string::cast#2, :root::numeric::N32::to_string::cast#3](vi:interface(0 vi:tuple(1 2 vi:tuple(vi:n32#41 3))))))
-      vi:tuple(4 5 vi:tuple(vi:n32#58 6))
-      vi:dup(7 vi:ext#2[vi:n32:ne](vi:n32 vi:bool:if[:root::numeric::N32::to_string::cast#2, :root::numeric::N32::to_string::cast#3](vi:interface(7 vi:tuple(8 6 vi:tuple(vi:n32#58 2))))))
-      vi:tuple(vi:dup(9 vi:ext#2[vi:n32:ne](vi:n32 vi:bool:if[:root::data::List::head_tail#2, :root::data::List::head_tail#3](vi:interface(9 10 11 vi:enum:match[
-        vi:enum#2,
-        :root::data::List::join#4[:root::ops::Cast::identity],
-        :root::data::List::join#5[:root::ops::Cast::identity],
-      ](vi:interface(
-        vi:tuple(vi:n32#2 vi:tuple(vi:n32#58 vi:tuple(vi:n32#58 12)) 12)
-        vi:tuple(
-          vi:ext#2[vi:n32:add](vi:n32#6 vi:ext#2[vi:n32:add](4 vi:ext#2[vi:n32:add](8 vi:ext#2[vi:n32:add](1 13))))
-          14
-          vi:tuple(vi:n32#32 vi:tuple(vi:n32#40 5))
-        )
-      )))))) 10 11)
-    )
-    vi:tuple(13 vi:tuple(vi:n32#35 14) 3)
-  )
-}
-
-:root::IO::print#1 {
-  ^ = vi:interface(0 vi:tuple(vi:dup(1 vi:ext#2[vi:n32:ne](vi:n32 vi:bool:if[:root::data::List::Iter::advance#2, :root::data::List::Iter::advance#3](vi:interface(1 2 3 vi:enum:match[vi:enum#2, :root::IO::print#4, :root::IO::print#5](vi:interface(0)))))) 2 3))
-}
-
 :root::IO::print#4 {
   ^0 = vi:interface(vi:ref(0 0))
   ^1 = vi:tuple
@@ -632,82 +518,6 @@ vi:synthetic[vi:synthetic:debug_state] {
 :root::IO::print#5 {
   ^0 = vi:interface(vi:ref(vi:ext#2[root:io:print_char](0 1) 2))
   ^1 = vi:tuple(0 vi:tuple(vi:dup(3 vi:ext#2[vi:n32:ne](vi:n32 vi:bool:if[:root::data::List::Iter::advance#2, :root::data::List::Iter::advance#3](vi:interface(3 4 5 vi:enum:match[vi:enum#2, :root::IO::print#4, :root::IO::print#5](vi:interface(vi:ref(1 2))))))) 4 5))
-}
-
-:root::IO::print_char {
-  ^ = vi:fn(vi:ref(vi:ext#2[root:io:print_char](0 1) 1) 0 vi:tuple)
-}
-
-:root::debug::Lazy::get {
-  ^ = vi:fn(vi:enum:variant[vi:enum#1](0) 0)
-}
-
-:root::debug::Stack::advance#4 {
-  ^0 = vi:interface(vi:eraser vi:enum:variant[vi:enum#2](vi:tuple))
-  ^1 = vi:tuple
-}
-
-:root::debug::Stack::advance#5 {
-  ^0 = vi:interface(0 vi:enum:variant#1[vi:enum#2](vi:tuple(1 0)))
-  ^1 = 1
-}
-
-:root::data::List::join[:root::ops::Cast::identity] {
-  ^ = vi:fn(vi:tuple(vi:dup(0 vi:ext#2[vi:n32:ne](vi:n32 vi:bool:if[:root::data::List::head_tail#2, :root::data::List::head_tail#3](vi:interface(0 1 2 vi:enum:match[
-    vi:enum#2,
-    :root::data::List::join#4[:root::ops::Cast::identity],
-    :root::data::List::join#5[:root::ops::Cast::identity],
-  ](vi:interface(3 4)))))) 1 2) 3 4)
-}
-
-:root::numeric::N32::to_string::cast {
-  ^ = vi:fn(vi:dup(0 vi:ext#2[vi:n32:ne](vi:n32 vi:bool:if[:root::numeric::N32::to_string::cast#2, :root::numeric::N32::to_string::cast#3](vi:interface(0 1)))) 1)
-}
-
-:root::data::List::head_tail {
-  ^ = vi:fn(vi:tuple(vi:dup(0 vi:ext#2[vi:n32:ne](vi:n32 vi:bool:if[:root::data::List::head_tail#2, :root::data::List::head_tail#3](vi:interface(0 1 2 3)))) 1 2) 3)
-}
-
-:root::data::List::join#4[:root::ops::Cast::identity] {
-  ^0 = vi:interface(vi:eraser vi:tuple(vi:n32 0 0))
-  ^1 = vi:tuple
-}
-
-:root::data::List::join#5[:root::ops::Cast::identity] {
-  ^0 = vi:interface(0 1)
-  ^1 = vi:tuple(2 vi:tuple(vi:dup(3 vi:ext#2[vi:n32:ne](vi:n32 vi:bool:if[:root::data::List::Iter::advance#2, :root::data::List::Iter::advance#3](vi:interface(3 4 5 vi:enum:match[
-    vi:enum#2,
-    :root::data::List::join#9[:root::ops::Cast::identity],
-    :root::data::List::join#10[:root::ops::Cast::identity],
-  ](vi:interface(0 vi:ref(2 1))))))) 4 5))
-}
-
-:root::data::List::join#6[:root::ops::Cast::identity] {
-  ^ = vi:interface(0 1 vi:tuple(vi:dup(2 vi:ext#2[vi:n32:ne](vi:n32 vi:bool:if[:root::data::List::Iter::advance#2, :root::data::List::Iter::advance#3](vi:interface(2 3 4 vi:enum:match[
-    vi:enum#2,
-    :root::data::List::join#9[:root::ops::Cast::identity],
-    :root::data::List::join#10[:root::ops::Cast::identity],
-  ](vi:interface(0 1)))))) 3 4))
-}
-
-:root::data::List::join#9[:root::ops::Cast::identity] {
-  ^0 = vi:interface(vi:eraser vi:ref(0 0))
-  ^1 = vi:tuple
-}
-
-:root::data::List::join#10[:root::ops::Cast::identity] {
-  ^0 = vi:interface(
-    vi:dup(0 vi:tuple(1 2 3))
-    vi:ref(vi:tuple(vi:ext#2[vi:n32:add](4 5) 6 2) 7)
-  )
-  ^1 = vi:tuple(
-    vi:tuple(vi:ext#2[vi:n32:add](1 4) 3 8)
-    vi:tuple(vi:dup(9 vi:ext#2[vi:n32:ne](vi:n32 vi:bool:if[:root::data::List::Iter::advance#2, :root::data::List::Iter::advance#3](vi:interface(9 10 11 vi:enum:match[
-      vi:enum#2,
-      :root::data::List::join#9[:root::ops::Cast::identity],
-      :root::data::List::join#10[:root::ops::Cast::identity],
-    ](vi:interface(0 vi:ref(vi:tuple(5 6 8) 7))))))) 10 11)
-  )
 }
 
 :root::data::List::head_tail#2 {
@@ -731,10 +541,6 @@ vi:synthetic[vi:synthetic:debug_state] {
   ^ = vi:interface(vi:eraser vi:tuple(vi:n32#1 vi:tuple(vi:n32#48 0) 0))
 }
 
-:root::numeric::N32::to_string::cast#4 {
-  ^ = vi:interface(vi:dup(0 vi:ext#2[vi:n32:ne](vi:n32 vi:bool:if[:root::numeric::N32::to_string::cast#5, :root::numeric::N32::to_string::cast#6](vi:interface(0 1)))) 1)
-}
-
 :root::numeric::N32::to_string::cast#5 {
   ^ = vi:interface(
     vi:dup(
@@ -749,270 +555,27 @@ vi:synthetic[vi:synthetic:debug_state] {
   ^ = vi:interface(vi:eraser vi:ref(0 0))
 }
 
-:root::numeric::N32::rem {
-  ^ = vi:fn(vi:ext#2[vi:n32:rem](0 1) 0 1)
+:root::data::List::new#4[:root::util::duplicate, :root::util::erase] {
+  ^0 = vi:interface(vi:eraser vi:ref(0 0))
+  ^1 = vi:tuple
 }
 
-:root::numeric::N32::div {
-  ^ = vi:fn(vi:ext#2[vi:n32:div](0 1) 0 1)
-}
-
-:root::numeric::N32::rem#2 {
-  ^ = vi:interface(0 vi:dup(1 vi:ext#2[vi:n32:eq](vi:n32 vi:bool:if[:root::numeric::N32::rem#4, :root::numeric::N32::rem#5](vi:interface(0 1 2)))) 2)
-}
-
-:root::numeric::N32::rem#3 {
-  ^ = vi:interface(vi:ext#2[vi:n32:rem](0 1) 0 1)
-}
-
-:root::numeric::N32::rem#4 {
-  ^ = vi:interface(vi:eraser vi:eraser vi:error)
-}
-
-:root::numeric::N32::rem#5 {
-  ^ = vi:interface(vi:ext#2[vi:n32:rem](0 1) 0 1)
-}
-
-:root::numeric::N32::rem#6 {
-  ^ = vi:interface(vi:ext#2[vi:n32:rem](0 1) 0 1)
-}
-
-:root::numeric::N32::div#2 {
-  ^ = vi:interface(0 vi:dup(1 vi:ext#2[vi:n32:eq](vi:n32 vi:bool:if[:root::numeric::N32::div#4, :root::numeric::N32::div#5](vi:interface(0 1 2)))) 2)
-}
-
-:root::numeric::N32::div#3 {
-  ^ = vi:interface(vi:ext#2[vi:n32:div](0 1) 0 1)
-}
-
-:root::numeric::N32::div#4 {
-  ^ = vi:interface(vi:eraser vi:eraser vi:error)
-}
-
-:root::numeric::N32::div#5 {
-  ^ = vi:interface(vi:ext#2[vi:n32:div](0 1) 0 1)
-}
-
-:root::numeric::N32::div#6 {
-  ^ = vi:interface(vi:ext#2[vi:n32:div](0 1) 0 1)
-}
-
-:root::data::List::Stream::push {
-  ^ = vi:fn(vi:ref(0 vi:tuple(1 0)) 1 vi:tuple)
-}
-
-:root::data::List::iter_ref::iter {
-  ^ = vi:fn(
-    vi:ref(
-      vi:tuple(vi:dup(0 1) 2 3)
-      vi:tuple(0 4 3)
-    )
-    vi:tuple(1 vi:ref(2 4))
+:root::data::List::new#5[:root::util::duplicate, :root::util::erase] {
+  ^0 = vi:interface(
+    vi:dup(0 1)
+    vi:ref(vi:tuple(1 2) 3)
   )
-}
-
-:root::data::List::IterRef::advance {
-  ^ = vi:fn(vi:tuple(vi:dup(0 vi:ext#2[vi:n32:ne](vi:n32 vi:bool:if[:root::data::List::IterRef::advance#2, :root::data::List::IterRef::advance#3](vi:interface(0 1 2)))) 1) 2)
-}
-
-:root::ops::flex::Drop::struct_::drop[
-  vi:synthetic:Struct[:root::data::List::IterRef],
-  :root::ops::flex::Drop::composite[
-    :root::derive::Composite::tuple[vi:synthetic:Tuple#2],
-    :root::util::erase,
-    :root::ops::flex::Drop::composite[:root::derive::Composite::tuple[vi:synthetic:Tuple#1], :root::ops::flex::Drop::ref, :root::util::erase],
-  ],
-] {
-  ^ = vi:fn(vi:tuple(vi:eraser vi:ref(0 0)) vi:tuple)
-}
-
-:root::data::List::push_back {
-  ^ = vi:fn(vi:ref(
-    vi:tuple(
-      vi:ext#2[vi:n32:add](vi:n32#1 0)
-      1
-      vi:tuple(2 3)
-    )
-    vi:tuple(0 1 3)
-  ) 2 vi:tuple)
-}
-
-:root::derive::Struct::cast_deconstruct::cast[vi:synthetic:Struct[:root::data::List::IterRef]] {
-  ^ = vi:fn(0 0)
-}
-
-vi:synthetic[vi:synthetic:identity] {
-  ^ = vi:fn(0 0)
-}
-
-:root::ops::Cast::ref::cast[
-  :root::derive::Composite::cast_deconstruct[:root::derive::Composite::tuple[vi:synthetic:Tuple#2]],
-  :root::derive::Composite::cast_reconstruct[:root::derive::Composite::tuple[vi:synthetic:Tuple#2]],
-] {
-  ^ = vi:fn(
-    vi:ref(
-      vi:tuple(0 1)
-      vi:tuple(2 3)
-    )
-    vi:ref(
-      vi:tuple(0 vi:tuple(1))
-      vi:tuple(2 vi:tuple(3))
-    )
-  )
-}
-
-:root::derive::Composite::cast_reconstruct::cast[:root::derive::Composite::tuple[vi:synthetic:Tuple#2]] {
-  ^ = vi:fn(
-    vi:tuple(0 vi:tuple(1))
-    vi:tuple(0 1)
-  )
-}
-
-:root::derive::Composite::cast_deconstruct::cast[:root::derive::Composite::tuple[vi:synthetic:Tuple#2]] {
-  ^ = vi:fn(
-    vi:tuple(0 1)
-    vi:tuple(0 vi:tuple(1))
-  )
-}
-
-:root::derive::Composite::tuple::deconstruct[vi:synthetic:Tuple#2] {
-  ^ = vi:fn(
-    vi:tuple(0 1)
-    vi:tuple(0 vi:tuple(1))
-  )
-}
-
-vi:synthetic[vi:synthetic:composite_deconstruct#2] {
-  ^ = vi:fn(
-    vi:tuple(0 1)
-    vi:tuple(0 vi:tuple(1))
-  )
-}
-
-:root::derive::Composite::tuple::reconstruct[vi:synthetic:Tuple#2] {
-  ^ = vi:fn(
-    0
-    vi:tuple(1)
-    vi:tuple(0 1)
-  )
-}
-
-vi:synthetic[vi:synthetic:composite_reconstruct#2] {
-  ^ = vi:fn(
-    0
-    vi:tuple(1)
-    vi:tuple(0 1)
-  )
-}
-
-:root::ops::Cast::ref::cast[
-  :root::derive::Composite::cast_deconstruct[:root::derive::Composite::tuple[vi:synthetic:Tuple#1]],
-  :root::derive::Composite::cast_reconstruct[:root::derive::Composite::tuple[vi:synthetic:Tuple#1]],
-] {
-  ^ = vi:fn(
-    vi:ref(
-      vi:tuple(0)
-      vi:tuple(1)
-    )
-    vi:ref(
-      vi:tuple(0 vi:tuple)
-      vi:tuple(1 vi:tuple)
-    )
-  )
-}
-
-:root::derive::Composite::cast_reconstruct::cast[:root::derive::Composite::tuple[vi:synthetic:Tuple#1]] {
-  ^ = vi:fn(
-    vi:tuple(0 vi:tuple)
-    vi:tuple(0)
-  )
-}
-
-:root::derive::Composite::cast_deconstruct::cast[:root::derive::Composite::tuple[vi:synthetic:Tuple#1]] {
-  ^ = vi:fn(
-    vi:tuple(0)
-    vi:tuple(0 vi:tuple)
-  )
-}
-
-:root::derive::Composite::tuple::deconstruct[vi:synthetic:Tuple#1] {
-  ^ = vi:fn(
-    vi:tuple(0)
-    vi:tuple(0 vi:tuple)
-  )
-}
-
-vi:synthetic[vi:synthetic:composite_deconstruct#1] {
-  ^ = vi:fn(
-    vi:tuple(0)
-    vi:tuple(0 vi:tuple)
-  )
-}
-
-:root::derive::Composite::tuple::reconstruct[vi:synthetic:Tuple#1] {
-  ^ = vi:fn(0 vi:tuple vi:tuple(0))
-}
-
-vi:synthetic[vi:synthetic:composite_reconstruct#1] {
-  ^ = vi:fn(0 vi:tuple vi:tuple(0))
-}
-
-:root::ops::flex::Drop::composite::drop[
-  :root::derive::Composite::tuple[vi:synthetic:Tuple#2],
-  :root::util::erase,
-  :root::ops::flex::Drop::composite[:root::derive::Composite::tuple[vi:synthetic:Tuple#1], :root::ops::flex::Drop::ref, :root::util::erase],
-] {
-  ^ = vi:fn(vi:tuple(vi:eraser vi:ref(0 0)) vi:tuple)
-}
-
-:root::ops::flex::Drop::composite::drop[:root::derive::Composite::tuple[vi:synthetic:Tuple#1], :root::ops::flex::Drop::ref, :root::util::erase] {
-  ^ = vi:fn(vi:tuple(vi:ref(0 0)) vi:tuple)
-}
-
-:root::data::List::IterRef::advance#2 {
-  ^ = vi:interface(
-    vi:ext#2[vi:n32:sub](vi:n32#1 0)
-    vi:ref(
-      vi:tuple(1 2)
-      vi:tuple(3 4)
-    )
-    vi:enum:variant#1[vi:enum#2](vi:tuple(
-      vi:ref(1 3)
-      vi:tuple(0 vi:ref(2 4))
-    ))
-  )
-}
-
-:root::data::List::IterRef::advance#3 {
-  ^ = vi:interface(
-    vi:eraser
-    vi:ref(0 0)
-    vi:enum:variant[vi:enum#2](vi:tuple)
-  )
-}
-
-:root::data::List::Stream::head {
-  ^ = vi:fn(
-    vi:ref(
-      vi:tuple(0 1)
-      vi:tuple(2 1)
-    )
-    vi:ref(0 2)
-  )
-}
-
-:root::data::List::Stream::tail {
-  ^ = vi:fn(
-    vi:ref(
-      vi:tuple(0 1)
-      vi:tuple(0 2)
-    )
-    vi:ref(1 2)
-  )
-}
-
-:root::data::List::Stream::back::push {
-  ^ = vi:fn(vi:ref(vi:tuple(0 1) 1) 0 vi:tuple)
+  ^1 = vi:tuple(vi:eraser vi:tuple(
+    vi:dup(4 vi:ext#2[vi:n32:lt](5 vi:bool:if[
+      :root::ops::Range::exclusive_iter::advance#2[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32],
+      :root::ops::Range::exclusive_iter::advance#3[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32],
+    ](vi:interface(4 6 vi:enum:match[
+      vi:enum#2,
+      :root::data::List::new#4[:root::util::duplicate, :root::util::erase],
+      :root::data::List::new#5[:root::util::duplicate, :root::util::erase],
+    ](vi:interface(0 vi:ref(2 3)))))))
+    vi:dup(6 5)
+  ))
 }
 
 :root::ops::comparison::Lt::gt[:root::ops::comparison::Lt::from_ord[:root::numeric::N32]] {
@@ -1027,16 +590,6 @@ vi:synthetic[vi:synthetic:composite_reconstruct#1] {
   ^ = vi:fn(vi:enum:match[vi:enum#2, :root::logical::Option::assume#4, :root::logical::Option::assume#5](vi:interface(0)) 0)
 }
 
-:root::data::Iterator::Iterate::iter_ref[:root::data::List::iter_ref] {
-  ^ = vi:fn(
-    vi:ref(
-      vi:tuple(vi:dup(0 1) 2 3)
-      vi:tuple(0 4 3)
-    )
-    vi:tuple(1 vi:ref(2 4))
-  )
-}
-
 :root::logical::Option::assume#4 {
   ^0 = vi:interface(vi:error)
   ^1 = vi:tuple
@@ -1047,1834 +600,1043 @@ vi:synthetic[vi:synthetic:composite_reconstruct#1] {
   ^1 = 0
 }
 
-:root::unicode::Char::ne {
-  ^ = vi:fn(
-    vi:ref(vi:dup(0 vi:ext#2[vi:n32:ne](1 2)) 0)
-    vi:ref(vi:dup(3 1) 3)
-    2
-  )
+:root::debug::Show::_format#46 {
+  ^0 = vi:interface(vi:eraser vi:eraser vi:tuple(0 vi:tuple(1 2 3)))
+  ^1 = vi:tuple(vi:dup(1 0) 2 3)
 }
 
-:root::unicode::String::len {
-  ^ = vi:fn(vi:ref(
-    vi:tuple(vi:dup(0 1) 2 3)
-    vi:tuple(0 2 3)
-  ) 1)
+:root::debug::Show::_format#47 {
+  ^0 = vi:interface(0 1 2)
+  ^1 = vi:tuple(3 vi:enum:match[vi:enum#5, :root::debug::Show::_format#16, :root::debug::Show::_format#17, :root::debug::Show::_format#18, :root::debug::Show::_format#19, :root::debug::Show::_format#20](vi:interface(
+    vi:bool:if[:root::debug::Show::_format#25, :root::debug::Show::_format#26](vi:interface(3 4 5 2))
+    vi:enum:match[vi:enum#5, :root::debug::Show::_format#46, :root::debug::Show::_format#47, :root::debug::Show::_format#48, :root::debug::Show::_format#49, :root::debug::Show::_format#50](vi:interface(0 1 vi:tuple(4 5)))
+  )))
 }
 
-:root::util::swap {
-  ^ = vi:fn(
-    vi:ref(0 1)
-    vi:ref(1 0)
-    vi:tuple
-  )
+:root::debug::Show::_format#48 {
+  ^0 = vi:interface(0 1 2)
+  ^1 = vi:tuple(vi:dup(3 vi:dup(vi:eraser vi:ext#2[vi:n32:eq](vi:n32 vi:bool:if[:root::debug::Show::_format#30, :root::debug::Show::_format#31](vi:interface(0 1 vi:tuple(3 4 5) 2))))) 4 5)
 }
 
-:root::data::Array::from_list::cast#1 {
-  ^ = vi:fn(vi:interface(vi:ref(vi:tuple(0 1) 1)) vi:tuple 0)
+:root::debug::Show::_format#49 {
+  ^0 = vi:interface(0 1 2)
+  ^1 = vi:tuple(vi:dup(3 vi:dup(vi:eraser vi:ext#2[vi:n32:eq](vi:n32 vi:bool:if[:root::debug::Show::_format#41, :root::debug::Show::_format#42](vi:interface(0 1 vi:tuple(3 4 5) 2))))) 4 5)
 }
 
-:root::data::Array::from_list::cast#2 {
-  ^ = vi:fn(
-    vi:ref(
-      vi:interface(vi:ref(0 1))
-      vi:interface(vi:ref(2 1))
-    )
-    vi:interface(vi:ref(0 2))
-  )
+:root::debug::Show::_format#50 {
+  ^0 = vi:interface(0 1 2)
+  ^1 = vi:tuple(vi:dup(3 vi:dup(vi:eraser vi:ext#2[vi:n32:eq](vi:n32 vi:bool:if[:root::debug::Show::_format#37, :root::debug::Show::_format#38](vi:interface(0 1 vi:tuple(3 4 5) 2))))) 4 5)
 }
 
-:root::data::Array::from_list::cast#3 {
-  ^ = vi:fn(vi:interface(vi:ref(0 0)) vi:tuple)
+:root::debug::Show::_format#16 {
+  ^0 = vi:interface(vi:bool vi:enum:variant[vi:enum#5](0))
+  ^1 = 0
 }
 
-:root::data::Array::from_fn#5[
-  vi:closure:fork[:root::data::Array::from_list::cast],
-  vi:closure:drop[:root::data::Array::from_list::cast],
-  vi:closure[:root::data::Array::from_list::cast],
-] {
-  ^ = vi:interface(
-    vi:eraser
-    vi:interface(vi:ref(0 0))
-    vi:tuple(vi:n32 vi:tuple)
-  )
+:root::debug::Show::_format#17 {
+  ^0 = vi:interface(vi:bool vi:enum:variant#1[vi:enum#5](0))
+  ^1 = 0
 }
 
-:root::data::Array::from_fn#6[
-  vi:closure:fork[:root::data::Array::from_list::cast],
-  vi:closure:drop[:root::data::Array::from_list::cast],
-  vi:closure[:root::data::Array::from_list::cast],
-] {
-  ^ = vi:interface(
-    vi:dup(0 vi:dup(1 vi:ext#2[vi:n32:eq](vi:n32 vi:bool:if[
-      :root::data::Array::fold_front#2[
-        vi:closure:fork[:root::data::Array::for_each[
-          vi:closure:fork[:root::data::Array::from_fn[
-            vi:closure:fork[:root::data::Array::from_list::cast],
-            vi:closure:drop[:root::data::Array::from_list::cast],
-            vi:closure[:root::data::Array::from_list::cast],
-          ]],
-          vi:closure:drop[:root::data::Array::from_fn[
-            vi:closure:fork[:root::data::Array::from_list::cast],
-            vi:closure:drop[:root::data::Array::from_list::cast],
-            vi:closure[:root::data::Array::from_list::cast],
-          ]],
-          vi:closure[:root::data::Array::from_fn[
-            vi:closure:fork[:root::data::Array::from_list::cast],
-            vi:closure:drop[:root::data::Array::from_list::cast],
-            vi:closure[:root::data::Array::from_list::cast],
-          ]],
-        ]],
-        vi:closure:drop[:root::data::Array::for_each[
-          vi:closure:fork[:root::data::Array::from_fn[
-            vi:closure:fork[:root::data::Array::from_list::cast],
-            vi:closure:drop[:root::data::Array::from_list::cast],
-            vi:closure[:root::data::Array::from_list::cast],
-          ]],
-          vi:closure:drop[:root::data::Array::from_fn[
-            vi:closure:fork[:root::data::Array::from_list::cast],
-            vi:closure:drop[:root::data::Array::from_list::cast],
-            vi:closure[:root::data::Array::from_list::cast],
-          ]],
-          vi:closure[:root::data::Array::from_fn[
-            vi:closure:fork[:root::data::Array::from_list::cast],
-            vi:closure:drop[:root::data::Array::from_list::cast],
-            vi:closure[:root::data::Array::from_list::cast],
-          ]],
-        ]],
-        vi:closure[:root::data::Array::for_each[
-          vi:closure:fork[:root::data::Array::from_fn[
-            vi:closure:fork[:root::data::Array::from_list::cast],
-            vi:closure:drop[:root::data::Array::from_list::cast],
-            vi:closure[:root::data::Array::from_list::cast],
-          ]],
-          vi:closure:drop[:root::data::Array::from_fn[
-            vi:closure:fork[:root::data::Array::from_list::cast],
-            vi:closure:drop[:root::data::Array::from_list::cast],
-            vi:closure[:root::data::Array::from_list::cast],
-          ]],
-          vi:closure[:root::data::Array::from_fn[
-            vi:closure:fork[:root::data::Array::from_list::cast],
-            vi:closure:drop[:root::data::Array::from_list::cast],
-            vi:closure[:root::data::Array::from_list::cast],
-          ]],
-        ]],
-      ],
-      :root::data::Array::fold_front#3[
-        vi:closure:fork[:root::data::Array::for_each[
-          vi:closure:fork[:root::data::Array::from_fn[
-            vi:closure:fork[:root::data::Array::from_list::cast],
-            vi:closure:drop[:root::data::Array::from_list::cast],
-            vi:closure[:root::data::Array::from_list::cast],
-          ]],
-          vi:closure:drop[:root::data::Array::from_fn[
-            vi:closure:fork[:root::data::Array::from_list::cast],
-            vi:closure:drop[:root::data::Array::from_list::cast],
-            vi:closure[:root::data::Array::from_list::cast],
-          ]],
-          vi:closure[:root::data::Array::from_fn[
-            vi:closure:fork[:root::data::Array::from_list::cast],
-            vi:closure:drop[:root::data::Array::from_list::cast],
-            vi:closure[:root::data::Array::from_list::cast],
-          ]],
-        ]],
-        vi:closure:drop[:root::data::Array::for_each[
-          vi:closure:fork[:root::data::Array::from_fn[
-            vi:closure:fork[:root::data::Array::from_list::cast],
-            vi:closure:drop[:root::data::Array::from_list::cast],
-            vi:closure[:root::data::Array::from_list::cast],
-          ]],
-          vi:closure:drop[:root::data::Array::from_fn[
-            vi:closure:fork[:root::data::Array::from_list::cast],
-            vi:closure:drop[:root::data::Array::from_list::cast],
-            vi:closure[:root::data::Array::from_list::cast],
-          ]],
-          vi:closure[:root::data::Array::from_fn[
-            vi:closure:fork[:root::data::Array::from_list::cast],
-            vi:closure:drop[:root::data::Array::from_list::cast],
-            vi:closure[:root::data::Array::from_list::cast],
-          ]],
-        ]],
-        vi:closure[:root::data::Array::for_each[
-          vi:closure:fork[:root::data::Array::from_fn[
-            vi:closure:fork[:root::data::Array::from_list::cast],
-            vi:closure:drop[:root::data::Array::from_list::cast],
-            vi:closure[:root::data::Array::from_list::cast],
-          ]],
-          vi:closure:drop[:root::data::Array::from_fn[
-            vi:closure:fork[:root::data::Array::from_list::cast],
-            vi:closure:drop[:root::data::Array::from_list::cast],
-            vi:closure[:root::data::Array::from_list::cast],
-          ]],
-          vi:closure[:root::data::Array::from_fn[
-            vi:closure:fork[:root::data::Array::from_list::cast],
-            vi:closure:drop[:root::data::Array::from_list::cast],
-            vi:closure[:root::data::Array::from_list::cast],
-          ]],
-        ]],
-      ],
-    ](vi:interface(
-      1
-      2
-      vi:interface(3)
-      vi:interface
-      vi:interface(vi:interface(vi:ref(4 4)))
-    )))))
-    3
-    vi:tuple(0 2)
-  )
+:root::debug::Show::_format#18 {
+  ^0 = vi:interface(0 vi:enum:variant#2[vi:enum#5](vi:tuple(1 2 3)))
+  ^1 = vi:tuple(vi:dup(1 vi:dup(vi:eraser vi:ext#2[vi:n32:ne](vi:n32#1 vi:bool:if[:root::debug::Show::_format#21, :root::debug::Show::_format#22](vi:interface(0))))) 2 3)
 }
 
-:root::data::Array::from_fn#1[
-  vi:closure:fork[:root::data::Array::from_list::cast],
-  vi:closure:drop[:root::data::Array::from_list::cast],
-  vi:closure[:root::data::Array::from_list::cast],
-] {
-  ^ = vi:fn(
-    vi:interface(vi:interface(vi:ref(vi:tuple(0 1) 1)))
-    vi:tuple(0)
-    vi:tuple
-  )
-}
-
-:root::data::Array::from_fn#2[
-  vi:closure:fork[:root::data::Array::from_list::cast],
-  vi:closure:drop[:root::data::Array::from_list::cast],
-  vi:closure[:root::data::Array::from_list::cast],
-] {
-  ^ = vi:fn(
-    vi:ref(
-      vi:interface(vi:interface(vi:ref(0 1)))
-      vi:interface(vi:interface(vi:ref(2 1)))
-    )
-    vi:interface(vi:interface(vi:ref(0 2)))
-  )
-}
-
-:root::data::Array::from_fn#3[
-  vi:closure:fork[:root::data::Array::from_list::cast],
-  vi:closure:drop[:root::data::Array::from_list::cast],
-  vi:closure[:root::data::Array::from_list::cast],
-] {
-  ^ = vi:fn(vi:interface(vi:interface(vi:ref(0 0))) vi:tuple)
-}
-
-:root::debug::with_state {
-  ^ = vi:fn(0 0)
-}
-
-:root::data::Array::fold_front[
-  vi:closure:fork[:root::data::Array::for_each[
-    vi:closure:fork[:root::data::Array::from_fn[
-      vi:closure:fork[:root::data::Array::from_list::cast],
-      vi:closure:drop[:root::data::Array::from_list::cast],
-      vi:closure[:root::data::Array::from_list::cast],
-    ]],
-    vi:closure:drop[:root::data::Array::from_fn[
-      vi:closure:fork[:root::data::Array::from_list::cast],
-      vi:closure:drop[:root::data::Array::from_list::cast],
-      vi:closure[:root::data::Array::from_list::cast],
-    ]],
-    vi:closure[:root::data::Array::from_fn[
-      vi:closure:fork[:root::data::Array::from_list::cast],
-      vi:closure:drop[:root::data::Array::from_list::cast],
-      vi:closure[:root::data::Array::from_list::cast],
-    ]],
-  ]],
-  vi:closure:drop[:root::data::Array::for_each[
-    vi:closure:fork[:root::data::Array::from_fn[
-      vi:closure:fork[:root::data::Array::from_list::cast],
-      vi:closure:drop[:root::data::Array::from_list::cast],
-      vi:closure[:root::data::Array::from_list::cast],
-    ]],
-    vi:closure:drop[:root::data::Array::from_fn[
-      vi:closure:fork[:root::data::Array::from_list::cast],
-      vi:closure:drop[:root::data::Array::from_list::cast],
-      vi:closure[:root::data::Array::from_list::cast],
-    ]],
-    vi:closure[:root::data::Array::from_fn[
-      vi:closure:fork[:root::data::Array::from_list::cast],
-      vi:closure:drop[:root::data::Array::from_list::cast],
-      vi:closure[:root::data::Array::from_list::cast],
-    ]],
-  ]],
-  vi:closure[:root::data::Array::for_each[
-    vi:closure:fork[:root::data::Array::from_fn[
-      vi:closure:fork[:root::data::Array::from_list::cast],
-      vi:closure:drop[:root::data::Array::from_list::cast],
-      vi:closure[:root::data::Array::from_list::cast],
-    ]],
-    vi:closure:drop[:root::data::Array::from_fn[
-      vi:closure:fork[:root::data::Array::from_list::cast],
-      vi:closure:drop[:root::data::Array::from_list::cast],
-      vi:closure[:root::data::Array::from_list::cast],
-    ]],
-    vi:closure[:root::data::Array::from_fn[
-      vi:closure:fork[:root::data::Array::from_list::cast],
-      vi:closure:drop[:root::data::Array::from_list::cast],
-      vi:closure[:root::data::Array::from_list::cast],
-    ]],
-  ]],
-] {
-  ^ = vi:fn(vi:tuple(vi:dup(0 vi:ext#2[vi:n32:eq](vi:n32 vi:bool:if[
-    :root::data::Array::fold_front#2[
-      vi:closure:fork[:root::data::Array::for_each[
-        vi:closure:fork[:root::data::Array::from_fn[
-          vi:closure:fork[:root::data::Array::from_list::cast],
-          vi:closure:drop[:root::data::Array::from_list::cast],
-          vi:closure[:root::data::Array::from_list::cast],
-        ]],
-        vi:closure:drop[:root::data::Array::from_fn[
-          vi:closure:fork[:root::data::Array::from_list::cast],
-          vi:closure:drop[:root::data::Array::from_list::cast],
-          vi:closure[:root::data::Array::from_list::cast],
-        ]],
-        vi:closure[:root::data::Array::from_fn[
-          vi:closure:fork[:root::data::Array::from_list::cast],
-          vi:closure:drop[:root::data::Array::from_list::cast],
-          vi:closure[:root::data::Array::from_list::cast],
-        ]],
-      ]],
-      vi:closure:drop[:root::data::Array::for_each[
-        vi:closure:fork[:root::data::Array::from_fn[
-          vi:closure:fork[:root::data::Array::from_list::cast],
-          vi:closure:drop[:root::data::Array::from_list::cast],
-          vi:closure[:root::data::Array::from_list::cast],
-        ]],
-        vi:closure:drop[:root::data::Array::from_fn[
-          vi:closure:fork[:root::data::Array::from_list::cast],
-          vi:closure:drop[:root::data::Array::from_list::cast],
-          vi:closure[:root::data::Array::from_list::cast],
-        ]],
-        vi:closure[:root::data::Array::from_fn[
-          vi:closure:fork[:root::data::Array::from_list::cast],
-          vi:closure:drop[:root::data::Array::from_list::cast],
-          vi:closure[:root::data::Array::from_list::cast],
-        ]],
-      ]],
-      vi:closure[:root::data::Array::for_each[
-        vi:closure:fork[:root::data::Array::from_fn[
-          vi:closure:fork[:root::data::Array::from_list::cast],
-          vi:closure:drop[:root::data::Array::from_list::cast],
-          vi:closure[:root::data::Array::from_list::cast],
-        ]],
-        vi:closure:drop[:root::data::Array::from_fn[
-          vi:closure:fork[:root::data::Array::from_list::cast],
-          vi:closure:drop[:root::data::Array::from_list::cast],
-          vi:closure[:root::data::Array::from_list::cast],
-        ]],
-        vi:closure[:root::data::Array::from_fn[
-          vi:closure:fork[:root::data::Array::from_list::cast],
-          vi:closure:drop[:root::data::Array::from_list::cast],
-          vi:closure[:root::data::Array::from_list::cast],
-        ]],
-      ]],
-    ],
-    :root::data::Array::fold_front#3[
-      vi:closure:fork[:root::data::Array::for_each[
-        vi:closure:fork[:root::data::Array::from_fn[
-          vi:closure:fork[:root::data::Array::from_list::cast],
-          vi:closure:drop[:root::data::Array::from_list::cast],
-          vi:closure[:root::data::Array::from_list::cast],
-        ]],
-        vi:closure:drop[:root::data::Array::from_fn[
-          vi:closure:fork[:root::data::Array::from_list::cast],
-          vi:closure:drop[:root::data::Array::from_list::cast],
-          vi:closure[:root::data::Array::from_list::cast],
-        ]],
-        vi:closure[:root::data::Array::from_fn[
-          vi:closure:fork[:root::data::Array::from_list::cast],
-          vi:closure:drop[:root::data::Array::from_list::cast],
-          vi:closure[:root::data::Array::from_list::cast],
-        ]],
-      ]],
-      vi:closure:drop[:root::data::Array::for_each[
-        vi:closure:fork[:root::data::Array::from_fn[
-          vi:closure:fork[:root::data::Array::from_list::cast],
-          vi:closure:drop[:root::data::Array::from_list::cast],
-          vi:closure[:root::data::Array::from_list::cast],
-        ]],
-        vi:closure:drop[:root::data::Array::from_fn[
-          vi:closure:fork[:root::data::Array::from_list::cast],
-          vi:closure:drop[:root::data::Array::from_list::cast],
-          vi:closure[:root::data::Array::from_list::cast],
-        ]],
-        vi:closure[:root::data::Array::from_fn[
-          vi:closure:fork[:root::data::Array::from_list::cast],
-          vi:closure:drop[:root::data::Array::from_list::cast],
-          vi:closure[:root::data::Array::from_list::cast],
-        ]],
-      ]],
-      vi:closure[:root::data::Array::for_each[
-        vi:closure:fork[:root::data::Array::from_fn[
-          vi:closure:fork[:root::data::Array::from_list::cast],
-          vi:closure:drop[:root::data::Array::from_list::cast],
-          vi:closure[:root::data::Array::from_list::cast],
-        ]],
-        vi:closure:drop[:root::data::Array::from_fn[
-          vi:closure:fork[:root::data::Array::from_list::cast],
-          vi:closure:drop[:root::data::Array::from_list::cast],
-          vi:closure[:root::data::Array::from_list::cast],
-        ]],
-        vi:closure[:root::data::Array::from_fn[
-          vi:closure:fork[:root::data::Array::from_list::cast],
-          vi:closure:drop[:root::data::Array::from_list::cast],
-          vi:closure[:root::data::Array::from_list::cast],
-        ]],
-      ]],
-    ],
-  ](vi:interface(0 1 2 3 4)))) 1) 2 3 4)
-}
-
-:root::ops::flex::Drop::struct_::drop[
-  vi:synthetic:Struct[:root::debug::WithState],
-  :root::ops::flex::Drop::if_const[
-    vi:synthetic:IfConst[:root::debug::enabled],
-    :root::ops::flex::Drop::composite[
-      :root::derive::Composite::tuple[vi:synthetic:Tuple#2],
-      :root::ops::flex::Drop::ref,
-      :root::ops::flex::Drop::composite[
-        :root::derive::Composite::tuple[vi:synthetic:Tuple#1],
-        vi:closure:drop[:root::data::Array::from_fn[
-          vi:closure:fork[:root::data::Array::from_list::cast],
-          vi:closure:drop[:root::data::Array::from_list::cast],
-          vi:closure[:root::data::Array::from_list::cast],
-        ]],
-        :root::util::erase,
-      ],
-    ],
-    vi:closure:drop[:root::data::Array::from_fn[
-      vi:closure:fork[:root::data::Array::from_list::cast],
-      vi:closure:drop[:root::data::Array::from_list::cast],
-      vi:closure[:root::data::Array::from_list::cast],
-    ]],
-  ],
-] {
-  ^ = vi:fn(vi:interface(vi:interface(vi:ref(0 0))) vi:tuple)
-}
-
-:root::data::Array::for_each#1[
-  vi:closure:fork[:root::data::Array::from_fn[
-    vi:closure:fork[:root::data::Array::from_list::cast],
-    vi:closure:drop[:root::data::Array::from_list::cast],
-    vi:closure[:root::data::Array::from_list::cast],
-  ]],
-  vi:closure:drop[:root::data::Array::from_fn[
-    vi:closure:fork[:root::data::Array::from_list::cast],
-    vi:closure:drop[:root::data::Array::from_list::cast],
-    vi:closure[:root::data::Array::from_list::cast],
-  ]],
-  vi:closure[:root::data::Array::from_fn[
-    vi:closure:fork[:root::data::Array::from_list::cast],
-    vi:closure:drop[:root::data::Array::from_list::cast],
-    vi:closure[:root::data::Array::from_list::cast],
-  ]],
-] {
-  ^ = vi:fn(
-    vi:interface
-    vi:tuple(vi:interface(vi:interface(vi:ref(vi:tuple(0 1) 2))) 0)
-    vi:interface(vi:interface(vi:ref(1 2)))
-  )
-}
-
-:root::debug::WithState::call[vi:closure[:root::data::Array::from_fn[
-  vi:closure:fork[:root::data::Array::from_list::cast],
-  vi:closure:drop[:root::data::Array::from_list::cast],
-  vi:closure[:root::data::Array::from_list::cast],
-]]] {
-  ^ = vi:fn(
-    vi:interface(vi:interface(vi:ref(vi:tuple(0 1) 1)))
-    vi:tuple(0)
-    vi:tuple
-  )
-}
-
-:root::ops::flex::Fork::struct_::fork[
-  vi:synthetic:Struct[:root::debug::WithState],
-  :root::ops::flex::Fork::if_const[
-    vi:synthetic:IfConst[:root::debug::enabled],
-    :root::ops::flex::Fork::composite[
-      :root::derive::Composite::tuple[vi:synthetic:Tuple#2],
-      :root::ops::flex::Fork::ref,
-      :root::ops::flex::Fork::composite[
-        :root::derive::Composite::tuple[vi:synthetic:Tuple#1],
-        vi:closure:fork[:root::data::Array::from_fn[
-          vi:closure:fork[:root::data::Array::from_list::cast],
-          vi:closure:drop[:root::data::Array::from_list::cast],
-          vi:closure[:root::data::Array::from_list::cast],
-        ]],
-        :root::util::duplicate,
-      ],
-    ],
-    vi:closure:fork[:root::data::Array::from_fn[
-      vi:closure:fork[:root::data::Array::from_list::cast],
-      vi:closure:drop[:root::data::Array::from_list::cast],
-      vi:closure[:root::data::Array::from_list::cast],
-    ]],
-  ],
-] {
-  ^ = vi:fn(
-    vi:ref(
-      vi:interface(vi:interface(vi:ref(0 1)))
-      vi:interface(vi:interface(vi:ref(2 1)))
-    )
-    vi:interface(vi:interface(vi:ref(0 2)))
-  )
-}
-
-:root::data::Array::for_each#2[
-  vi:closure:fork[:root::data::Array::from_fn[
-    vi:closure:fork[:root::data::Array::from_list::cast],
-    vi:closure:drop[:root::data::Array::from_list::cast],
-    vi:closure[:root::data::Array::from_list::cast],
-  ]],
-  vi:closure:drop[:root::data::Array::from_fn[
-    vi:closure:fork[:root::data::Array::from_list::cast],
-    vi:closure:drop[:root::data::Array::from_list::cast],
-    vi:closure[:root::data::Array::from_list::cast],
-  ]],
-  vi:closure[:root::data::Array::from_fn[
-    vi:closure:fork[:root::data::Array::from_list::cast],
-    vi:closure:drop[:root::data::Array::from_list::cast],
-    vi:closure[:root::data::Array::from_list::cast],
-  ]],
-] {
-  ^ = vi:interface
-}
-
-:root::data::Array::for_each#3[
-  vi:closure:fork[:root::data::Array::from_fn[
-    vi:closure:fork[:root::data::Array::from_list::cast],
-    vi:closure:drop[:root::data::Array::from_list::cast],
-    vi:closure[:root::data::Array::from_list::cast],
-  ]],
-  vi:closure:drop[:root::data::Array::from_fn[
-    vi:closure:fork[:root::data::Array::from_list::cast],
-    vi:closure:drop[:root::data::Array::from_list::cast],
-    vi:closure[:root::data::Array::from_list::cast],
-  ]],
-  vi:closure[:root::data::Array::from_fn[
-    vi:closure:fork[:root::data::Array::from_list::cast],
-    vi:closure:drop[:root::data::Array::from_list::cast],
-    vi:closure[:root::data::Array::from_list::cast],
-  ]],
-] {
-  ^ = vi:fn(vi:interface vi:tuple)
-}
-
-:root::debug::with_state#2 {
-  ^ = vi:interface(0 vi:tuple(vi:error 0))
-}
-
-:root::debug::with_state#3 {
-  ^ = vi:interface(0 0)
-}
-
-:root::debug::WithState::call#2[vi:closure[:root::data::Array::from_fn[
-  vi:closure:fork[:root::data::Array::from_list::cast],
-  vi:closure:drop[:root::data::Array::from_list::cast],
-  vi:closure[:root::data::Array::from_list::cast],
-]]] {
-  ^ = vi:interface(
-    vi:tuple(0)
-    vi:tuple
-    vi:tuple(
-      vi:ref(1 2)
-      vi:interface(vi:interface(vi:ref(vi:tuple(0 3) 3)))
-    )
-  )
-  vi:ref(4 1) = vi:error
-  vi:ref(2 4) = vi:error
-}
-
-:root::debug::WithState::call#3[vi:closure[:root::data::Array::from_fn[
-  vi:closure:fork[:root::data::Array::from_list::cast],
-  vi:closure:drop[:root::data::Array::from_list::cast],
-  vi:closure[:root::data::Array::from_list::cast],
-]]] {
-  ^ = vi:interface(
-    vi:tuple(0)
-    vi:tuple
-    vi:interface(vi:interface(vi:ref(vi:tuple(0 1) 1)))
-  )
-}
-
-:root::data::Array::fold_front#2[
-  vi:closure:fork[:root::data::Array::for_each[
-    vi:closure:fork[:root::data::Array::from_fn[
-      vi:closure:fork[:root::data::Array::from_list::cast],
-      vi:closure:drop[:root::data::Array::from_list::cast],
-      vi:closure[:root::data::Array::from_list::cast],
-    ]],
-    vi:closure:drop[:root::data::Array::from_fn[
-      vi:closure:fork[:root::data::Array::from_list::cast],
-      vi:closure:drop[:root::data::Array::from_list::cast],
-      vi:closure[:root::data::Array::from_list::cast],
-    ]],
-    vi:closure[:root::data::Array::from_fn[
-      vi:closure:fork[:root::data::Array::from_list::cast],
-      vi:closure:drop[:root::data::Array::from_list::cast],
-      vi:closure[:root::data::Array::from_list::cast],
-    ]],
-  ]],
-  vi:closure:drop[:root::data::Array::for_each[
-    vi:closure:fork[:root::data::Array::from_fn[
-      vi:closure:fork[:root::data::Array::from_list::cast],
-      vi:closure:drop[:root::data::Array::from_list::cast],
-      vi:closure[:root::data::Array::from_list::cast],
-    ]],
-    vi:closure:drop[:root::data::Array::from_fn[
-      vi:closure:fork[:root::data::Array::from_list::cast],
-      vi:closure:drop[:root::data::Array::from_list::cast],
-      vi:closure[:root::data::Array::from_list::cast],
-    ]],
-    vi:closure[:root::data::Array::from_fn[
-      vi:closure:fork[:root::data::Array::from_list::cast],
-      vi:closure:drop[:root::data::Array::from_list::cast],
-      vi:closure[:root::data::Array::from_list::cast],
-    ]],
-  ]],
-  vi:closure[:root::data::Array::for_each[
-    vi:closure:fork[:root::data::Array::from_fn[
-      vi:closure:fork[:root::data::Array::from_list::cast],
-      vi:closure:drop[:root::data::Array::from_list::cast],
-      vi:closure[:root::data::Array::from_list::cast],
-    ]],
-    vi:closure:drop[:root::data::Array::from_fn[
-      vi:closure:fork[:root::data::Array::from_list::cast],
-      vi:closure:drop[:root::data::Array::from_list::cast],
-      vi:closure[:root::data::Array::from_list::cast],
-    ]],
-    vi:closure[:root::data::Array::from_fn[
-      vi:closure:fork[:root::data::Array::from_list::cast],
-      vi:closure:drop[:root::data::Array::from_list::cast],
-      vi:closure[:root::data::Array::from_list::cast],
-    ]],
-  ]],
-] {
-  ^ = vi:interface(vi:eraser vi:eraser 0 vi:interface 0)
-}
-
-:root::data::Array::fold_front#3[
-  vi:closure:fork[:root::data::Array::for_each[
-    vi:closure:fork[:root::data::Array::from_fn[
-      vi:closure:fork[:root::data::Array::from_list::cast],
-      vi:closure:drop[:root::data::Array::from_list::cast],
-      vi:closure[:root::data::Array::from_list::cast],
-    ]],
-    vi:closure:drop[:root::data::Array::from_fn[
-      vi:closure:fork[:root::data::Array::from_list::cast],
-      vi:closure:drop[:root::data::Array::from_list::cast],
-      vi:closure[:root::data::Array::from_list::cast],
-    ]],
-    vi:closure[:root::data::Array::from_fn[
-      vi:closure:fork[:root::data::Array::from_list::cast],
-      vi:closure:drop[:root::data::Array::from_list::cast],
-      vi:closure[:root::data::Array::from_list::cast],
-    ]],
-  ]],
-  vi:closure:drop[:root::data::Array::for_each[
-    vi:closure:fork[:root::data::Array::from_fn[
-      vi:closure:fork[:root::data::Array::from_list::cast],
-      vi:closure:drop[:root::data::Array::from_list::cast],
-      vi:closure[:root::data::Array::from_list::cast],
-    ]],
-    vi:closure:drop[:root::data::Array::from_fn[
-      vi:closure:fork[:root::data::Array::from_list::cast],
-      vi:closure:drop[:root::data::Array::from_list::cast],
-      vi:closure[:root::data::Array::from_list::cast],
-    ]],
-    vi:closure[:root::data::Array::from_fn[
-      vi:closure:fork[:root::data::Array::from_list::cast],
-      vi:closure:drop[:root::data::Array::from_list::cast],
-      vi:closure[:root::data::Array::from_list::cast],
-    ]],
-  ]],
-  vi:closure[:root::data::Array::for_each[
-    vi:closure:fork[:root::data::Array::from_fn[
-      vi:closure:fork[:root::data::Array::from_list::cast],
-      vi:closure:drop[:root::data::Array::from_list::cast],
-      vi:closure[:root::data::Array::from_list::cast],
-    ]],
-    vi:closure:drop[:root::data::Array::from_fn[
-      vi:closure:fork[:root::data::Array::from_list::cast],
-      vi:closure:drop[:root::data::Array::from_list::cast],
-      vi:closure[:root::data::Array::from_list::cast],
-    ]],
-    vi:closure[:root::data::Array::from_fn[
-      vi:closure:fork[:root::data::Array::from_list::cast],
-      vi:closure:drop[:root::data::Array::from_list::cast],
-      vi:closure[:root::data::Array::from_list::cast],
-    ]],
-  ]],
-] {
-  ^ = vi:interface(vi:dup(
-    vi:dup(0 vi:ext#2[vi:n32:eq](vi:n32#1 vi:bool:if[:root::data::Array::Node::push_front#2, :root::data::Array::Node::push_front#3](vi:interface(0 vi:ref(1 2) 3))))
-    vi:dup(
-      vi:dup(4 vi:ext#2[vi:n32:eq](vi:n32#1 vi:bool:if[
-        :root::data::Array::Node::zip_with#2[
-          vi:closure:fork[:root::data::Array::for_each[
-            vi:closure:fork[:root::data::Array::from_fn[
-              vi:closure:fork[:root::data::Array::from_list::cast],
-              vi:closure:drop[:root::data::Array::from_list::cast],
-              vi:closure[:root::data::Array::from_list::cast],
-            ]],
-            vi:closure:drop[:root::data::Array::from_fn[
-              vi:closure:fork[:root::data::Array::from_list::cast],
-              vi:closure:drop[:root::data::Array::from_list::cast],
-              vi:closure[:root::data::Array::from_list::cast],
-            ]],
-            vi:closure[:root::data::Array::from_fn[
-              vi:closure:fork[:root::data::Array::from_list::cast],
-              vi:closure:drop[:root::data::Array::from_list::cast],
-              vi:closure[:root::data::Array::from_list::cast],
-            ]],
-          ]],
-          vi:closure[:root::data::Array::for_each[
-            vi:closure:fork[:root::data::Array::from_fn[
-              vi:closure:fork[:root::data::Array::from_list::cast],
-              vi:closure:drop[:root::data::Array::from_list::cast],
-              vi:closure[:root::data::Array::from_list::cast],
-            ]],
-            vi:closure:drop[:root::data::Array::from_fn[
-              vi:closure:fork[:root::data::Array::from_list::cast],
-              vi:closure:drop[:root::data::Array::from_list::cast],
-              vi:closure[:root::data::Array::from_list::cast],
-            ]],
-            vi:closure[:root::data::Array::from_fn[
-              vi:closure:fork[:root::data::Array::from_list::cast],
-              vi:closure:drop[:root::data::Array::from_list::cast],
-              vi:closure[:root::data::Array::from_list::cast],
-            ]],
-          ]],
-        ],
-        :root::data::Array::Node::zip_with#3[
-          vi:closure:fork[:root::data::Array::for_each[
-            vi:closure:fork[:root::data::Array::from_fn[
-              vi:closure:fork[:root::data::Array::from_list::cast],
-              vi:closure:drop[:root::data::Array::from_list::cast],
-              vi:closure[:root::data::Array::from_list::cast],
-            ]],
-            vi:closure:drop[:root::data::Array::from_fn[
-              vi:closure:fork[:root::data::Array::from_list::cast],
-              vi:closure:drop[:root::data::Array::from_list::cast],
-              vi:closure[:root::data::Array::from_list::cast],
-            ]],
-            vi:closure[:root::data::Array::from_fn[
-              vi:closure:fork[:root::data::Array::from_list::cast],
-              vi:closure:drop[:root::data::Array::from_list::cast],
-              vi:closure[:root::data::Array::from_list::cast],
-            ]],
-          ]],
-          vi:closure[:root::data::Array::for_each[
-            vi:closure:fork[:root::data::Array::from_fn[
-              vi:closure:fork[:root::data::Array::from_list::cast],
-              vi:closure:drop[:root::data::Array::from_list::cast],
-              vi:closure[:root::data::Array::from_list::cast],
-            ]],
-            vi:closure:drop[:root::data::Array::from_fn[
-              vi:closure:fork[:root::data::Array::from_list::cast],
-              vi:closure:drop[:root::data::Array::from_list::cast],
-              vi:closure[:root::data::Array::from_list::cast],
-            ]],
-            vi:closure[:root::data::Array::from_fn[
-              vi:closure:fork[:root::data::Array::from_list::cast],
-              vi:closure:drop[:root::data::Array::from_list::cast],
-              vi:closure[:root::data::Array::from_list::cast],
-            ]],
-          ]],
-        ],
-      ](vi:interface(4 5 6 7 1))))
-      vi:dup(8 vi:ext#2[vi:n32:eq](vi:n32#1 vi:bool:if[:root::data::Array::Node::push_back#2, :root::data::Array::Node::push_back#3](vi:interface(8 vi:ref(5 2) 9))))
-    )
-  ) 6 3 7 9)
-}
-
-:root::data::Array::Node::push_back {
-  ^ = vi:fn(vi:dup(0 vi:ext#2[vi:n32:eq](vi:n32#1 vi:bool:if[:root::data::Array::Node::push_back#2, :root::data::Array::Node::push_back#3](vi:interface(0 1 2)))) 1 2 vi:tuple)
-}
-
-:root::data::Array::Node::zip_with[
-  vi:closure:fork[:root::data::Array::for_each[
-    vi:closure:fork[:root::data::Array::from_fn[
-      vi:closure:fork[:root::data::Array::from_list::cast],
-      vi:closure:drop[:root::data::Array::from_list::cast],
-      vi:closure[:root::data::Array::from_list::cast],
-    ]],
-    vi:closure:drop[:root::data::Array::from_fn[
-      vi:closure:fork[:root::data::Array::from_list::cast],
-      vi:closure:drop[:root::data::Array::from_list::cast],
-      vi:closure[:root::data::Array::from_list::cast],
-    ]],
-    vi:closure[:root::data::Array::from_fn[
-      vi:closure:fork[:root::data::Array::from_list::cast],
-      vi:closure:drop[:root::data::Array::from_list::cast],
-      vi:closure[:root::data::Array::from_list::cast],
-    ]],
-  ]],
-  vi:closure[:root::data::Array::for_each[
-    vi:closure:fork[:root::data::Array::from_fn[
-      vi:closure:fork[:root::data::Array::from_list::cast],
-      vi:closure:drop[:root::data::Array::from_list::cast],
-      vi:closure[:root::data::Array::from_list::cast],
-    ]],
-    vi:closure:drop[:root::data::Array::from_fn[
-      vi:closure:fork[:root::data::Array::from_list::cast],
-      vi:closure:drop[:root::data::Array::from_list::cast],
-      vi:closure[:root::data::Array::from_list::cast],
-    ]],
-    vi:closure[:root::data::Array::from_fn[
-      vi:closure:fork[:root::data::Array::from_list::cast],
-      vi:closure:drop[:root::data::Array::from_list::cast],
-      vi:closure[:root::data::Array::from_list::cast],
-    ]],
-  ]],
-] {
-  ^ = vi:fn(vi:dup(0 vi:ext#2[vi:n32:eq](vi:n32#1 vi:bool:if[
-    :root::data::Array::Node::zip_with#2[
-      vi:closure:fork[:root::data::Array::for_each[
-        vi:closure:fork[:root::data::Array::from_fn[
-          vi:closure:fork[:root::data::Array::from_list::cast],
-          vi:closure:drop[:root::data::Array::from_list::cast],
-          vi:closure[:root::data::Array::from_list::cast],
-        ]],
-        vi:closure:drop[:root::data::Array::from_fn[
-          vi:closure:fork[:root::data::Array::from_list::cast],
-          vi:closure:drop[:root::data::Array::from_list::cast],
-          vi:closure[:root::data::Array::from_list::cast],
-        ]],
-        vi:closure[:root::data::Array::from_fn[
-          vi:closure:fork[:root::data::Array::from_list::cast],
-          vi:closure:drop[:root::data::Array::from_list::cast],
-          vi:closure[:root::data::Array::from_list::cast],
-        ]],
-      ]],
-      vi:closure[:root::data::Array::for_each[
-        vi:closure:fork[:root::data::Array::from_fn[
-          vi:closure:fork[:root::data::Array::from_list::cast],
-          vi:closure:drop[:root::data::Array::from_list::cast],
-          vi:closure[:root::data::Array::from_list::cast],
-        ]],
-        vi:closure:drop[:root::data::Array::from_fn[
-          vi:closure:fork[:root::data::Array::from_list::cast],
-          vi:closure:drop[:root::data::Array::from_list::cast],
-          vi:closure[:root::data::Array::from_list::cast],
-        ]],
-        vi:closure[:root::data::Array::from_fn[
-          vi:closure:fork[:root::data::Array::from_list::cast],
-          vi:closure:drop[:root::data::Array::from_list::cast],
-          vi:closure[:root::data::Array::from_list::cast],
-        ]],
-      ]],
-    ],
-    :root::data::Array::Node::zip_with#3[
-      vi:closure:fork[:root::data::Array::for_each[
-        vi:closure:fork[:root::data::Array::from_fn[
-          vi:closure:fork[:root::data::Array::from_list::cast],
-          vi:closure:drop[:root::data::Array::from_list::cast],
-          vi:closure[:root::data::Array::from_list::cast],
-        ]],
-        vi:closure:drop[:root::data::Array::from_fn[
-          vi:closure:fork[:root::data::Array::from_list::cast],
-          vi:closure:drop[:root::data::Array::from_list::cast],
-          vi:closure[:root::data::Array::from_list::cast],
-        ]],
-        vi:closure[:root::data::Array::from_fn[
-          vi:closure:fork[:root::data::Array::from_list::cast],
-          vi:closure:drop[:root::data::Array::from_list::cast],
-          vi:closure[:root::data::Array::from_list::cast],
-        ]],
-      ]],
-      vi:closure[:root::data::Array::for_each[
-        vi:closure:fork[:root::data::Array::from_fn[
-          vi:closure:fork[:root::data::Array::from_list::cast],
-          vi:closure:drop[:root::data::Array::from_list::cast],
-          vi:closure[:root::data::Array::from_list::cast],
-        ]],
-        vi:closure:drop[:root::data::Array::from_fn[
-          vi:closure:fork[:root::data::Array::from_list::cast],
-          vi:closure:drop[:root::data::Array::from_list::cast],
-          vi:closure[:root::data::Array::from_list::cast],
-        ]],
-        vi:closure[:root::data::Array::from_fn[
-          vi:closure:fork[:root::data::Array::from_list::cast],
-          vi:closure:drop[:root::data::Array::from_list::cast],
-          vi:closure[:root::data::Array::from_list::cast],
-        ]],
-      ]],
-    ],
-  ](vi:interface(0 1 2 3 4)))) 1 2 3 4)
-}
-
-:root::data::Array::Node::push_front {
-  ^ = vi:fn(vi:dup(0 vi:ext#2[vi:n32:eq](vi:n32#1 vi:bool:if[:root::data::Array::Node::push_front#2, :root::data::Array::Node::push_front#3](vi:interface(0 1 2)))) 1 2 vi:tuple)
-}
-
-:root::data::Array::Node::push_back#2 {
-  ^ = vi:interface(vi:eraser vi:ref(0 vi:tuple(0 1)) 1)
-}
-
-:root::data::Array::Node::push_back#3 {
-  ^ = vi:interface(
-    vi:dup(
-      vi:ext#2[vi:n32:shr](vi:n32#1 vi:dup(0 vi:ext#2[vi:n32:eq](vi:n32#1 vi:bool:if[:root::data::Array::Node::push_back#2, :root::data::Array::Node::push_back#3](vi:interface(0 1 2)))))
-      vi:ext#2[vi:n32:rem](vi:n32#2 vi:dup(vi:eraser vi:ext#2[vi:n32:eq](vi:n32 vi:bool:if[:root::data::Array::Node::push_back#5, :root::data::Array::Node::push_back#6](vi:interface(
-        vi:ref(3 4)
-        vi:ref(5 6)
-        1
-      )))))
-    )
-    vi:ref(
-      vi:tuple(3 5)
-      vi:tuple(4 6)
-    )
-    2
-  )
-}
-
-:root::data::Array::Node::push_back#5 {
-  ^ = vi:interface(0 vi:ref(1 1) 0)
-}
-
-:root::data::Array::Node::push_back#6 {
-  ^ = vi:interface(vi:ref(0 0) 1 1)
-}
-
-:root::data::Array::Node::zip_with#2[
-  vi:closure:fork[:root::data::Array::for_each[
-    vi:closure:fork[:root::data::Array::from_fn[
-      vi:closure:fork[:root::data::Array::from_list::cast],
-      vi:closure:drop[:root::data::Array::from_list::cast],
-      vi:closure[:root::data::Array::from_list::cast],
-    ]],
-    vi:closure:drop[:root::data::Array::from_fn[
-      vi:closure:fork[:root::data::Array::from_list::cast],
-      vi:closure:drop[:root::data::Array::from_list::cast],
-      vi:closure[:root::data::Array::from_list::cast],
-    ]],
-    vi:closure[:root::data::Array::from_fn[
-      vi:closure:fork[:root::data::Array::from_list::cast],
-      vi:closure:drop[:root::data::Array::from_list::cast],
-      vi:closure[:root::data::Array::from_list::cast],
-    ]],
-  ]],
-  vi:closure[:root::data::Array::for_each[
-    vi:closure:fork[:root::data::Array::from_fn[
-      vi:closure:fork[:root::data::Array::from_list::cast],
-      vi:closure:drop[:root::data::Array::from_list::cast],
-      vi:closure[:root::data::Array::from_list::cast],
-    ]],
-    vi:closure:drop[:root::data::Array::from_fn[
-      vi:closure:fork[:root::data::Array::from_list::cast],
-      vi:closure:drop[:root::data::Array::from_list::cast],
-      vi:closure[:root::data::Array::from_list::cast],
-    ]],
-    vi:closure[:root::data::Array::from_fn[
-      vi:closure:fork[:root::data::Array::from_list::cast],
-      vi:closure:drop[:root::data::Array::from_list::cast],
-      vi:closure[:root::data::Array::from_list::cast],
-    ]],
-  ]],
-] {
-  ^ = vi:interface(
-    vi:eraser
-    vi:interface(vi:interface(vi:ref(vi:tuple(0 1) 2)))
-    0
-    vi:interface
-    vi:interface(vi:interface(vi:ref(1 2)))
-  )
-}
-
-:root::data::Array::Node::zip_with#3[
-  vi:closure:fork[:root::data::Array::for_each[
-    vi:closure:fork[:root::data::Array::from_fn[
-      vi:closure:fork[:root::data::Array::from_list::cast],
-      vi:closure:drop[:root::data::Array::from_list::cast],
-      vi:closure[:root::data::Array::from_list::cast],
-    ]],
-    vi:closure:drop[:root::data::Array::from_fn[
-      vi:closure:fork[:root::data::Array::from_list::cast],
-      vi:closure:drop[:root::data::Array::from_list::cast],
-      vi:closure[:root::data::Array::from_list::cast],
-    ]],
-    vi:closure[:root::data::Array::from_fn[
-      vi:closure:fork[:root::data::Array::from_list::cast],
-      vi:closure:drop[:root::data::Array::from_list::cast],
-      vi:closure[:root::data::Array::from_list::cast],
-    ]],
-  ]],
-  vi:closure[:root::data::Array::for_each[
-    vi:closure:fork[:root::data::Array::from_fn[
-      vi:closure:fork[:root::data::Array::from_list::cast],
-      vi:closure:drop[:root::data::Array::from_list::cast],
-      vi:closure[:root::data::Array::from_list::cast],
-    ]],
-    vi:closure:drop[:root::data::Array::from_fn[
-      vi:closure:fork[:root::data::Array::from_list::cast],
-      vi:closure:drop[:root::data::Array::from_list::cast],
-      vi:closure[:root::data::Array::from_list::cast],
-    ]],
-    vi:closure[:root::data::Array::from_fn[
-      vi:closure:fork[:root::data::Array::from_list::cast],
-      vi:closure:drop[:root::data::Array::from_list::cast],
-      vi:closure[:root::data::Array::from_list::cast],
-    ]],
-  ]],
-] {
-  ^ = vi:interface(
-    vi:dup(
-      vi:ext#2[vi:n32:shr](vi:n32#1 vi:dup(0 vi:ext#2[vi:n32:eq](vi:n32#1 vi:bool:if[
-        :root::data::Array::Node::zip_with#2[
-          vi:closure:fork[:root::data::Array::for_each[
-            vi:closure:fork[:root::data::Array::from_fn[
-              vi:closure:fork[:root::data::Array::from_list::cast],
-              vi:closure:drop[:root::data::Array::from_list::cast],
-              vi:closure[:root::data::Array::from_list::cast],
-            ]],
-            vi:closure:drop[:root::data::Array::from_fn[
-              vi:closure:fork[:root::data::Array::from_list::cast],
-              vi:closure:drop[:root::data::Array::from_list::cast],
-              vi:closure[:root::data::Array::from_list::cast],
-            ]],
-            vi:closure[:root::data::Array::from_fn[
-              vi:closure:fork[:root::data::Array::from_list::cast],
-              vi:closure:drop[:root::data::Array::from_list::cast],
-              vi:closure[:root::data::Array::from_list::cast],
-            ]],
-          ]],
-          vi:closure[:root::data::Array::for_each[
-            vi:closure:fork[:root::data::Array::from_fn[
-              vi:closure:fork[:root::data::Array::from_list::cast],
-              vi:closure:drop[:root::data::Array::from_list::cast],
-              vi:closure[:root::data::Array::from_list::cast],
-            ]],
-            vi:closure:drop[:root::data::Array::from_fn[
-              vi:closure:fork[:root::data::Array::from_list::cast],
-              vi:closure:drop[:root::data::Array::from_list::cast],
-              vi:closure[:root::data::Array::from_list::cast],
-            ]],
-            vi:closure[:root::data::Array::from_fn[
-              vi:closure:fork[:root::data::Array::from_list::cast],
-              vi:closure:drop[:root::data::Array::from_list::cast],
-              vi:closure[:root::data::Array::from_list::cast],
-            ]],
-          ]],
-        ],
-        :root::data::Array::Node::zip_with#3[
-          vi:closure:fork[:root::data::Array::for_each[
-            vi:closure:fork[:root::data::Array::from_fn[
-              vi:closure:fork[:root::data::Array::from_list::cast],
-              vi:closure:drop[:root::data::Array::from_list::cast],
-              vi:closure[:root::data::Array::from_list::cast],
-            ]],
-            vi:closure:drop[:root::data::Array::from_fn[
-              vi:closure:fork[:root::data::Array::from_list::cast],
-              vi:closure:drop[:root::data::Array::from_list::cast],
-              vi:closure[:root::data::Array::from_list::cast],
-            ]],
-            vi:closure[:root::data::Array::from_fn[
-              vi:closure:fork[:root::data::Array::from_list::cast],
-              vi:closure:drop[:root::data::Array::from_list::cast],
-              vi:closure[:root::data::Array::from_list::cast],
-            ]],
-          ]],
-          vi:closure[:root::data::Array::for_each[
-            vi:closure:fork[:root::data::Array::from_fn[
-              vi:closure:fork[:root::data::Array::from_list::cast],
-              vi:closure:drop[:root::data::Array::from_list::cast],
-              vi:closure[:root::data::Array::from_list::cast],
-            ]],
-            vi:closure:drop[:root::data::Array::from_fn[
-              vi:closure:fork[:root::data::Array::from_list::cast],
-              vi:closure:drop[:root::data::Array::from_list::cast],
-              vi:closure[:root::data::Array::from_list::cast],
-            ]],
-            vi:closure[:root::data::Array::from_fn[
-              vi:closure:fork[:root::data::Array::from_list::cast],
-              vi:closure:drop[:root::data::Array::from_list::cast],
-              vi:closure[:root::data::Array::from_list::cast],
-            ]],
-          ]],
-        ],
-      ](vi:interface(0 1 2 vi:interface 3)))))
-      vi:ext#2[vi:n32:add](vi:n32#1 vi:ext#2[vi:n32:shr](vi:n32#1 vi:dup(4 vi:ext#2[vi:n32:eq](vi:n32#1 vi:bool:if[
-        :root::data::Array::Node::zip_with#2[
-          vi:closure:fork[:root::data::Array::for_each[
-            vi:closure:fork[:root::data::Array::from_fn[
-              vi:closure:fork[:root::data::Array::from_list::cast],
-              vi:closure:drop[:root::data::Array::from_list::cast],
-              vi:closure[:root::data::Array::from_list::cast],
-            ]],
-            vi:closure:drop[:root::data::Array::from_fn[
-              vi:closure:fork[:root::data::Array::from_list::cast],
-              vi:closure:drop[:root::data::Array::from_list::cast],
-              vi:closure[:root::data::Array::from_list::cast],
-            ]],
-            vi:closure[:root::data::Array::from_fn[
-              vi:closure:fork[:root::data::Array::from_list::cast],
-              vi:closure:drop[:root::data::Array::from_list::cast],
-              vi:closure[:root::data::Array::from_list::cast],
-            ]],
-          ]],
-          vi:closure[:root::data::Array::for_each[
-            vi:closure:fork[:root::data::Array::from_fn[
-              vi:closure:fork[:root::data::Array::from_list::cast],
-              vi:closure:drop[:root::data::Array::from_list::cast],
-              vi:closure[:root::data::Array::from_list::cast],
-            ]],
-            vi:closure:drop[:root::data::Array::from_fn[
-              vi:closure:fork[:root::data::Array::from_list::cast],
-              vi:closure:drop[:root::data::Array::from_list::cast],
-              vi:closure[:root::data::Array::from_list::cast],
-            ]],
-            vi:closure[:root::data::Array::from_fn[
-              vi:closure:fork[:root::data::Array::from_list::cast],
-              vi:closure:drop[:root::data::Array::from_list::cast],
-              vi:closure[:root::data::Array::from_list::cast],
-            ]],
-          ]],
-        ],
-        :root::data::Array::Node::zip_with#3[
-          vi:closure:fork[:root::data::Array::for_each[
-            vi:closure:fork[:root::data::Array::from_fn[
-              vi:closure:fork[:root::data::Array::from_list::cast],
-              vi:closure:drop[:root::data::Array::from_list::cast],
-              vi:closure[:root::data::Array::from_list::cast],
-            ]],
-            vi:closure:drop[:root::data::Array::from_fn[
-              vi:closure:fork[:root::data::Array::from_list::cast],
-              vi:closure:drop[:root::data::Array::from_list::cast],
-              vi:closure[:root::data::Array::from_list::cast],
-            ]],
-            vi:closure[:root::data::Array::from_fn[
-              vi:closure:fork[:root::data::Array::from_list::cast],
-              vi:closure:drop[:root::data::Array::from_list::cast],
-              vi:closure[:root::data::Array::from_list::cast],
-            ]],
-          ]],
-          vi:closure[:root::data::Array::for_each[
-            vi:closure:fork[:root::data::Array::from_fn[
-              vi:closure:fork[:root::data::Array::from_list::cast],
-              vi:closure:drop[:root::data::Array::from_list::cast],
-              vi:closure[:root::data::Array::from_list::cast],
-            ]],
-            vi:closure:drop[:root::data::Array::from_fn[
-              vi:closure:fork[:root::data::Array::from_list::cast],
-              vi:closure:drop[:root::data::Array::from_list::cast],
-              vi:closure[:root::data::Array::from_list::cast],
-            ]],
-            vi:closure[:root::data::Array::from_fn[
-              vi:closure:fork[:root::data::Array::from_list::cast],
-              vi:closure:drop[:root::data::Array::from_list::cast],
-              vi:closure[:root::data::Array::from_list::cast],
-            ]],
-          ]],
-        ],
-      ](vi:interface(4 5 6 vi:interface 7))))))
-    )
-    vi:tuple(5 1)
-    vi:tuple(6 2)
-    vi:interface
-    vi:tuple(7 3)
-  )
-}
-
-:root::data::Array::Node::push_front#2 {
-  ^ = vi:interface(vi:eraser vi:ref(0 vi:tuple(1 0)) 1)
-}
-
-:root::data::Array::Node::push_front#3 {
-  ^ = vi:interface(
-    vi:ext#2[vi:n32:shr](vi:n32#1 vi:dup(0 vi:ext#2[vi:n32:eq](vi:n32#1 vi:bool:if[:root::data::Array::Node::push_front#2, :root::data::Array::Node::push_front#3](vi:interface(0 vi:ref(1 2) 3)))))
-    vi:ref(
-      vi:tuple(4 1)
-      vi:tuple(2 4)
-    )
-    3
-  )
-}
-
-:root::derive::Struct::cast_deconstruct::cast[vi:synthetic:Struct[:root::debug::WithState]] {
-  ^ = vi:fn(0 0)
-}
-
-:root::ops::flex::Drop::if_const::drop[
-  vi:synthetic:IfConst[:root::debug::enabled],
-  :root::ops::flex::Drop::composite[
-    :root::derive::Composite::tuple[vi:synthetic:Tuple#2],
-    :root::ops::flex::Drop::ref,
-    :root::ops::flex::Drop::composite[
-      :root::derive::Composite::tuple[vi:synthetic:Tuple#1],
-      vi:closure:drop[:root::data::Array::from_fn[
-        vi:closure:fork[:root::data::Array::from_list::cast],
-        vi:closure:drop[:root::data::Array::from_list::cast],
-        vi:closure[:root::data::Array::from_list::cast],
-      ]],
-      :root::util::erase,
-    ],
-  ],
-  vi:closure:drop[:root::data::Array::from_fn[
-    vi:closure:fork[:root::data::Array::from_list::cast],
-    vi:closure:drop[:root::data::Array::from_list::cast],
-    vi:closure[:root::data::Array::from_list::cast],
-  ]],
-] {
-  ^ = vi:fn(vi:interface(vi:interface(vi:ref(0 0))) vi:tuple)
-}
-
-vi:synthetic[vi:synthetic:const_alias[:root::debug::enabled]] {
-  ^ = vi:bool
-}
-
-:root::ops::flex::Drop::if_const::drop#2[
-  vi:synthetic:IfConst[:root::debug::enabled],
-  :root::ops::flex::Drop::composite[
-    :root::derive::Composite::tuple[vi:synthetic:Tuple#2],
-    :root::ops::flex::Drop::ref,
-    :root::ops::flex::Drop::composite[
-      :root::derive::Composite::tuple[vi:synthetic:Tuple#1],
-      vi:closure:drop[:root::data::Array::from_fn[
-        vi:closure:fork[:root::data::Array::from_list::cast],
-        vi:closure:drop[:root::data::Array::from_list::cast],
-        vi:closure[:root::data::Array::from_list::cast],
-      ]],
-      :root::util::erase,
-    ],
-  ],
-  vi:closure:drop[:root::data::Array::from_fn[
-    vi:closure:fork[:root::data::Array::from_list::cast],
-    vi:closure:drop[:root::data::Array::from_list::cast],
-    vi:closure[:root::data::Array::from_list::cast],
-  ]],
-] {
-  ^ = vi:interface(vi:tuple(
-    vi:ref(0 0)
-    vi:interface(vi:interface(vi:ref(1 1)))
-  ))
-}
-
-:root::ops::flex::Drop::if_const::drop#3[
-  vi:synthetic:IfConst[:root::debug::enabled],
-  :root::ops::flex::Drop::composite[
-    :root::derive::Composite::tuple[vi:synthetic:Tuple#2],
-    :root::ops::flex::Drop::ref,
-    :root::ops::flex::Drop::composite[
-      :root::derive::Composite::tuple[vi:synthetic:Tuple#1],
-      vi:closure:drop[:root::data::Array::from_fn[
-        vi:closure:fork[:root::data::Array::from_list::cast],
-        vi:closure:drop[:root::data::Array::from_list::cast],
-        vi:closure[:root::data::Array::from_list::cast],
-      ]],
-      :root::util::erase,
-    ],
-  ],
-  vi:closure:drop[:root::data::Array::from_fn[
-    vi:closure:fork[:root::data::Array::from_list::cast],
-    vi:closure:drop[:root::data::Array::from_list::cast],
-    vi:closure[:root::data::Array::from_list::cast],
-  ]],
-] {
-  ^ = vi:interface(vi:interface(vi:interface(vi:ref(0 0))))
-}
-
-:root::ops::flex::Drop::composite::drop[
-  :root::derive::Composite::tuple[vi:synthetic:Tuple#2],
-  :root::ops::flex::Drop::ref,
-  :root::ops::flex::Drop::composite[
-    :root::derive::Composite::tuple[vi:synthetic:Tuple#1],
-    vi:closure:drop[:root::data::Array::from_fn[
-      vi:closure:fork[:root::data::Array::from_list::cast],
-      vi:closure:drop[:root::data::Array::from_list::cast],
-      vi:closure[:root::data::Array::from_list::cast],
-    ]],
-    :root::util::erase,
-  ],
-] {
-  ^ = vi:fn(vi:tuple(
-    vi:ref(0 0)
-    vi:interface(vi:interface(vi:ref(1 1)))
-  ) vi:tuple)
-}
-
-:root::ops::flex::Drop::composite::drop[
-  :root::derive::Composite::tuple[vi:synthetic:Tuple#1],
-  vi:closure:drop[:root::data::Array::from_fn[
-    vi:closure:fork[:root::data::Array::from_list::cast],
-    vi:closure:drop[:root::data::Array::from_list::cast],
-    vi:closure[:root::data::Array::from_list::cast],
-  ]],
-  :root::util::erase,
-] {
-  ^ = vi:fn(vi:tuple(vi:interface(vi:interface(vi:ref(0 0)))) vi:tuple)
-}
-
-:root::ops::Cast::ref::cast[
-  :root::derive::Struct::cast_deconstruct[vi:synthetic:Struct[:root::debug::WithState]],
-  :root::derive::Struct::cast_reconstruct[vi:synthetic:Struct[:root::debug::WithState]],
-] {
-  ^ = vi:fn(0 0)
-}
-
-:root::derive::Struct::cast_reconstruct::cast[vi:synthetic:Struct[:root::debug::WithState]] {
-  ^ = vi:fn(0 0)
-}
-
-:root::ops::flex::Fork::if_const::fork[
-  vi:synthetic:IfConst[:root::debug::enabled],
-  :root::ops::flex::Fork::composite[
-    :root::derive::Composite::tuple[vi:synthetic:Tuple#2],
-    :root::ops::flex::Fork::ref,
-    :root::ops::flex::Fork::composite[
-      :root::derive::Composite::tuple[vi:synthetic:Tuple#1],
-      vi:closure:fork[:root::data::Array::from_fn[
-        vi:closure:fork[:root::data::Array::from_list::cast],
-        vi:closure:drop[:root::data::Array::from_list::cast],
-        vi:closure[:root::data::Array::from_list::cast],
-      ]],
-      :root::util::duplicate,
-    ],
-  ],
-  vi:closure:fork[:root::data::Array::from_fn[
-    vi:closure:fork[:root::data::Array::from_list::cast],
-    vi:closure:drop[:root::data::Array::from_list::cast],
-    vi:closure[:root::data::Array::from_list::cast],
-  ]],
-] {
-  ^ = vi:fn(
-    vi:ref(
-      vi:interface(vi:interface(vi:ref(0 1)))
-      vi:interface(vi:interface(vi:ref(2 1)))
-    )
-    vi:interface(vi:interface(vi:ref(0 2)))
-  )
-}
-
-:root::ops::flex::Fork::if_const::fork#2[
-  vi:synthetic:IfConst[:root::debug::enabled],
-  :root::ops::flex::Fork::composite[
-    :root::derive::Composite::tuple[vi:synthetic:Tuple#2],
-    :root::ops::flex::Fork::ref,
-    :root::ops::flex::Fork::composite[
-      :root::derive::Composite::tuple[vi:synthetic:Tuple#1],
-      vi:closure:fork[:root::data::Array::from_fn[
-        vi:closure:fork[:root::data::Array::from_list::cast],
-        vi:closure:drop[:root::data::Array::from_list::cast],
-        vi:closure[:root::data::Array::from_list::cast],
-      ]],
-      :root::util::duplicate,
-    ],
-  ],
-  vi:closure:fork[:root::data::Array::from_fn[
-    vi:closure:fork[:root::data::Array::from_list::cast],
-    vi:closure:drop[:root::data::Array::from_list::cast],
-    vi:closure[:root::data::Array::from_list::cast],
-  ]],
-] {
-  ^ = vi:interface(
-    vi:ref(
-      vi:tuple(
-        vi:ref(0 1)
-        vi:interface(vi:interface(vi:ref(2 3)))
-      )
-      vi:tuple(
-        vi:ref(4 1)
-        vi:interface(vi:interface(vi:ref(5 3)))
-      )
-    )
-    vi:tuple(
-      vi:ref(0 4)
-      vi:interface(vi:interface(vi:ref(2 5)))
-    )
-  )
-}
-
-:root::ops::flex::Fork::if_const::fork#3[
-  vi:synthetic:IfConst[:root::debug::enabled],
-  :root::ops::flex::Fork::composite[
-    :root::derive::Composite::tuple[vi:synthetic:Tuple#2],
-    :root::ops::flex::Fork::ref,
-    :root::ops::flex::Fork::composite[
-      :root::derive::Composite::tuple[vi:synthetic:Tuple#1],
-      vi:closure:fork[:root::data::Array::from_fn[
-        vi:closure:fork[:root::data::Array::from_list::cast],
-        vi:closure:drop[:root::data::Array::from_list::cast],
-        vi:closure[:root::data::Array::from_list::cast],
-      ]],
-      :root::util::duplicate,
-    ],
-  ],
-  vi:closure:fork[:root::data::Array::from_fn[
-    vi:closure:fork[:root::data::Array::from_list::cast],
-    vi:closure:drop[:root::data::Array::from_list::cast],
-    vi:closure[:root::data::Array::from_list::cast],
-  ]],
-] {
-  ^ = vi:interface(
-    vi:ref(
-      vi:interface(vi:interface(vi:ref(0 1)))
-      vi:interface(vi:interface(vi:ref(2 1)))
-    )
-    vi:interface(vi:interface(vi:ref(0 2)))
-  )
-}
-
-:root::ops::flex::Fork::composite::fork[
-  :root::derive::Composite::tuple[vi:synthetic:Tuple#2],
-  :root::ops::flex::Fork::ref,
-  :root::ops::flex::Fork::composite[
-    :root::derive::Composite::tuple[vi:synthetic:Tuple#1],
-    vi:closure:fork[:root::data::Array::from_fn[
-      vi:closure:fork[:root::data::Array::from_list::cast],
-      vi:closure:drop[:root::data::Array::from_list::cast],
-      vi:closure[:root::data::Array::from_list::cast],
-    ]],
-    :root::util::duplicate,
-  ],
-] {
-  ^ = vi:fn(
-    vi:ref(
-      vi:tuple(
-        vi:ref(0 1)
-        vi:interface(vi:interface(vi:ref(2 3)))
-      )
-      vi:tuple(
-        vi:ref(4 1)
-        vi:interface(vi:interface(vi:ref(5 3)))
-      )
-    )
-    vi:tuple(
-      vi:ref(0 4)
-      vi:interface(vi:interface(vi:ref(2 5)))
-    )
-  )
-}
-
-:root::ops::flex::Fork::composite::fork[
-  :root::derive::Composite::tuple[vi:synthetic:Tuple#1],
-  vi:closure:fork[:root::data::Array::from_fn[
-    vi:closure:fork[:root::data::Array::from_list::cast],
-    vi:closure:drop[:root::data::Array::from_list::cast],
-    vi:closure[:root::data::Array::from_list::cast],
-  ]],
-  :root::util::duplicate,
-] {
-  ^ = vi:fn(
-    vi:ref(
-      vi:tuple(vi:interface(vi:interface(vi:ref(0 1))))
-      vi:tuple(vi:interface(vi:interface(vi:ref(2 1))))
-    )
-    vi:tuple(vi:interface(vi:interface(vi:ref(0 2))))
-  )
-}
-
-:root::data::Array::len {
-  ^ = vi:fn(vi:ref(
-    vi:tuple(vi:dup(0 1) 2)
-    vi:tuple(0 2)
-  ) 1)
-}
-
-:root::data::Array::at {
-  ^ = vi:fn(
-    vi:ref(
-      vi:tuple(vi:dup(vi:dup(0 1) 2) 3)
-      vi:tuple(0 4)
-    )
-    vi:dup(5 vi:ext#2[vi:n32:lt](2 vi:bool:if[:root::data::Array::at#2, :root::data::Array::at#3](vi:interface(1 vi:ref(3 4) 5 6))))
-    6
-  )
-}
-
-:root::data::Array::at#2 {
-  ^ = vi:interface(
-    vi:dup(0 1)
-    2
-    3
-    vi:enum:variant#1[vi:enum#2](4)
-  )
-  vi:ext#2[vi:n32:lt](1 vi:bool:if[:root::data::Array::at#5, :root::data::Array::at#6](vi:interface(3 vi:ref(2 4) 0))) = vi:n32#1
-}
-
-:root::data::Array::at#3 {
-  ^ = vi:interface(
-    vi:eraser
-    vi:ref(0 0)
-    vi:eraser
-    vi:enum:variant[vi:enum#2](vi:tuple)
-  )
-}
-
-:root::data::Array::at#4 {
-  ^ = vi:interface(0 1 vi:dup(2 3))
-  vi:ext#2[vi:n32:lt](3 vi:bool:if[:root::data::Array::at#5, :root::data::Array::at#6](vi:interface(0 1 2))) = vi:n32#1
-}
-
-:root::data::Array::at#5 {
-  ^ = vi:interface(
-    vi:dup(
-      vi:ext#2[vi:n32:shr](vi:n32#1 0)
-      vi:ext#2[vi:n32:rem](vi:n32#2 vi:dup(vi:eraser vi:ext#2[vi:n32:eq](vi:n32 vi:bool:if[:root::data::Array::Node::half#2, :root::data::Array::Node::half#3](vi:interface(
-        vi:ref(1 2)
-        vi:ref(3 4)
-        5
-        vi:tuple(6 vi:dup(7 8))
-      )))))
-    )
-    vi:ref(vi:ref(
-      vi:tuple(1 3)
-      vi:tuple(2 4)
-    ) 9)
-    5
-  )
-  vi:ext#2[vi:n32:lt](8 vi:bool:if[:root::data::Array::at#5, :root::data::Array::at#6](vi:interface(0 vi:ref(6 9) 7))) = vi:n32#1
-}
-
-:root::data::Array::at#6 {
-  ^ = vi:interface(vi:eraser vi:ref(0 0) vi:eraser)
-}
-
-:root::data::Array::Node::half {
-  ^ = vi:fn(
-    vi:ref(
-      vi:tuple(0 1)
-      vi:tuple(2 3)
-    )
-    4
-    vi:dup(vi:eraser vi:ext#2[vi:n32:eq](vi:n32 vi:bool:if[:root::data::Array::Node::half#2, :root::data::Array::Node::half#3](vi:interface(
-      vi:ref(0 2)
-      vi:ref(1 3)
-      4
-      5
-    ))))
-    5
-  )
-}
-
-:root::data::Array::Node::half#2 {
-  ^ = vi:interface(
-    0
-    vi:ref(1 1)
-    vi:ext#2[vi:n32:add](vi:n32#1 vi:ext#2[vi:n32:shr](vi:n32#1 2))
-    vi:tuple(0 2)
-  )
-}
-
-:root::data::Array::Node::half#3 {
-  ^ = vi:interface(
-    vi:ref(0 0)
-    1
-    vi:ext#2[vi:n32:shr](vi:n32#1 2)
-    vi:tuple(1 2)
-  )
-}
-
-:root::ops::comparison::Le::ge[:root::ops::comparison::Le::from_ord[:root::numeric::N32]] {
-  ^ = vi:fn(
-    vi:ref(vi:dup(0 1) 0)
-    vi:ref(vi:dup(2 vi:ext#2[vi:n32:le](1 3)) 2)
-    3
-  )
-}
-
-:root::ops::comparison::Le::from_ord::le[:root::numeric::N32] {
-  ^ = vi:fn(
-    vi:ref(vi:dup(0 vi:ext#2[vi:n32:le](1 2)) 0)
-    vi:ref(vi:dup(3 1) 3)
-    2
-  )
-}
-
-:root::numeric::N32::le {
-  ^ = vi:fn(
-    vi:ref(vi:dup(0 vi:ext#2[vi:n32:le](1 2)) 0)
-    vi:ref(vi:dup(3 1) 3)
-    2
-  )
-}
-
-:root::derive::Singleton::tuple::deconstruct {
-  ^ = vi:fn(vi:tuple(0) 0)
-}
-
-:root::derive::Singleton::tuple::reconstruct {
-  ^ = vi:fn(0 vi:tuple(0))
-}
-
-:root::unicode::String::split_once {
-  ^ = vi:fn(
-    vi:tuple(vi:dup(0 vi:dup(vi:eraser 1)) 2 3)
-    vi:tuple(vi:dup(4 vi:dup(vi:eraser vi:ext#2[vi:n32:le](1 vi:bool:if[:root::unicode::String::split_once#2, :root::unicode::String::split_once#3](vi:interface(
-      vi:tuple(4 5 6)
-      vi:tuple(vi:n32 7 7)
-      vi:tuple(0 2 3)
-      8
-    ))))) 5 6)
-    8
-  )
-}
-
-:root::unicode::String::split_once#1 {
-  ^ = vi:interface(
-    vi:tuple(vi:dup(0 vi:dup(vi:eraser vi:ext#2[vi:n32:le](1 vi:bool:if[:root::unicode::String::split_once#2, :root::unicode::String::split_once#3](vi:interface(
-      vi:tuple(0 2 3)
-      4
-      vi:tuple(5 6 7)
-      8
-    ))))) 2 3)
-    4
-    vi:tuple(vi:dup(5 vi:dup(vi:eraser 1)) 6 7)
-    8
-  )
-}
-
-:root::unicode::String::split_once#2 {
-  ^ = vi:interface(vi:tuple(vi:dup(0 vi:dup(1 vi:ext#2[vi:n32:ne](vi:n32 vi:bool:if[:root::data::List::IterRef::advance#2, :root::data::List::IterRef::advance#3](vi:interface(
-    1
-    vi:ref(2 3)
-    vi:enum:match[vi:enum#2, :root::unicode::String::split_once#7, :root::unicode::String::split_once#8](vi:interface(
-      vi:tuple(0 3 4)
-      5
-      6
-      vi:tuple(vi:n32 7 7)
-      8
-    ))
-  ))))) 2 4) 5 6 8)
-}
-
-:root::unicode::String::split_once#3 {
-  ^ = vi:interface(
-    vi:eraser
-    vi:tuple(vi:ext#2[vi:n32:add](0 1) 2 3)
-    vi:tuple(0 3 4)
-    vi:tuple(
-      vi:tuple(1 2 4)
-      vi:enum:variant[vi:enum#2](vi:tuple)
-    )
-  )
-}
-
-:root::unicode::String::iter_ref::iter {
-  ^ = vi:fn(
-    vi:ref(
-      vi:tuple(vi:dup(0 1) 2 3)
-      vi:tuple(0 4 3)
-    )
-    vi:tuple(1 vi:ref(2 4))
-  )
-}
-
-:root::unicode::String::split_once#4 {
-  ^ = vi:interface(0 1 2 3 4 vi:tuple(vi:dup(5 vi:ext#2[vi:n32:ne](vi:n32 vi:bool:if[:root::data::List::IterRef::advance#2, :root::data::List::IterRef::advance#3](vi:interface(5 6 vi:enum:match[vi:enum#2, :root::unicode::String::split_once#7, :root::unicode::String::split_once#8](vi:interface(0 1 2 3 4)))))) 6))
-}
-
-:root::unicode::String::split_once#7 {
-  ^0 = vi:interface(vi:eraser 0 1 vi:eraser vi:tuple(0 vi:enum:variant#1[vi:enum#2](1)))
-  ^1 = vi:tuple
-}
-
-:root::unicode::String::split_once#8 {
-  ^0 = vi:interface(
-    0
-    1
-    vi:tuple(vi:dup(2 vi:ext#2[vi:n32:ne](vi:n32 vi:bool:if[:root::data::List::pop_front#2, :root::data::List::pop_front#3](vi:interface(
-      vi:ref(2 3)
-      vi:ref(4 5)
-      vi:enum:match[vi:enum#2, :root::logical::Option::assume#4, :root::logical::Option::assume#5](vi:interface(vi:dup(vi:dup(vi:eraser 6) 7)))
-    )))) 4 8)
-    vi:tuple(
-      vi:ext#2[vi:n32:add](vi:n32#1 9)
-      10
-      vi:tuple(7 11)
-    )
-    12
-  )
-  ^1 = vi:tuple(vi:ref(vi:dup(13 vi:ext#2[vi:n32:ne](6 vi:bool:if[:root::unicode::String::split_once#10, :root::unicode::String::split_once#11](vi:interface(
-    0
-    1
-    vi:tuple(3 5 8)
-    vi:tuple(9 10 11)
-    12
-    14
-  )))) 13) 14)
-}
-
-:root::unicode::String::split_once#10 {
-  ^ = vi:interface(
-    vi:tuple(vi:dup(0 vi:dup(vi:eraser vi:ext#2[vi:n32:le](1 vi:bool:if[:root::unicode::String::split_once#2, :root::unicode::String::split_once#3](vi:interface(
-      vi:tuple(0 2 3)
-      vi:tuple(4 5 6)
-      vi:tuple(7 8 9)
-      10
-    ))))) 2 3)
-    vi:tuple(
-      vi:ext#2[vi:n32:add](vi:n32#1 4)
-      5
-      vi:tuple(11 6)
-    )
-    vi:tuple(12 13 9)
-    vi:tuple(vi:dup(14 vi:ext#2[vi:n32:ne](vi:n32 vi:bool:if[:root::data::List::pop_front#2, :root::data::List::pop_front#3](vi:interface(
-      vi:ref(14 vi:ext#2[vi:n32:add](12 vi:dup(7 vi:dup(vi:eraser 1))))
-      vi:ref(15 8)
-      vi:enum:match[vi:enum#2, :root::logical::Option::assume#4, :root::logical::Option::assume#5](vi:interface(11))
-    )))) 15 13)
-    10
-    vi:tuple(vi:eraser vi:ref(16 16))
-  )
-}
-
-:root::unicode::String::split_once#11 {
-  ^ = vi:interface(0 1 2 3 4 vi:tuple(vi:dup(5 vi:ext#2[vi:n32:ne](vi:n32 vi:bool:if[:root::data::List::IterRef::advance#2, :root::data::List::IterRef::advance#3](vi:interface(5 6 vi:enum:match[vi:enum#2, :root::unicode::String::split_once#7, :root::unicode::String::split_once#8](vi:interface(0 1 2 3 4)))))) 6))
-}
-
-:root::unicode::String::split_trim {
-  ^ = vi:fn(0 1 2)
-  vi:interface(
-    0
-    1
-    vi:tuple(vi:n32 3 3)
-    vi:bool#1
-    vi:ref(4 vi:bool#1)
-    2
-  ) = vi:graft[:root::unicode::String::split_trim#1]
-  vi:graft[:root::util::erase::drop] = vi:fn(4 vi:tuple)
-}
-
-:root::unicode::String::split_trim#1 {
-  ^ = vi:interface(
-    vi:tuple(vi:dup(0 vi:dup(vi:eraser 1)) 2 3)
-    vi:dup(4 vi:tuple(vi:dup(5 vi:dup(vi:eraser vi:ext#2[vi:n32:le](1 vi:bool:if[:root::unicode::String::split_once#2, :root::unicode::String::split_once#3](vi:interface(
-      vi:tuple(5 6 7)
-      vi:tuple(vi:n32 8 8)
-      vi:tuple(0 2 3)
-      vi:tuple(
-        vi:tuple(vi:dup(9 vi:dup(vi:eraser vi:ext#2[vi:n32:eq](vi:n32 vi:dup(
-          vi:bool:if[:root::unicode::String::split_trim#15, :root::unicode::String::split_trim#16](vi:interface(10 vi:dup(11 12)))
-          vi:bool:if[:root::unicode::String::split_trim#3, :root::unicode::String::split_trim#4](vi:interface(13 vi:dup(14 vi:bool:if[:root::unicode::String::split_trim#9, :root::unicode::String::split_trim#10](vi:interface(
-            vi:ref(15 16)
-            12
-            vi:tuple(9 17 18)
-          )))))
-        )))) 17 18)
-        vi:enum:match[vi:enum#2, :root::unicode::String::split_trim#23, :root::unicode::String::split_trim#24](vi:interface(4 16 14 vi:ref(10 19) 20))
-      )
-    ))))) 6 7))
-    15
-    13
-    vi:ref(11 19)
-    20
-  )
-}
-
-:root::unicode::String::split_trim#3 {
-  ^ = vi:interface(vi:bool:if[:root::unicode::String::split_trim#5, :root::unicode::String::split_trim#6](vi:interface(0)) 0)
-}
-
-:root::unicode::String::split_trim#4 {
-  ^ = vi:interface(vi:eraser vi:bool)
-}
-
-:root::unicode::String::split_trim#9 {
-  ^ = vi:interface(vi:ref(0 0) vi:eraser vi:eraser)
-}
-
-:root::unicode::String::split_trim#10 {
-  ^ = vi:interface(0 vi:bool:if[:root::unicode::String::split_trim#11, :root::unicode::String::split_trim#12](vi:interface(0 1)) 1)
-}
-
-:root::unicode::String::split_trim#15 {
-  ^ = vi:interface(vi:bool:if[:root::unicode::String::split_trim#17, :root::unicode::String::split_trim#18](vi:interface(0)) 0)
-}
-
-:root::unicode::String::split_trim#16 {
-  ^ = vi:interface(vi:eraser vi:bool)
-}
-
-:root::unicode::String::split_trim#23 {
-  ^0 = vi:interface(vi:eraser 0 vi:eraser vi:ref(1 1) 0)
-  ^1 = vi:tuple
-}
-
-:root::unicode::String::split_trim#24 {
-  ^0 = vi:interface(
-    vi:dup(0 vi:tuple(vi:dup(1 vi:dup(vi:eraser vi:ext#2[vi:n32:le](2 vi:bool:if[:root::unicode::String::split_once#2, :root::unicode::String::split_once#3](vi:interface(
-      vi:tuple(1 3 4)
-      vi:tuple(vi:n32 5 5)
-      vi:tuple(6 7 8)
-      vi:tuple(
-        vi:tuple(vi:dup(9 vi:dup(vi:eraser vi:ext#2[vi:n32:eq](vi:n32 vi:dup(
-          vi:bool:if[:root::unicode::String::split_trim#15, :root::unicode::String::split_trim#16](vi:interface(10 vi:dup(11 12)))
-          vi:bool:if[:root::unicode::String::split_trim#3, :root::unicode::String::split_trim#4](vi:interface(13 vi:dup(14 vi:bool:if[:root::unicode::String::split_trim#9, :root::unicode::String::split_trim#10](vi:interface(
-            vi:ref(15 16)
-            12
-            vi:tuple(9 17 18)
-          )))))
-        )))) 17 18)
-        vi:enum:match[vi:enum#2, :root::unicode::String::split_trim#23, :root::unicode::String::split_trim#24](vi:interface(0 16 14 vi:ref(10 19) 20))
-      )
-    ))))) 3 4))
-    15
-    13
-    vi:ref(11 19)
-    20
-  )
-  ^1 = vi:tuple(vi:dup(6 vi:dup(vi:eraser 2)) 7 8)
-}
-
-:root::unicode::String::split_trim#5 {
+:root::debug::Show::_format#21 {
   ^ = vi:interface(vi:bool#1)
 }
 
-:root::unicode::String::split_trim#6 {
+:root::debug::Show::_format#22 {
   ^ = vi:interface(vi:bool)
 }
 
-:root::unicode::String::split_trim#7 {
-  ^ = vi:interface(vi:bool)
+:root::debug::Show::_format#19 {
+  ^0 = vi:interface(vi:bool vi:enum:variant#3[vi:enum#5](0))
+  ^1 = 0
 }
 
-:root::unicode::String::split_trim#13 {
-  ^ = vi:interface
+:root::debug::Show::_format#20 {
+  ^0 = vi:interface(vi:bool vi:enum:variant#4[vi:enum#5](0))
+  ^1 = 0
 }
 
-:root::unicode::String::split_trim#11 {
-  ^ = vi:interface(vi:ref(0 0) vi:eraser)
+:root::debug::Show::_format#25 {
+  ^ = vi:interface(
+    vi:tuple(vi:dup(0 1) 2 3)
+    vi:ext#2[vi:n32:add](1 4)
+    vi:tuple(vi:ext#2[vi:n32:add](0 5) 3 6)
+    vi:tuple(4 vi:tuple(5 2 6))
+  )
 }
 
-:root::unicode::String::split_trim#12 {
+:root::debug::Show::_format#26 {
+  ^ = vi:interface(
+    vi:tuple(
+      vi:dup(vi:ext#2[vi:n32:add](vi:n32#2 vi:ext#2[vi:n32:add](0 1)) 2)
+      3
+      vi:tuple(vi:n32#40 4)
+    )
+    vi:ext#2[vi:n32:add](2 vi:ext#2[vi:n32:add](vi:n32#2 5))
+    vi:tuple(0 4 vi:tuple(vi:n32#41 6))
+    vi:tuple(5 vi:tuple(1 3 6))
+  )
+}
+
+:root::debug::Show::_format#30 {
+  ^ = vi:interface(vi:eraser vi:eraser vi:eraser vi:tuple(vi:n32#2 vi:tuple(vi:n32#2 vi:tuple(vi:n32#40 vi:tuple(vi:n32#41 0)) 0)))
+}
+
+:root::debug::Show::_format#31 {
+  ^ = vi:interface(0 1 vi:tuple(vi:dup(2 vi:dup(vi:eraser vi:ext#2[vi:n32:eq](vi:n32#1 vi:bool:if[:root::debug::Show::_format#33, :root::debug::Show::_format#34](vi:interface(0 1 vi:tuple(2 3 4) 5))))) 3 4) 5)
+}
+
+:root::debug::Show::_format#33 {
+  ^ = vi:interface(
+    0
+    1
+    vi:tuple(vi:dup(2 vi:ext#2[vi:n32:ne](vi:n32 vi:bool:if[:root::data::List::pop_front#2, :root::data::List::pop_front#3](vi:interface(
+      vi:ref(2 vi:eraser)
+      vi:ref(3 vi:eraser)
+      vi:enum:match[vi:enum#2, :root::logical::Option::assume#4, :root::logical::Option::assume#5](vi:interface(vi:enum:match[vi:enum#5, :root::debug::Show::_format#46, :root::debug::Show::_format#47, :root::debug::Show::_format#48, :root::debug::Show::_format#49, :root::debug::Show::_format#50](vi:interface(0 1 vi:tuple(
+        vi:ext#2[vi:n32:add](vi:n32#3 4)
+        vi:tuple(
+          vi:ext#2[vi:n32:add](vi:n32#3 5)
+          6
+          vi:tuple(vi:n32#44 vi:tuple(vi:n32#41 7))
+        )
+      )))))
+    )))) 3 vi:eraser)
+    vi:tuple(4 vi:tuple(5 vi:tuple(vi:n32#40 6) 7))
+  )
+}
+
+:root::debug::Show::_format#34 {
+  ^ = vi:interface(
+    vi:dup(vi:dup(vi:eraser vi:ext#2[vi:n32:lt](0 vi:dup(
+      vi:bool:if[
+        :root::debug::Show::format_comma_sep#21[
+          :root::util::erase,
+          vi:closure:fork[:root::debug::Show::_format],
+          vi:closure:drop[:root::debug::Show::_format],
+          vi:closure[:root::debug::Show::_format],
+        ],
+        :root::debug::Show::format_comma_sep#22[
+          :root::util::erase,
+          vi:closure:fork[:root::debug::Show::_format],
+          vi:closure:drop[:root::debug::Show::_format],
+          vi:closure[:root::debug::Show::_format],
+        ],
+      ](vi:interface(1 vi:ref(2 vi:tuple(
+        vi:ext#2[vi:n32:add](vi:n32#2 3)
+        4
+        vi:tuple(vi:n32#41 5)
+      ))))
+      vi:dup(6 vi:eraser)
+    ))) 7)
+    vi:dup(1 8)
+    vi:tuple(vi:dup(9 vi:ext#2[vi:n32:ne](vi:n32 vi:bool:if[:root::data::List::Iter::advance#2, :root::data::List::Iter::advance#3](vi:interface(9 10 11 vi:enum:match[
+      vi:enum#2,
+      :root::debug::Show::format_comma_sep#4[
+        :root::util::erase,
+        vi:closure:fork[:root::debug::Show::_format],
+        vi:closure:drop[:root::debug::Show::_format],
+        vi:closure[:root::debug::Show::_format],
+      ],
+      :root::debug::Show::format_comma_sep#5[
+        :root::util::erase,
+        vi:closure:fork[:root::debug::Show::_format],
+        vi:closure:drop[:root::debug::Show::_format],
+        vi:closure[:root::debug::Show::_format],
+      ],
+    ](vi:interface(
+      vi:interface
+      7
+      8
+      6
+      vi:ref(vi:n32 vi:dup(12 0))
+      vi:ref(vi:tuple(vi:n32 13 13) 2)
+      vi:bool#1
+    )))))) 10 11)
+    vi:tuple(12 vi:tuple(3 vi:tuple(vi:n32#40 4) 5))
+  )
+}
+
+:root::debug::Show::_format#37 {
+  ^ = vi:interface(vi:eraser vi:eraser vi:eraser vi:tuple(vi:n32#2 vi:tuple(vi:n32#2 vi:tuple(vi:n32#91 vi:tuple(vi:n32#93 0)) 0)))
+}
+
+:root::debug::Show::_format#38 {
+  ^ = vi:interface(
+    vi:dup(vi:dup(vi:eraser vi:ext#2[vi:n32:lt](0 vi:dup(
+      vi:bool:if[
+        :root::debug::Show::format_comma_sep#21[
+          :root::util::erase,
+          vi:closure:fork#1[:root::debug::Show::_format],
+          vi:closure:drop#1[:root::debug::Show::_format],
+          vi:closure#1[:root::debug::Show::_format],
+        ],
+        :root::debug::Show::format_comma_sep#22[
+          :root::util::erase,
+          vi:closure:fork#1[:root::debug::Show::_format],
+          vi:closure:drop#1[:root::debug::Show::_format],
+          vi:closure#1[:root::debug::Show::_format],
+        ],
+      ](vi:interface(1 vi:ref(2 vi:tuple(
+        vi:ext#2[vi:n32:add](vi:n32#2 3)
+        4
+        vi:tuple(vi:n32#93 5)
+      ))))
+      vi:dup(6 vi:eraser)
+    ))) 7)
+    vi:dup(1 8)
+    vi:tuple(vi:dup(9 vi:ext#2[vi:n32:ne](vi:n32 vi:bool:if[:root::data::List::Iter::advance#2, :root::data::List::Iter::advance#3](vi:interface(9 10 11 vi:enum:match[
+      vi:enum#2,
+      :root::debug::Show::format_comma_sep#4[
+        :root::util::erase,
+        vi:closure:fork#1[:root::debug::Show::_format],
+        vi:closure:drop#1[:root::debug::Show::_format],
+        vi:closure#1[:root::debug::Show::_format],
+      ],
+      :root::debug::Show::format_comma_sep#5[
+        :root::util::erase,
+        vi:closure:fork#1[:root::debug::Show::_format],
+        vi:closure:drop#1[:root::debug::Show::_format],
+        vi:closure#1[:root::debug::Show::_format],
+      ],
+    ](vi:interface(
+      vi:interface
+      7
+      8
+      6
+      vi:ref(vi:n32 vi:dup(12 0))
+      vi:ref(vi:tuple(vi:n32 13 13) 2)
+      vi:bool#1
+    )))))) 10 11)
+    vi:tuple(12 vi:tuple(3 vi:tuple(vi:n32#91 4) 5))
+  )
+}
+
+:root::debug::Show::_format#41 {
+  ^ = vi:interface(vi:eraser vi:eraser vi:eraser vi:tuple(vi:n32#2 vi:tuple(vi:n32#2 vi:tuple(vi:n32#123 vi:tuple(vi:n32#125 0)) 0)))
+}
+
+:root::debug::Show::_format#42 {
+  ^ = vi:interface(
+    vi:dup(vi:dup(vi:eraser vi:ext#2[vi:n32:lt](0 vi:dup(
+      vi:bool:if[
+        :root::debug::Show::format_comma_sep#21[
+          :root::util::erase,
+          vi:closure:fork#2[:root::debug::Show::_format],
+          vi:closure:drop#2[:root::debug::Show::_format],
+          vi:closure#2[:root::debug::Show::_format],
+        ],
+        :root::debug::Show::format_comma_sep#22[
+          :root::util::erase,
+          vi:closure:fork#2[:root::debug::Show::_format],
+          vi:closure:drop#2[:root::debug::Show::_format],
+          vi:closure#2[:root::debug::Show::_format],
+        ],
+      ](vi:interface(1 vi:ref(2 3)))
+      vi:dup(4 vi:bool:if[:root::debug::Show::_format#44, :root::debug::Show::_format#45](vi:interface(3 5)))
+    ))) 6)
+    vi:dup(1 7)
+    vi:tuple(vi:dup(8 vi:ext#2[vi:n32:ne](vi:n32 vi:bool:if[:root::data::List::Iter::advance#2, :root::data::List::Iter::advance#3](vi:interface(8 9 10 vi:enum:match[
+      vi:enum#2,
+      :root::debug::Show::format_comma_sep#4[
+        :root::util::erase,
+        vi:closure:fork#2[:root::debug::Show::_format],
+        vi:closure:drop#2[:root::debug::Show::_format],
+        vi:closure#2[:root::debug::Show::_format],
+      ],
+      :root::debug::Show::format_comma_sep#5[
+        :root::util::erase,
+        vi:closure:fork#2[:root::debug::Show::_format],
+        vi:closure:drop#2[:root::debug::Show::_format],
+        vi:closure#2[:root::debug::Show::_format],
+      ],
+    ](vi:interface(
+      vi:interface
+      6
+      7
+      4
+      vi:ref(vi:n32 vi:dup(11 0))
+      vi:ref(vi:tuple(vi:n32 12 12) 2)
+      vi:bool#1
+    )))))) 9 10)
+    vi:tuple(11 5)
+  )
+}
+
+:root::debug::Show::_format#44 {
+  ^ = vi:interface(
+    vi:tuple(
+      vi:ext#2[vi:n32:add](vi:n32#2 0)
+      1
+      vi:tuple(vi:n32#125 2)
+    )
+    vi:tuple(0 vi:tuple(vi:n32#123 1) 2)
+  )
+}
+
+:root::debug::Show::_format#45 {
+  ^ = vi:interface(
+    vi:tuple(
+      vi:ext#2[vi:n32:add](vi:n32#4 0)
+      1
+      vi:tuple(vi:n32#32 vi:tuple(vi:n32#125 2))
+    )
+    vi:tuple(0 vi:tuple(vi:n32#123 vi:tuple(vi:n32#32 1)) 2)
+  )
+}
+
+:root::debug::Show::format_comma_sep#21[
+  :root::util::erase,
+  vi:closure:fork[:root::debug::Show::_format],
+  vi:closure:drop[:root::debug::Show::_format],
+  vi:closure[:root::debug::Show::_format],
+] {
+  ^ = vi:interface(
+    vi:dup(
+      vi:ext#2[vi:n32:add](vi:n32#1 0)
+      vi:dup(1 2)
+    )
+    vi:ref(
+      vi:tuple(
+        vi:ext#2[vi:n32:add](0 3)
+        4
+        vi:tuple(vi:n32#10 5)
+      )
+      vi:tuple(3 4 6)
+    )
+  )
+  vi:n32 = vi:ext#2[vi:n32:lt](2 vi:bool:if[
+    :root::ops::Range::exclusive_iter::advance#2[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32],
+    :root::ops::Range::exclusive_iter::advance#3[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32],
+  ](vi:interface(vi:n32 1 vi:enum:match[
+    vi:enum#2,
+    :root::data::List::new#4[:root::util::duplicate, :root::util::erase],
+    :root::data::List::new#5[:root::util::duplicate, :root::util::erase],
+  ](vi:interface(vi:n32#32 vi:ref(5 6))))))
+}
+
+:root::debug::Show::format_comma_sep#22[
+  :root::util::erase,
+  vi:closure:fork[:root::debug::Show::_format],
+  vi:closure:drop[:root::debug::Show::_format],
+  vi:closure[:root::debug::Show::_format],
+] {
+  ^ = vi:interface(vi:eraser vi:ref(0 0))
+}
+
+:root::debug::Show::format_comma_sep#4[
+  :root::util::erase,
+  vi:closure:fork[:root::debug::Show::_format],
+  vi:closure:drop[:root::debug::Show::_format],
+  vi:closure[:root::debug::Show::_format],
+] {
+  ^0 = vi:interface(
+    vi:interface
+    vi:eraser
+    vi:eraser
+    vi:eraser
+    vi:ref(0 0)
+    vi:ref(1 1)
+    vi:eraser
+  )
+  ^1 = vi:tuple
+}
+
+:root::debug::Show::format_comma_sep#5[
+  :root::util::erase,
+  vi:closure:fork[:root::debug::Show::_format],
+  vi:closure:drop[:root::debug::Show::_format],
+  vi:closure[:root::debug::Show::_format],
+] {
+  ^0 = vi:interface(
+    vi:interface
+    vi:dup(0 vi:dup(vi:eraser 1))
+    vi:dup(2 vi:dup(vi:dup(vi:eraser vi:ext#2[vi:n32:add](vi:n32#2 3)) 4))
+    vi:dup(5 vi:dup(
+      vi:bool:if[
+        :root::debug::Show::format_comma_sep#18[
+          :root::util::erase,
+          vi:closure:fork[:root::debug::Show::_format],
+          vi:closure:drop[:root::debug::Show::_format],
+          vi:closure[:root::debug::Show::_format],
+        ],
+        :root::debug::Show::format_comma_sep#19[
+          :root::util::erase,
+          vi:closure:fork[:root::debug::Show::_format],
+          vi:closure:drop[:root::debug::Show::_format],
+          vi:closure[:root::debug::Show::_format],
+        ],
+      ](vi:interface(vi:ref(vi:tuple(6 7 8) 9)))
+      vi:bool:if[
+        :root::debug::Show::format_comma_sep#7[
+          :root::util::erase,
+          vi:closure:fork[:root::debug::Show::_format],
+          vi:closure:drop[:root::debug::Show::_format],
+          vi:closure[:root::debug::Show::_format],
+        ],
+        :root::debug::Show::format_comma_sep#8[
+          :root::util::erase,
+          vi:closure:fork[:root::debug::Show::_format],
+          vi:closure:drop[:root::debug::Show::_format],
+          vi:closure[:root::debug::Show::_format],
+        ],
+      ](vi:interface(4 vi:ref(10 vi:tuple(vi:ext#2[vi:n32:add](11 6) 7 12)) 13))
+    ))
+    vi:ref(vi:ext#2[vi:n32:add](vi:n32#2 vi:ext#2[vi:n32:add](14 15)) 16)
+    vi:ref(10 17)
+    13
+  )
+  ^1 = vi:tuple(
+    vi:enum:match[vi:enum#5, :root::debug::Show::_format#46, :root::debug::Show::_format#47, :root::debug::Show::_format#48, :root::debug::Show::_format#49, :root::debug::Show::_format#50](vi:interface(1 3 vi:tuple(14 vi:tuple(11 12 8))))
+    vi:tuple(vi:dup(18 vi:ext#2[vi:n32:ne](vi:n32 vi:bool:if[:root::data::List::Iter::advance#2, :root::data::List::Iter::advance#3](vi:interface(18 19 20 vi:enum:match[
+      vi:enum#2,
+      :root::debug::Show::format_comma_sep#4[
+        :root::util::erase,
+        vi:closure:fork[:root::debug::Show::_format],
+        vi:closure:drop[:root::debug::Show::_format],
+        vi:closure[:root::debug::Show::_format],
+      ],
+      :root::debug::Show::format_comma_sep#5[
+        :root::util::erase,
+        vi:closure:fork[:root::debug::Show::_format],
+        vi:closure:drop[:root::debug::Show::_format],
+        vi:closure[:root::debug::Show::_format],
+      ],
+    ](vi:interface(
+      vi:interface
+      0
+      2
+      5
+      vi:ref(15 16)
+      vi:ref(9 17)
+      vi:bool
+    )))))) 19 20)
+  )
+}
+
+:root::debug::Show::format_comma_sep#7[
+  :root::util::erase,
+  vi:closure:fork[:root::debug::Show::_format],
+  vi:closure:drop[:root::debug::Show::_format],
+  vi:closure[:root::debug::Show::_format],
+] {
+  ^ = vi:interface(
+    vi:ext#2[vi:n32:add](vi:n32#2 vi:dup(
+      vi:ext#2[vi:n32:add](vi:n32#1 0)
+      vi:dup(1 2)
+    ))
+    vi:ref(
+      vi:tuple(
+        vi:ext#2[vi:n32:add](0 3)
+        4
+        vi:tuple(vi:n32#10 5)
+      )
+      vi:tuple(3 4 6)
+    )
+    vi:eraser
+  )
+  vi:n32 = vi:ext#2[vi:n32:lt](2 vi:bool:if[
+    :root::ops::Range::exclusive_iter::advance#2[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32],
+    :root::ops::Range::exclusive_iter::advance#3[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32],
+  ](vi:interface(vi:n32 1 vi:enum:match[
+    vi:enum#2,
+    :root::data::List::new#4[:root::util::duplicate, :root::util::erase],
+    :root::data::List::new#5[:root::util::duplicate, :root::util::erase],
+  ](vi:interface(vi:n32#32 vi:ref(5 6))))))
+}
+
+:root::debug::Show::format_comma_sep#8[
+  :root::util::erase,
+  vi:closure:fork[:root::debug::Show::_format],
+  vi:closure:drop[:root::debug::Show::_format],
+  vi:closure[:root::debug::Show::_format],
+] {
+  ^ = vi:interface(vi:eraser 0 vi:bool:if[
+    :root::debug::Show::format_comma_sep#10[
+      :root::util::erase,
+      vi:closure:fork[:root::debug::Show::_format],
+      vi:closure:drop[:root::debug::Show::_format],
+      vi:closure[:root::debug::Show::_format],
+    ],
+    :root::debug::Show::format_comma_sep#11[
+      :root::util::erase,
+      vi:closure:fork[:root::debug::Show::_format],
+      vi:closure:drop[:root::debug::Show::_format],
+      vi:closure[:root::debug::Show::_format],
+    ],
+  ](vi:interface(0)))
+}
+
+:root::debug::Show::format_comma_sep#18[
+  :root::util::erase,
+  vi:closure:fork[:root::debug::Show::_format],
+  vi:closure:drop[:root::debug::Show::_format],
+  vi:closure[:root::debug::Show::_format],
+] {
   ^ = vi:interface(vi:ref(
     vi:tuple(
       vi:ext#2[vi:n32:add](vi:n32#1 0)
       1
-      vi:tuple(2 3)
+      vi:tuple(vi:n32#44 2)
     )
-    vi:tuple(0 1 3)
-  ) 2)
+    vi:tuple(0 1 2)
+  ))
 }
 
-:root::unicode::String::split_trim#17 {
-  ^ = vi:interface(vi:bool#1)
+:root::debug::Show::format_comma_sep#19[
+  :root::util::erase,
+  vi:closure:fork[:root::debug::Show::_format],
+  vi:closure:drop[:root::debug::Show::_format],
+  vi:closure[:root::debug::Show::_format],
+] {
+  ^ = vi:interface(vi:ref(0 0))
 }
 
-:root::unicode::String::split_trim#18 {
-  ^ = vi:interface(vi:bool)
+:root::debug::Show::format_comma_sep#10[
+  :root::util::erase,
+  vi:closure:fork[:root::debug::Show::_format],
+  vi:closure:drop[:root::debug::Show::_format],
+  vi:closure[:root::debug::Show::_format],
+] {
+  ^ = vi:interface(vi:ref(0 0))
 }
 
-:root::unicode::String::split_trim#19 {
-  ^ = vi:interface(vi:bool)
+:root::debug::Show::format_comma_sep#11[
+  :root::util::erase,
+  vi:closure:fork[:root::debug::Show::_format],
+  vi:closure:drop[:root::debug::Show::_format],
+  vi:closure[:root::debug::Show::_format],
+] {
+  ^ = vi:interface(vi:ref(
+    vi:tuple(
+      vi:ext#2[vi:n32:add](vi:n32#2 0)
+      1
+      vi:tuple(vi:n32#44 vi:tuple(vi:n32#32 2))
+    )
+    vi:tuple(0 1 2)
+  ))
 }
 
-:root::data::Iterator::Iterate::iter_ref[:root::unicode::String::iter_ref] {
-  ^ = vi:fn(
+:root::debug::Show::format_comma_sep#21[
+  :root::util::erase,
+  vi:closure:fork#1[:root::debug::Show::_format],
+  vi:closure:drop#1[:root::debug::Show::_format],
+  vi:closure#1[:root::debug::Show::_format],
+] {
+  ^ = vi:interface(
+    vi:dup(
+      vi:ext#2[vi:n32:add](vi:n32#1 0)
+      vi:dup(1 2)
+    )
     vi:ref(
-      vi:tuple(vi:dup(0 1) 2 3)
-      vi:tuple(0 4 3)
+      vi:tuple(
+        vi:ext#2[vi:n32:add](0 3)
+        4
+        vi:tuple(vi:n32#10 5)
+      )
+      vi:tuple(3 4 6)
     )
-    vi:tuple(1 vi:ref(2 4))
+  )
+  vi:n32 = vi:ext#2[vi:n32:lt](2 vi:bool:if[
+    :root::ops::Range::exclusive_iter::advance#2[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32],
+    :root::ops::Range::exclusive_iter::advance#3[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32],
+  ](vi:interface(vi:n32 1 vi:enum:match[
+    vi:enum#2,
+    :root::data::List::new#4[:root::util::duplicate, :root::util::erase],
+    :root::data::List::new#5[:root::util::duplicate, :root::util::erase],
+  ](vi:interface(vi:n32#32 vi:ref(5 6))))))
+}
+
+:root::debug::Show::format_comma_sep#22[
+  :root::util::erase,
+  vi:closure:fork#1[:root::debug::Show::_format],
+  vi:closure:drop#1[:root::debug::Show::_format],
+  vi:closure#1[:root::debug::Show::_format],
+] {
+  ^ = vi:interface(vi:eraser vi:ref(0 0))
+}
+
+:root::debug::Show::format_comma_sep#4[
+  :root::util::erase,
+  vi:closure:fork#1[:root::debug::Show::_format],
+  vi:closure:drop#1[:root::debug::Show::_format],
+  vi:closure#1[:root::debug::Show::_format],
+] {
+  ^0 = vi:interface(
+    vi:interface
+    vi:eraser
+    vi:eraser
+    vi:eraser
+    vi:ref(0 0)
+    vi:ref(1 1)
+    vi:eraser
+  )
+  ^1 = vi:tuple
+}
+
+:root::debug::Show::format_comma_sep#5[
+  :root::util::erase,
+  vi:closure:fork#1[:root::debug::Show::_format],
+  vi:closure:drop#1[:root::debug::Show::_format],
+  vi:closure#1[:root::debug::Show::_format],
+] {
+  ^0 = vi:interface(
+    vi:interface
+    vi:dup(0 vi:dup(vi:eraser 1))
+    vi:dup(2 vi:dup(vi:dup(vi:eraser vi:ext#2[vi:n32:add](vi:n32#2 3)) 4))
+    vi:dup(5 vi:dup(
+      vi:bool:if[
+        :root::debug::Show::format_comma_sep#18[
+          :root::util::erase,
+          vi:closure:fork#1[:root::debug::Show::_format],
+          vi:closure:drop#1[:root::debug::Show::_format],
+          vi:closure#1[:root::debug::Show::_format],
+        ],
+        :root::debug::Show::format_comma_sep#19[
+          :root::util::erase,
+          vi:closure:fork#1[:root::debug::Show::_format],
+          vi:closure:drop#1[:root::debug::Show::_format],
+          vi:closure#1[:root::debug::Show::_format],
+        ],
+      ](vi:interface(vi:ref(vi:tuple(6 7 8) 9)))
+      vi:bool:if[
+        :root::debug::Show::format_comma_sep#7[
+          :root::util::erase,
+          vi:closure:fork#1[:root::debug::Show::_format],
+          vi:closure:drop#1[:root::debug::Show::_format],
+          vi:closure#1[:root::debug::Show::_format],
+        ],
+        :root::debug::Show::format_comma_sep#8[
+          :root::util::erase,
+          vi:closure:fork#1[:root::debug::Show::_format],
+          vi:closure:drop#1[:root::debug::Show::_format],
+          vi:closure#1[:root::debug::Show::_format],
+        ],
+      ](vi:interface(4 vi:ref(10 vi:tuple(vi:ext#2[vi:n32:add](11 6) 7 12)) 13))
+    ))
+    vi:ref(vi:ext#2[vi:n32:add](vi:n32#2 vi:ext#2[vi:n32:add](14 15)) 16)
+    vi:ref(10 17)
+    13
+  )
+  ^1 = vi:tuple(
+    vi:enum:match[vi:enum#5, :root::debug::Show::_format#46, :root::debug::Show::_format#47, :root::debug::Show::_format#48, :root::debug::Show::_format#49, :root::debug::Show::_format#50](vi:interface(1 3 vi:tuple(14 vi:tuple(11 12 8))))
+    vi:tuple(vi:dup(18 vi:ext#2[vi:n32:ne](vi:n32 vi:bool:if[:root::data::List::Iter::advance#2, :root::data::List::Iter::advance#3](vi:interface(18 19 20 vi:enum:match[
+      vi:enum#2,
+      :root::debug::Show::format_comma_sep#4[
+        :root::util::erase,
+        vi:closure:fork#1[:root::debug::Show::_format],
+        vi:closure:drop#1[:root::debug::Show::_format],
+        vi:closure#1[:root::debug::Show::_format],
+      ],
+      :root::debug::Show::format_comma_sep#5[
+        :root::util::erase,
+        vi:closure:fork#1[:root::debug::Show::_format],
+        vi:closure:drop#1[:root::debug::Show::_format],
+        vi:closure#1[:root::debug::Show::_format],
+      ],
+    ](vi:interface(
+      vi:interface
+      0
+      2
+      5
+      vi:ref(15 16)
+      vi:ref(9 17)
+      vi:bool
+    )))))) 19 20)
   )
 }
 
-:root::derive::Singleton::cast_reconstruct::cast[:root::derive::Singleton::tuple] {
-  ^ = vi:fn(0 vi:tuple(0))
+:root::debug::Show::format_comma_sep#7[
+  :root::util::erase,
+  vi:closure:fork#1[:root::debug::Show::_format],
+  vi:closure:drop#1[:root::debug::Show::_format],
+  vi:closure#1[:root::debug::Show::_format],
+] {
+  ^ = vi:interface(
+    vi:ext#2[vi:n32:add](vi:n32#2 vi:dup(
+      vi:ext#2[vi:n32:add](vi:n32#1 0)
+      vi:dup(1 2)
+    ))
+    vi:ref(
+      vi:tuple(
+        vi:ext#2[vi:n32:add](0 3)
+        4
+        vi:tuple(vi:n32#10 5)
+      )
+      vi:tuple(3 4 6)
+    )
+    vi:eraser
+  )
+  vi:n32 = vi:ext#2[vi:n32:lt](2 vi:bool:if[
+    :root::ops::Range::exclusive_iter::advance#2[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32],
+    :root::ops::Range::exclusive_iter::advance#3[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32],
+  ](vi:interface(vi:n32 1 vi:enum:match[
+    vi:enum#2,
+    :root::data::List::new#4[:root::util::duplicate, :root::util::erase],
+    :root::data::List::new#5[:root::util::duplicate, :root::util::erase],
+  ](vi:interface(vi:n32#32 vi:ref(5 6))))))
+}
+
+:root::debug::Show::format_comma_sep#8[
+  :root::util::erase,
+  vi:closure:fork#1[:root::debug::Show::_format],
+  vi:closure:drop#1[:root::debug::Show::_format],
+  vi:closure#1[:root::debug::Show::_format],
+] {
+  ^ = vi:interface(vi:eraser 0 vi:bool:if[
+    :root::debug::Show::format_comma_sep#10[
+      :root::util::erase,
+      vi:closure:fork#1[:root::debug::Show::_format],
+      vi:closure:drop#1[:root::debug::Show::_format],
+      vi:closure#1[:root::debug::Show::_format],
+    ],
+    :root::debug::Show::format_comma_sep#11[
+      :root::util::erase,
+      vi:closure:fork#1[:root::debug::Show::_format],
+      vi:closure:drop#1[:root::debug::Show::_format],
+      vi:closure#1[:root::debug::Show::_format],
+    ],
+  ](vi:interface(0)))
+}
+
+:root::debug::Show::format_comma_sep#18[
+  :root::util::erase,
+  vi:closure:fork#1[:root::debug::Show::_format],
+  vi:closure:drop#1[:root::debug::Show::_format],
+  vi:closure#1[:root::debug::Show::_format],
+] {
+  ^ = vi:interface(vi:ref(
+    vi:tuple(
+      vi:ext#2[vi:n32:add](vi:n32#1 0)
+      1
+      vi:tuple(vi:n32#44 2)
+    )
+    vi:tuple(0 1 2)
+  ))
+}
+
+:root::debug::Show::format_comma_sep#19[
+  :root::util::erase,
+  vi:closure:fork#1[:root::debug::Show::_format],
+  vi:closure:drop#1[:root::debug::Show::_format],
+  vi:closure#1[:root::debug::Show::_format],
+] {
+  ^ = vi:interface(vi:ref(0 0))
+}
+
+:root::debug::Show::format_comma_sep#10[
+  :root::util::erase,
+  vi:closure:fork#1[:root::debug::Show::_format],
+  vi:closure:drop#1[:root::debug::Show::_format],
+  vi:closure#1[:root::debug::Show::_format],
+] {
+  ^ = vi:interface(vi:ref(0 0))
+}
+
+:root::debug::Show::format_comma_sep#11[
+  :root::util::erase,
+  vi:closure:fork#1[:root::debug::Show::_format],
+  vi:closure:drop#1[:root::debug::Show::_format],
+  vi:closure#1[:root::debug::Show::_format],
+] {
+  ^ = vi:interface(vi:ref(
+    vi:tuple(
+      vi:ext#2[vi:n32:add](vi:n32#2 0)
+      1
+      vi:tuple(vi:n32#44 vi:tuple(vi:n32#32 2))
+    )
+    vi:tuple(0 1 2)
+  ))
+}
+
+:root::debug::Show::format_comma_sep#21[
+  :root::util::erase,
+  vi:closure:fork#2[:root::debug::Show::_format],
+  vi:closure:drop#2[:root::debug::Show::_format],
+  vi:closure#2[:root::debug::Show::_format],
+] {
+  ^ = vi:interface(
+    vi:dup(
+      vi:ext#2[vi:n32:add](vi:n32#1 0)
+      vi:dup(1 2)
+    )
+    vi:ref(
+      vi:tuple(
+        vi:ext#2[vi:n32:add](0 3)
+        4
+        vi:tuple(vi:n32#10 5)
+      )
+      vi:tuple(3 4 6)
+    )
+  )
+  vi:n32 = vi:ext#2[vi:n32:lt](2 vi:bool:if[
+    :root::ops::Range::exclusive_iter::advance#2[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32],
+    :root::ops::Range::exclusive_iter::advance#3[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32],
+  ](vi:interface(vi:n32 1 vi:enum:match[
+    vi:enum#2,
+    :root::data::List::new#4[:root::util::duplicate, :root::util::erase],
+    :root::data::List::new#5[:root::util::duplicate, :root::util::erase],
+  ](vi:interface(vi:n32#32 vi:ref(5 6))))))
+}
+
+:root::debug::Show::format_comma_sep#22[
+  :root::util::erase,
+  vi:closure:fork#2[:root::debug::Show::_format],
+  vi:closure:drop#2[:root::debug::Show::_format],
+  vi:closure#2[:root::debug::Show::_format],
+] {
+  ^ = vi:interface(vi:eraser vi:ref(0 0))
+}
+
+:root::debug::Show::format_comma_sep#4[
+  :root::util::erase,
+  vi:closure:fork#2[:root::debug::Show::_format],
+  vi:closure:drop#2[:root::debug::Show::_format],
+  vi:closure#2[:root::debug::Show::_format],
+] {
+  ^0 = vi:interface(
+    vi:interface
+    vi:eraser
+    vi:eraser
+    vi:eraser
+    vi:ref(0 0)
+    vi:ref(1 1)
+    vi:eraser
+  )
+  ^1 = vi:tuple
+}
+
+:root::debug::Show::format_comma_sep#5[
+  :root::util::erase,
+  vi:closure:fork#2[:root::debug::Show::_format],
+  vi:closure:drop#2[:root::debug::Show::_format],
+  vi:closure#2[:root::debug::Show::_format],
+] {
+  ^0 = vi:interface(
+    vi:interface
+    vi:dup(0 vi:dup(vi:dup(vi:dup(vi:eraser 1) vi:eraser) 2))
+    vi:dup(3 vi:dup(vi:dup(
+      vi:dup(
+        vi:dup(vi:eraser vi:ext#2[vi:n32:add](vi:n32#2 4))
+        vi:ext#2[vi:n32:add](vi:n32#2 vi:eraser)
+      )
+      vi:ext#2[vi:n32:add](vi:n32#2 5)
+    ) 6))
+    vi:dup(7 vi:dup(
+      vi:bool:if[
+        :root::debug::Show::format_comma_sep#18[
+          :root::util::erase,
+          vi:closure:fork#2[:root::debug::Show::_format],
+          vi:closure:drop#2[:root::debug::Show::_format],
+          vi:closure#2[:root::debug::Show::_format],
+        ],
+        :root::debug::Show::format_comma_sep#19[
+          :root::util::erase,
+          vi:closure:fork#2[:root::debug::Show::_format],
+          vi:closure:drop#2[:root::debug::Show::_format],
+          vi:closure#2[:root::debug::Show::_format],
+        ],
+      ](vi:interface(vi:ref(vi:tuple(8 9 10) 11)))
+      vi:bool:if[
+        :root::debug::Show::format_comma_sep#7[
+          :root::util::erase,
+          vi:closure:fork#2[:root::debug::Show::_format],
+          vi:closure:drop#2[:root::debug::Show::_format],
+          vi:closure#2[:root::debug::Show::_format],
+        ],
+        :root::debug::Show::format_comma_sep#8[
+          :root::util::erase,
+          vi:closure:fork#2[:root::debug::Show::_format],
+          vi:closure:drop#2[:root::debug::Show::_format],
+          vi:closure#2[:root::debug::Show::_format],
+        ],
+      ](vi:interface(6 vi:ref(12 vi:tuple(vi:ext#2[vi:n32:add](13 vi:ext#2[vi:n32:add](vi:n32#2 vi:ext#2[vi:n32:add](14 8))) 9 15)) 16))
+    ))
+    vi:ref(vi:ext#2[vi:n32:add](vi:n32#2 vi:ext#2[vi:n32:add](17 vi:ext#2[vi:n32:add](vi:n32#2 vi:ext#2[vi:n32:add](18 19)))) 20)
+    vi:ref(12 21)
+    16
+  )
+  ^1 = vi:tuple(
+    vi:tuple(
+      vi:enum:match[vi:enum#5, :root::debug::Show::_format#46, :root::debug::Show::_format#47, :root::debug::Show::_format#48, :root::debug::Show::_format#49, :root::debug::Show::_format#50](vi:interface(2 5 vi:tuple(17 vi:tuple(13 15 vi:tuple(vi:n32#58 vi:tuple(vi:n32#32 22))))))
+      vi:enum:match[vi:enum#5, :root::debug::Show::_format#46, :root::debug::Show::_format#47, :root::debug::Show::_format#48, :root::debug::Show::_format#49, :root::debug::Show::_format#50](vi:interface(1 4 vi:tuple(18 vi:tuple(14 22 10))))
+    )
+    vi:tuple(vi:dup(23 vi:ext#2[vi:n32:ne](vi:n32 vi:bool:if[:root::data::List::Iter::advance#2, :root::data::List::Iter::advance#3](vi:interface(23 24 25 vi:enum:match[
+      vi:enum#2,
+      :root::debug::Show::format_comma_sep#4[
+        :root::util::erase,
+        vi:closure:fork#2[:root::debug::Show::_format],
+        vi:closure:drop#2[:root::debug::Show::_format],
+        vi:closure#2[:root::debug::Show::_format],
+      ],
+      :root::debug::Show::format_comma_sep#5[
+        :root::util::erase,
+        vi:closure:fork#2[:root::debug::Show::_format],
+        vi:closure:drop#2[:root::debug::Show::_format],
+        vi:closure#2[:root::debug::Show::_format],
+      ],
+    ](vi:interface(
+      vi:interface
+      0
+      3
+      7
+      vi:ref(19 20)
+      vi:ref(11 21)
+      vi:bool
+    )))))) 24 25)
+  )
+}
+
+:root::debug::Show::format_comma_sep#7[
+  :root::util::erase,
+  vi:closure:fork#2[:root::debug::Show::_format],
+  vi:closure:drop#2[:root::debug::Show::_format],
+  vi:closure#2[:root::debug::Show::_format],
+] {
+  ^ = vi:interface(
+    vi:ext#2[vi:n32:add](vi:n32#2 vi:dup(
+      vi:ext#2[vi:n32:add](vi:n32#1 0)
+      vi:dup(1 2)
+    ))
+    vi:ref(
+      vi:tuple(
+        vi:ext#2[vi:n32:add](0 3)
+        4
+        vi:tuple(vi:n32#10 5)
+      )
+      vi:tuple(3 4 6)
+    )
+    vi:eraser
+  )
+  vi:n32 = vi:ext#2[vi:n32:lt](2 vi:bool:if[
+    :root::ops::Range::exclusive_iter::advance#2[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32],
+    :root::ops::Range::exclusive_iter::advance#3[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32],
+  ](vi:interface(vi:n32 1 vi:enum:match[
+    vi:enum#2,
+    :root::data::List::new#4[:root::util::duplicate, :root::util::erase],
+    :root::data::List::new#5[:root::util::duplicate, :root::util::erase],
+  ](vi:interface(vi:n32#32 vi:ref(5 6))))))
+}
+
+:root::debug::Show::format_comma_sep#8[
+  :root::util::erase,
+  vi:closure:fork#2[:root::debug::Show::_format],
+  vi:closure:drop#2[:root::debug::Show::_format],
+  vi:closure#2[:root::debug::Show::_format],
+] {
+  ^ = vi:interface(vi:eraser 0 vi:bool:if[
+    :root::debug::Show::format_comma_sep#10[
+      :root::util::erase,
+      vi:closure:fork#2[:root::debug::Show::_format],
+      vi:closure:drop#2[:root::debug::Show::_format],
+      vi:closure#2[:root::debug::Show::_format],
+    ],
+    :root::debug::Show::format_comma_sep#11[
+      :root::util::erase,
+      vi:closure:fork#2[:root::debug::Show::_format],
+      vi:closure:drop#2[:root::debug::Show::_format],
+      vi:closure#2[:root::debug::Show::_format],
+    ],
+  ](vi:interface(0)))
+}
+
+:root::debug::Show::format_comma_sep#18[
+  :root::util::erase,
+  vi:closure:fork#2[:root::debug::Show::_format],
+  vi:closure:drop#2[:root::debug::Show::_format],
+  vi:closure#2[:root::debug::Show::_format],
+] {
+  ^ = vi:interface(vi:ref(
+    vi:tuple(
+      vi:ext#2[vi:n32:add](vi:n32#1 0)
+      1
+      vi:tuple(vi:n32#44 2)
+    )
+    vi:tuple(0 1 2)
+  ))
+}
+
+:root::debug::Show::format_comma_sep#19[
+  :root::util::erase,
+  vi:closure:fork#2[:root::debug::Show::_format],
+  vi:closure:drop#2[:root::debug::Show::_format],
+  vi:closure#2[:root::debug::Show::_format],
+] {
+  ^ = vi:interface(vi:ref(0 0))
+}
+
+:root::debug::Show::format_comma_sep#10[
+  :root::util::erase,
+  vi:closure:fork#2[:root::debug::Show::_format],
+  vi:closure:drop#2[:root::debug::Show::_format],
+  vi:closure#2[:root::debug::Show::_format],
+] {
+  ^ = vi:interface(vi:ref(0 0))
+}
+
+:root::debug::Show::format_comma_sep#11[
+  :root::util::erase,
+  vi:closure:fork#2[:root::debug::Show::_format],
+  vi:closure:drop#2[:root::debug::Show::_format],
+  vi:closure#2[:root::debug::Show::_format],
+] {
+  ^ = vi:interface(vi:ref(
+    vi:tuple(
+      vi:ext#2[vi:n32:add](vi:n32#2 0)
+      1
+      vi:tuple(vi:n32#44 vi:tuple(vi:n32#32 2))
+    )
+    vi:tuple(0 1 2)
+  ))
+}
+
+:root::logical::Option::as_ref#4 {
+  ^0 = vi:interface(
+    vi:enum:variant[vi:enum#2](vi:tuple)
+    vi:enum:variant[vi:enum#2](vi:tuple)
+  )
+  ^1 = vi:tuple
+}
+
+:root::logical::Option::as_ref#5 {
+  ^0 = vi:interface(
+    vi:enum:variant#1[vi:enum#2](vi:ref(0 1))
+    vi:enum:variant#1[vi:enum#2](1)
+  )
+  ^1 = 0
+}
+
+:root::logical::Option::flatten {
+  ^ = vi:fn(vi:enum:match[vi:enum#2, :root::logical::Option::flatten#4, :root::logical::Option::flatten#5](vi:interface(0)) 0)
+}
+
+:root::logical::Option::flatten#4 {
+  ^0 = vi:interface(vi:enum:variant[vi:enum#2](vi:tuple))
+  ^1 = vi:tuple
+}
+
+:root::logical::Option::flatten#5 {
+  ^0 = 0
+  ^1 = vi:enum:match[vi:enum#2, :root::logical::Option::flatten#6, :root::logical::Option::flatten#7](0)
+}
+
+:root::logical::Option::flatten#6 {
+  ^0 = vi:interface(vi:enum:variant[vi:enum#2](vi:tuple))
+  ^1 = vi:tuple
+}
+
+:root::logical::Option::flatten#7 {
+  ^0 = vi:interface(vi:enum:variant#1[vi:enum#2](0))
+  ^1 = 0
+}
+
+:root::logical::Option::take {
+  ^ = vi:fn(vi:ref(0 vi:enum:variant[vi:enum#2](vi:tuple)) 0)
 }
 
 :root::IO::println {
@@ -2885,701 +1647,556 @@ vi:synthetic[vi:synthetic:const_alias[:root::debug::enabled]] {
   )
 }
 
-:root::IO::_read_char {
-  ^ = vi:fn(vi:ref(vi:ext#1[root:io:read_char](0 1) 1) 0)
-}
-
-:root::IO::full_input {
-  ^ = vi:fn(vi:ref(0 1) 2)
-  vi:interface(
-    vi:ref(0 1)
-    vi:tuple(vi:n32 3 3)
-    2
-  ) = vi:graft[:root::IO::full_input#1]
-}
-
-:root::IO::full_input#1 {
-  ^ = vi:interface(vi:ref(vi:ext#1[root:io:read_char](vi:dup(0 vi:ext#2[vi:n32:ne](vi:n32#0xffffffff vi:bool:if[:root::IO::full_input#5, :root::IO::full_input#6](vi:interface(vi:ref(1 2) 3 0 4)))) 1) 2) 3 4)
-}
-
-:root::IO::full_input#5 {
-  ^ = vi:interface(
-    vi:ref(vi:ext#1[root:io:read_char](vi:dup(0 vi:ext#2[vi:n32:ne](vi:n32#0xffffffff vi:bool:if[:root::IO::full_input#5, :root::IO::full_input#6](vi:interface(
-      vi:ref(1 2)
-      vi:tuple(3 4 5)
-      0
-      6
-    )))) 1) 2)
-    vi:tuple(
-      vi:ext#2[vi:n32:add](vi:n32#1 3)
-      4
-      vi:tuple(7 5)
-    )
-    7
-    6
-  )
-}
-
-:root::IO::full_input#6 {
-  ^ = vi:interface(vi:ref(0 0) 1 vi:eraser 1)
-}
-
-:root::data::Iterator::Iterate::iterator::iter[:root::data::List::IterRef] {
-  ^ = vi:fn(0 0)
-}
-
-:day_06::main#4 {
-  ^ = vi:interface(0 1 vi:tuple(vi:dup(2 vi:ext#2[vi:n32:ne](vi:n32 vi:bool:if[:root::data::List::IterRef::advance#2, :root::data::List::IterRef::advance#3](vi:interface(2 3 vi:enum:match[vi:enum#2, :day_06::main#7, :day_06::main#8](vi:interface(0 1)))))) 3))
-}
-
-:root::data::List::map[
-  vi:closure:fork[:day_06::main],
-  vi:closure:drop[:day_06::main],
-  vi:closure[:day_06::main],
+:root::logical::Option::map[
+  vi:closure:drop#3[:option_party::main],
+  vi:closure#3[:option_party::main],
 ] {
-  ^ = vi:fn(0 1 vi:tuple(2 3 4))
-  vi:graft[:root::data::List::len] = vi:fn(vi:ref(0 5) 2)
-  vi:graft[:root::data::List::Stream::pair] = vi:tuple(3 6)
-  vi:graft[:root::data::List::iter::iter] = vi:fn(5 7)
-  vi:interface(1 vi:ref(6 4) 7) = vi:graft[:root::data::List::map#1[
-    vi:closure:fork[:day_06::main],
-    vi:closure:drop[:day_06::main],
-    vi:closure[:day_06::main],
-  ]]
-  vi:graft[:root::util::erase::drop] = vi:fn(vi:tuple vi:tuple)
+  ^ = vi:fn(vi:enum:match[
+    vi:enum#2,
+    :root::logical::Option::map#4[
+      vi:closure:drop#3[:option_party::main],
+      vi:closure#3[:option_party::main],
+    ],
+    :root::logical::Option::map#5[
+      vi:closure:drop#3[:option_party::main],
+      vi:closure#3[:option_party::main],
+    ],
+  ](vi:interface(0 1)) 0 1)
 }
 
-:day_06::walk {
+:option_party::main#1 {
   ^ = vi:fn(
-    vi:ref(vi:tuple(vi:dup(vi:dup(vi:dup(0 1) 2) 3) 4) 5)
-    vi:dup(6 vi:tuple(
-      vi:ext#2[vi:n32:add](vi:n32 vi:dup(7 vi:dup(8 9)))
-      vi:ext#2[vi:n32:add](vi:n32#0xffffffff vi:dup(10 11))
-    ))
-    vi:tuple(12 13)
-  )
-  vi:n32 = vi:ext#2[vi:n32:lt](2 vi:bool:if[:root::data::Array::at#2, :root::data::Array::at#3](vi:interface(
-    1
-    vi:ref(4 14)
-    vi:n32
-    vi:enum:match[vi:enum#2, :root::logical::Option::assume#4, :root::logical::Option::assume#5](vi:interface(vi:ref(
-      vi:tuple(vi:dup(15 vi:dup(16 vi:ext#2[vi:n32:le](9 vi:bool:if[:day_06::walk#5, :day_06::walk#6](vi:interface(
-        vi:ref(vi:tuple(0 14) 5)
-        6
-        3
-        16
-        vi:tuple(vi:n32 vi:n32#0xffffffff)
-        vi:ref(vi:n32#1 13)
-        vi:n32
-        vi:tuple(7 10)
-        8
-        11
-        12
-      ))))) 17)
-      vi:tuple(15 17)
-    )))
-  )))
-}
-
-:day_06::clear {
-  ^ = vi:fn(
-    vi:ref(0 1)
-    vi:ref(2 3)
+    vi:interface(vi:ref(0 1))
+    vi:tuple(vi:enum:match[
+      vi:enum#2,
+      vi:synthetic#1[vi:synthetic:enum_deconstruct[:root::logical::Option]],
+      vi:synthetic#2[vi:synthetic:enum_deconstruct[:root::logical::Option]],
+    ](vi:enum:match[
+      vi:enum#2,
+      :root::debug::Show::ShowVariant::variant::show_variant#4[
+        :root::debug::Show::tuple[:root::debug::Show::ShowTuple::nil],
+        :root::debug::Show::ShowVariant::variant[:root::numeric::N32, :root::debug::Show::ShowVariant::never],
+      ],
+      :root::debug::Show::ShowVariant::variant::show_variant#5[
+        :root::debug::Show::tuple[:root::debug::Show::ShowTuple::nil],
+        :root::debug::Show::ShowVariant::variant[:root::numeric::N32, :root::debug::Show::ShowVariant::never],
+      ],
+    ](vi:interface(
+      vi:tuple(vi:n32#4 vi:tuple(vi:n32#78 vi:tuple(vi:n32#111 vi:tuple(vi:n32#110 vi:tuple(vi:n32#101 2)))) 2)
+      vi:tuple(vi:n32#1 vi:tuple(vi:tuple(vi:n32#4 vi:tuple(vi:n32#83 vi:tuple(vi:n32#111 vi:tuple(vi:n32#109 vi:tuple(vi:n32#101 3)))) 3) 4) 4)
+      vi:enum:match[vi:enum#5, :root::debug::Show::_format#46, :root::debug::Show::_format#47, :root::debug::Show::_format#48, :root::debug::Show::_format#49, :root::debug::Show::_format#50](vi:interface(vi:n32#80 vi:n32 vi:tuple(vi:eraser vi:tuple(vi:ext#2[vi:n32:add](vi:n32#2 vi:dup(5 vi:ext#2[vi:n32:ne](vi:n32 vi:bool:if[:root::data::List::Iter::advance#2, :root::data::List::Iter::advance#3](vi:interface(
+        5
+        vi:tuple(vi:n32#32 vi:tuple(vi:n32#32 6))
+        7
+        vi:enum:match[vi:enum#2, :root::IO::print#4, :root::IO::print#5](vi:interface(vi:ref(0 vi:ext#2[root:io:print_char](vi:n32#10 1))))
+      ))))) 6 7))))
+      vi:enum:match[
+        vi:enum#2,
+        vi:synthetic#1[vi:synthetic:enum_reconstruct[:root::logical::Option]],
+        vi:synthetic#2[vi:synthetic:enum_reconstruct[:root::logical::Option]],
+      ](vi:eraser)
+    ))))
     vi:tuple
   )
-  vi:graft[:root::data::Array::len] = vi:fn(vi:ref(0 4) 5)
-  vi:graft[:root::data::Array::at] = vi:fn(vi:ref(4 6) vi:n32 7)
-  vi:graft[:root::logical::Option::assume] = vi:fn(7 vi:ref(8 9))
-  vi:graft[:root::data::Array::len] = vi:fn(vi:ref(8 9) 10)
-  vi:graft[:root::data::Iterator::Iterate::iterator::iter[:root::ops::Range::exclusive_iter[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32]]] = vi:fn(vi:tuple(vi:n32 5) 11)
-  vi:interface(
-    vi:ref(6 1)
-    vi:ref(2 3)
-    10
-    11
-  ) = vi:graft[:day_06::clear#1]
+}
+
+:root::logical::Option::map[
+  vi:closure:drop#4[:option_party::main],
+  vi:closure#4[:option_party::main],
+] {
+  ^ = vi:fn(vi:enum:match[
+    vi:enum#2,
+    :root::logical::Option::map#4[
+      vi:closure:drop#4[:option_party::main],
+      vi:closure#4[:option_party::main],
+    ],
+    :root::logical::Option::map#5[
+      vi:closure:drop#4[:option_party::main],
+      vi:closure#4[:option_party::main],
+    ],
+  ](vi:interface(0 1)) 0 1)
+}
+
+:root::logical::Option::map[
+  vi:closure:drop#5[:option_party::main],
+  vi:closure#5[:option_party::main],
+] {
+  ^ = vi:fn(vi:enum:match[
+    vi:enum#2,
+    :root::logical::Option::map#4[
+      vi:closure:drop#5[:option_party::main],
+      vi:closure#5[:option_party::main],
+    ],
+    :root::logical::Option::map#5[
+      vi:closure:drop#5[:option_party::main],
+      vi:closure#5[:option_party::main],
+    ],
+  ](vi:interface(0 1)) 0 1)
+}
+
+:option_party::increment_option {
+  ^ = vi:fn(vi:ref(vi:enum:match[vi:enum#2, :root::logical::Option::as_ref#4, :root::logical::Option::as_ref#5](vi:interface(vi:enum:match[vi:enum#2, :option_party::increment_option#4, :option_party::increment_option#5](vi:interface) 0)) 0) vi:tuple)
+}
+
+:root::logical::Option::or_option[:root::util::erase] {
+  ^ = vi:fn(vi:enum:match[
+    vi:enum#2,
+    :root::logical::Option::or_option#4[:root::util::erase],
+    :root::logical::Option::or_option#5[:root::util::erase],
+  ](vi:interface(0 1)) 0 1)
+}
+
+:option_party::main#2 {
+  ^ = vi:fn(
+    vi:interface(vi:ref(0 1))
+    vi:tuple(vi:dup(2 vi:ext#2[vi:n32:ne](vi:n32 vi:bool:if[:root::numeric::N32::to_string::cast#2, :root::numeric::N32::to_string::cast#3](vi:interface(2 vi:tuple(vi:ext#2[vi:n32:add](vi:n32#2 vi:dup(3 vi:ext#2[vi:n32:ne](vi:n32 vi:bool:if[:root::data::List::Iter::advance#2, :root::data::List::Iter::advance#3](vi:interface(
+      3
+      vi:tuple(vi:n32#32 vi:tuple(vi:n32#32 4))
+      5
+      vi:enum:match[vi:enum#2, :root::IO::print#4, :root::IO::print#5](vi:interface(vi:ref(0 vi:ext#2[root:io:print_char](vi:n32#10 1))))
+    ))))) 4 5))))))
+    vi:tuple
+  )
+}
+
+:option_party::main#16 {
+  ^0 = vi:interface(vi:bool)
+  ^1 = vi:tuple
+}
+
+:option_party::main#17 {
+  ^0 = vi:interface(vi:bool#1)
+  ^1 = vi:tuple
+}
+
+:option_party::main#3 {
+  ^ = vi:fn(
+    vi:interface(vi:ref(0 1))
+    vi:tuple(vi:bool:if[:option_party::main#5, :option_party::main#6](vi:interface(vi:tuple(vi:dup(2 vi:ext#2[vi:n32:ne](vi:n32 vi:bool:if[:root::data::List::Iter::advance#2, :root::data::List::Iter::advance#3](vi:interface(2 3 4 vi:enum:match[vi:enum#2, :root::IO::print#4, :root::IO::print#5](vi:interface(vi:ref(0 vi:ext#2[root:io:print_char](vi:n32#10 1)))))))) 3 4))))
+    vi:tuple
+  )
+}
+
+:option_party::main#21 {
+  ^0 = vi:interface(vi:bool)
+  ^1 = vi:tuple
+}
+
+:option_party::main#22 {
+  ^0 = vi:interface(vi:bool#1)
+  ^1 = vi:tuple
+}
+
+:option_party::main#26 {
+  ^0 = vi:interface(vi:bool#1)
+  ^1 = vi:tuple
   vi:tuple = vi:tuple
 }
 
-:root::data::Iterator::Iterate::iterator::iter[:root::data::List::Iter] {
-  ^ = vi:fn(0 0)
+:option_party::main#27 {
+  ^0 = vi:interface(vi:bool)
+  ^1 = vi:tuple
 }
 
-:day_06::main#17 {
-  ^ = vi:interface(0 1 2 3 4 vi:tuple(vi:dup(5 vi:ext#2[vi:n32:ne](vi:n32 vi:bool:if[:root::data::List::Iter::advance#2, :root::data::List::Iter::advance#3](vi:interface(5 6 7 vi:enum:match[vi:enum#2, :day_06::main#20, :day_06::main#21](vi:interface(0 1 2 3 4)))))) 6 7))
+:option_party::main#31 {
+  ^0 = vi:interface(vi:bool#1)
+  ^1 = vi:tuple
+  vi:tuple = vi:tuple
 }
 
-:day_06::main#1 {
-  ^ = vi:fn(vi:interface vi:tuple(vi:tuple(vi:dup(0 vi:ext#2[vi:n32:eq](vi:n32 vi:bool:if[
-    :root::data::Array::from_fn#5[
-      vi:closure:fork[:root::data::Array::from_list::cast],
-      vi:closure:drop[:root::data::Array::from_list::cast],
-      vi:closure[:root::data::Array::from_list::cast],
-    ],
-    :root::data::Array::from_fn#6[
-      vi:closure:fork[:root::data::Array::from_list::cast],
-      vi:closure:drop[:root::data::Array::from_list::cast],
-      vi:closure[:root::data::Array::from_list::cast],
-    ],
-  ](vi:interface(0 vi:interface(vi:ref(1 vi:tuple)) 2)))) 1 vi:tuple)) 2)
+:option_party::main#32 {
+  ^0 = vi:interface(vi:bool)
+  ^1 = vi:tuple
 }
 
-:day_06::main#2 {
-  ^ = vi:interface
+:option_party::main#36 {
+  ^0 = vi:interface(0)
+  ^1 = vi:tuple
+  vi:interface(0) = vi:graft[:option_party::main#40]
 }
 
-:day_06::main#3 {
+:option_party::main#37 {
+  ^0 = vi:interface(0)
+  ^1 = 1
+  vi:graft[:root::util::erase::drop] = vi:fn(2 vi:tuple)
+  vi:graft[:root::ops::comparison::Lt::gt[:root::ops::comparison::Lt::from_ord[:root::numeric::N32]]] = vi:fn(
+    vi:ref(1 3)
+    vi:ref(vi:n32 2)
+    vi:bool:if[:option_party::main#38, :option_party::main#39](vi:interface(0))
+  )
+  vi:graft[:root::util::erase::drop] = vi:fn(3 vi:tuple)
+}
+
+:option_party::main#44 {
+  ^0 = vi:interface(0)
+  ^1 = vi:tuple
+  vi:interface(0) = vi:graft[:option_party::main#48]
+}
+
+:option_party::main#45 {
+  ^0 = vi:interface(0)
+  ^1 = 1
+  vi:graft[:root::util::erase::drop] = vi:fn(2 vi:tuple)
+  vi:graft[:root::ops::comparison::Lt::gt[:root::ops::comparison::Lt::from_ord[:root::numeric::N32]]] = vi:fn(
+    vi:ref(1 3)
+    vi:ref(vi:n32 2)
+    vi:bool:if[:option_party::main#46, :option_party::main#47](vi:interface(0))
+  )
+  vi:graft[:root::util::erase::drop] = vi:fn(3 vi:tuple)
+}
+
+:option_party::main#52 {
+  ^0 = vi:interface(0)
+  ^1 = vi:tuple
+  vi:interface(0) = vi:graft[:option_party::main#56]
+}
+
+:option_party::main#53 {
+  ^0 = vi:interface(0)
+  ^1 = 1
+  vi:graft[:root::util::erase::drop] = vi:fn(2 vi:tuple)
+  vi:graft[:root::ops::comparison::Lt::gt[:root::ops::comparison::Lt::from_ord[:root::numeric::N32]]] = vi:fn(
+    vi:ref(1 3)
+    vi:ref(vi:n32 2)
+    vi:bool:if[:option_party::main#54, :option_party::main#55](vi:interface(0))
+  )
+  vi:graft[:root::util::erase::drop] = vi:fn(3 vi:tuple)
+}
+
+:option_party::main#60 {
+  ^0 = vi:interface(0)
+  ^1 = vi:tuple
+  vi:interface(0) = vi:graft[:option_party::main#64]
+}
+
+:option_party::main#61 {
+  ^0 = vi:interface(0)
+  ^1 = 1
+  vi:graft[:root::util::erase::drop] = vi:fn(2 vi:tuple)
+  vi:graft[:root::ops::comparison::Lt::gt[:root::ops::comparison::Lt::from_ord[:root::numeric::N32]]] = vi:fn(
+    vi:ref(1 3)
+    vi:ref(vi:n32 2)
+    vi:bool:if[:option_party::main#62, :option_party::main#63](vi:interface(0))
+  )
+  vi:graft[:root::util::erase::drop] = vi:fn(3 vi:tuple)
+}
+
+:option_party::main#68 {
+  ^0 = vi:interface(0)
+  ^1 = vi:tuple
+  vi:interface(0) = vi:graft[:option_party::main#72]
+}
+
+:option_party::main#69 {
+  ^0 = vi:interface(0)
+  ^1 = 1
+  vi:graft[:root::util::erase::drop] = vi:fn(2 vi:tuple)
+  vi:graft[:root::ops::comparison::Lt::gt[:root::ops::comparison::Lt::from_ord[:root::numeric::N32]]] = vi:fn(
+    vi:ref(1 3)
+    vi:ref(vi:n32 2)
+    vi:bool:if[:option_party::main#70, :option_party::main#71](vi:interface(0))
+  )
+  vi:graft[:root::util::erase::drop] = vi:fn(3 vi:tuple)
+}
+
+:option_party::main#76 {
+  ^0 = vi:interface(0)
+  ^1 = vi:tuple
+  vi:interface(0) = vi:graft[:option_party::main#80]
+}
+
+:option_party::main#77 {
+  ^0 = vi:interface(0)
+  ^1 = 1
+  vi:graft[:root::util::erase::drop] = vi:fn(2 vi:tuple)
+  vi:graft[:root::ops::comparison::Lt::gt[:root::ops::comparison::Lt::from_ord[:root::numeric::N32]]] = vi:fn(
+    vi:ref(1 3)
+    vi:ref(vi:n32 2)
+    vi:bool:if[:option_party::main#78, :option_party::main#79](vi:interface(0))
+  )
+  vi:graft[:root::util::erase::drop] = vi:fn(3 vi:tuple)
+}
+
+:option_party::main#5 {
+  ^ = vi:interface(vi:tuple(vi:n32#6 vi:tuple(vi:n32#32 vi:tuple(vi:n32#32 vi:tuple(vi:n32#116 vi:tuple(vi:n32#114 vi:tuple(vi:n32#117 vi:tuple(vi:n32#101 0)))))) 0))
+}
+
+:option_party::main#6 {
+  ^ = vi:interface(vi:tuple(vi:n32#7 vi:tuple(vi:n32#32 vi:tuple(vi:n32#32 vi:tuple(vi:n32#102 vi:tuple(vi:n32#97 vi:tuple(vi:n32#108 vi:tuple(vi:n32#115 vi:tuple(vi:n32#101 0))))))) 0))
+}
+
+:option_party::main#7 {
+  ^ = vi:fn(vi:interface vi:tuple(0) 1)
+  vi:graft[:root::numeric::N32::add] = vi:fn(0 vi:n32#1 1)
+}
+
+:option_party::main#8 {
   ^ = vi:fn(vi:interface vi:tuple)
 }
 
-:day_06::main#7 {
-  ^0 = vi:interface(vi:ref(0 0) vi:eraser)
-  ^1 = vi:tuple
+:option_party::main#9 {
+  ^ = vi:fn(vi:interface vi:tuple(0) 1)
+  vi:graft[:root::numeric::N32::add] = vi:fn(0 vi:n32#1 1)
 }
 
-:day_06::main#8 {
-  ^0 = vi:interface(
-    vi:ref(0 1)
-    vi:dup(vi:ext#2[vi:n32:add](vi:n32#1 2) 3)
-  )
-  ^1 = vi:tuple(
-    vi:ref(
-      vi:tuple(vi:dup(4 vi:dup(5 vi:ext#2[vi:n32:ne](vi:n32 vi:bool:if[:root::data::List::IterRef::advance#2, :root::data::List::IterRef::advance#3](vi:interface(
-        5
-        vi:ref(6 7)
-        vi:enum:match[vi:enum#2, :day_06::main#12, :day_06::main#13](vi:interface(vi:ref(0 8) 3 vi:n32))
-      ))))) 6 9)
-      vi:tuple(4 7 9)
-    )
-    vi:tuple(vi:dup(10 vi:ext#2[vi:n32:ne](vi:n32 vi:bool:if[:root::data::List::IterRef::advance#2, :root::data::List::IterRef::advance#3](vi:interface(10 11 vi:enum:match[vi:enum#2, :day_06::main#7, :day_06::main#8](vi:interface(vi:ref(8 1) 2)))))) 11)
-  )
+:option_party::main#10 {
+  ^ = vi:fn(vi:interface vi:tuple)
 }
 
-:day_06::main#9 {
-  ^ = vi:interface(0 1 2 vi:tuple(vi:dup(3 vi:ext#2[vi:n32:ne](vi:n32 vi:bool:if[:root::data::List::IterRef::advance#2, :root::data::List::IterRef::advance#3](vi:interface(3 4 vi:enum:match[vi:enum#2, :day_06::main#12, :day_06::main#13](vi:interface(0 1 2)))))) 4))
+:option_party::main#11 {
+  ^ = vi:fn(vi:interface vi:tuple(0) 1)
+  vi:graft[:root::numeric::N32::add] = vi:fn(0 vi:n32#1 1)
 }
 
-:day_06::main#12 {
-  ^0 = vi:interface(vi:ref(0 0) vi:eraser vi:eraser)
-  ^1 = vi:tuple
+:option_party::main#12 {
+  ^ = vi:fn(vi:interface vi:tuple)
 }
 
-:day_06::main#13 {
-  ^0 = vi:interface(
-    vi:ref(0 1)
-    vi:dup(2 3)
-    vi:dup(vi:ext#2[vi:n32:add](vi:n32#1 4) 5)
-  )
-  ^1 = vi:tuple(
-    vi:ref(vi:dup(6 vi:ext#2[vi:n32:eq](vi:n32#94 vi:bool:if[:day_06::main#15, :day_06::main#16](vi:interface(
-      vi:ref(0 7)
-      3
-      5
-      vi:ref(6 8)
-    )))) 8)
-    vi:tuple(vi:dup(9 vi:ext#2[vi:n32:ne](vi:n32 vi:bool:if[:root::data::List::IterRef::advance#2, :root::data::List::IterRef::advance#3](vi:interface(9 10 vi:enum:match[vi:enum#2, :day_06::main#12, :day_06::main#13](vi:interface(vi:ref(7 1) 2 4)))))) 10)
-  )
-}
-
-:day_06::main#15 {
-  ^ = vi:interface(
-    vi:ref(vi:eraser vi:tuple(0 1))
-    1
-    0
-    vi:ref(vi:eraser vi:n32#88)
-  )
-}
-
-:day_06::main#16 {
-  ^ = vi:interface(
-    vi:ref(0 0)
-    vi:eraser
-    vi:eraser
-    vi:ref(1 1)
-  )
-}
-
-:day_06::main#20 {
-  ^0 = vi:interface(
-    vi:ref(0 0)
-    vi:eraser
-    vi:eraser
-    vi:eraser
-    vi:ref(1 1)
-  )
-  ^1 = vi:tuple
-}
-
-:day_06::main#21 {
-  ^0 = vi:interface(
-    vi:ref(0 1)
-    vi:dup(2 3)
-    vi:dup(4 vi:tuple(vi:dup(vi:dup(5 6) 7) 8))
-    vi:ext#2[vi:n32:add](vi:n32#1 vi:dup(9 vi:dup(10 vi:ext#2[vi:n32:ne](vi:n32 vi:bool:if[:root::numeric::N32::to_string::cast#2, :root::numeric::N32::to_string::cast#3](vi:interface(10 vi:tuple(
-      vi:ext#2[vi:n32:add](vi:n32#1 vi:ext#2[vi:n32:add](11 vi:dup(12 vi:ext#2[vi:n32:ne](vi:n32 vi:bool:if[:root::data::List::Iter::advance#2, :root::data::List::Iter::advance#3](vi:interface(12 13 14 vi:enum:match[vi:enum#2, :root::IO::print#4, :root::IO::print#5](vi:interface(vi:ref(0 vi:ext#2[root:io:print_char](vi:n32#10 15))))))))))
-      13
-      vi:tuple(vi:n32#32 16)
-    )))))))
-    vi:ref(17 18)
-  )
-  ^1 = vi:tuple(
-    vi:tuple(
-      vi:dup(19 vi:ext#2[vi:n32:lt](20 vi:bool:if[:root::data::Array::at#2, :root::data::Array::at#3](vi:interface(
-        21
-        vi:ref(22 23)
-        19
-        vi:enum:match[vi:enum#2, :root::logical::Option::assume#4, :root::logical::Option::assume#5](vi:interface(vi:ref(vi:eraser vi:n32#35)))
-      ))))
-      vi:dup(24 vi:ext#2[vi:n32:lt](7 vi:bool:if[:root::data::Array::at#2, :root::data::Array::at#3](vi:interface(
-        6
-        vi:ref(8 25)
-        24
-        vi:enum:match[vi:enum#2, :root::logical::Option::assume#4, :root::logical::Option::assume#5](vi:interface(vi:ref(
-          vi:tuple(vi:dup(vi:dup(26 21) 20) 22)
-          vi:tuple(26 23)
-        )))
-      ))))
-    )
-    vi:tuple(vi:dup(27 vi:ext#2[vi:n32:ne](vi:n32 vi:bool:if[:root::data::List::Iter::advance#2, :root::data::List::Iter::advance#3](vi:interface(27 28 29 vi:enum:match[vi:enum#2, :day_06::main#20, :day_06::main#21](vi:interface(
-      vi:ref(15 1)
-      2
-      4
-      9
-      vi:ref(30 18)
-    )))))) 28 29)
-  )
-  vi:graft[:day_06::walk] = vi:fn(
-    vi:ref(vi:tuple(5 25) vi:eraser)
-    3
-    vi:tuple(vi:bool:if[:day_06::main#23, :day_06::main#24](vi:interface(vi:ref(17 vi:dup(30 vi:dup(31 vi:ext#2[vi:n32:ne](vi:n32 vi:bool:if[:root::numeric::N32::to_string::cast#2, :root::numeric::N32::to_string::cast#3](vi:interface(31 vi:tuple(11 16 14))))))))) vi:eraser)
-  )
-}
-
-:day_06::main#23 {
-  ^ = vi:interface(vi:ref(vi:ext#2[vi:n32:add](vi:n32#1 0) 0))
-}
-
-:day_06::main#24 {
-  ^ = vi:interface(vi:ref(0 0))
-}
-
-:root::data::List::map#1[
-  vi:closure:fork[:day_06::main],
-  vi:closure:drop[:day_06::main],
-  vi:closure[:day_06::main],
-] {
-  ^ = vi:interface(0 1 vi:tuple(vi:dup(2 vi:ext#2[vi:n32:ne](vi:n32 vi:bool:if[:root::data::List::Iter::advance#2, :root::data::List::Iter::advance#3](vi:interface(2 3 4 vi:enum:match[
-    vi:enum#2,
-    :root::data::List::map#4[
-      vi:closure:fork[:day_06::main],
-      vi:closure:drop[:day_06::main],
-      vi:closure[:day_06::main],
-    ],
-    :root::data::List::map#5[
-      vi:closure:fork[:day_06::main],
-      vi:closure:drop[:day_06::main],
-      vi:closure[:day_06::main],
-    ],
-  ](vi:interface(0 1)))))) 3 4))
-}
-
-:root::data::List::map#4[
-  vi:closure:fork[:day_06::main],
-  vi:closure:drop[:day_06::main],
-  vi:closure[:day_06::main],
-] {
-  ^0 = vi:interface(vi:interface vi:ref(0 0))
-  ^1 = vi:tuple
-}
-
-:root::data::List::map#5[
-  vi:closure:fork[:day_06::main],
-  vi:closure:drop[:day_06::main],
-  vi:closure[:day_06::main],
-] {
-  ^0 = vi:interface(vi:interface vi:ref(vi:tuple(0 1) 2))
-  ^1 = vi:tuple(
-    vi:tuple(vi:dup(3 vi:ext#2[vi:n32:eq](vi:n32 vi:bool:if[
-      :root::data::Array::from_fn#5[
-        vi:closure:fork[:root::data::Array::from_list::cast],
-        vi:closure:drop[:root::data::Array::from_list::cast],
-        vi:closure[:root::data::Array::from_list::cast],
-      ],
-      :root::data::Array::from_fn#6[
-        vi:closure:fork[:root::data::Array::from_list::cast],
-        vi:closure:drop[:root::data::Array::from_list::cast],
-        vi:closure[:root::data::Array::from_list::cast],
-      ],
-    ](vi:interface(3 vi:interface(vi:ref(4 vi:tuple)) 0)))) 4 vi:tuple)
-    vi:tuple(vi:dup(5 vi:ext#2[vi:n32:ne](vi:n32 vi:bool:if[:root::data::List::Iter::advance#2, :root::data::List::Iter::advance#3](vi:interface(5 6 7 vi:enum:match[
-      vi:enum#2,
-      :root::data::List::map#4[
-        vi:closure:fork[:day_06::main],
-        vi:closure:drop[:day_06::main],
-        vi:closure[:day_06::main],
-      ],
-      :root::data::List::map#5[
-        vi:closure:fork[:day_06::main],
-        vi:closure:drop[:day_06::main],
-        vi:closure[:day_06::main],
-      ],
-    ](vi:interface(vi:interface vi:ref(1 2))))))) 6 7)
-  )
-}
-
-:day_06::walk#1 {
-  ^ = vi:interface(
-    0
-    1
-    2
-    3
-    4
-    vi:ref(vi:dup(5 6) 7)
-    vi:dup(8 vi:ext#2[vi:n32:lt](9 vi:bool:if[:day_06::walk#2, :day_06::walk#3](vi:interface(0 1 2 3 4 vi:ref(5 7) 8 10))))
-    10
-  )
-  vi:n32#3 = vi:ext#2[vi:n32:mul](6 vi:dup(vi:eraser 9))
-}
-
-:day_06::walk#2 {
-  ^ = vi:interface(
-    0
-    vi:dup(1 vi:tuple(
-      vi:ext#2[vi:n32:add](2 vi:dup(3 vi:dup(4 5)))
-      vi:ext#2[vi:n32:add](6 vi:dup(7 8))
-    ))
-    9
-    vi:dup(10 vi:ext#2[vi:n32:le](5 vi:bool:if[:day_06::walk#5, :day_06::walk#6](vi:interface(0 1 9 10 11 12 13 vi:tuple(3 7) 4 8 14))))
-    vi:dup(11 vi:tuple(2 6))
-    12
-    13
-    14
-  )
-}
-
-:day_06::walk#3 {
-  ^ = vi:interface(
-    vi:ref(0 0)
-    vi:eraser
-    vi:eraser
-    vi:eraser
-    vi:eraser
-    vi:ref(1 1)
-    vi:eraser
-    vi:bool#1
-  )
-}
-
-:root::ops::elementwise::binary::composite_composite::add::add[
-  :root::derive::Composite::tuple[vi:synthetic:Tuple#2],
-  :root::derive::Composite::tuple[vi:synthetic:Tuple#2],
-  :root::numeric::N32,
-  :root::ops::elementwise::binary::singleton_singleton::add[:root::derive::Singleton::tuple, :root::derive::Singleton::tuple, :root::derive::Singleton::tuple, :root::numeric::N32],
-  :root::derive::Composite::tuple[vi:synthetic:Tuple#2],
-] {
-  ^ = vi:fn(
-    vi:tuple(
-      vi:ext#2[vi:n32:add](0 1)
-      vi:ext#2[vi:n32:add](2 3)
-    )
-    vi:tuple(0 2)
-    vi:tuple(1 3)
-  )
-}
-
-:day_06::walk#5 {
-  ^ = vi:interface(
-    vi:ref(0 0)
-    vi:eraser
-    vi:eraser
-    vi:eraser
-    vi:eraser
-    vi:ref(1 1)
-    vi:eraser
-    vi:eraser
-    vi:eraser
-    vi:eraser
-    vi:bool
-  )
-}
-
-:day_06::walk#6 {
-  ^ = vi:interface(
-    0
-    1
-    vi:dup(2 vi:ext#2[vi:n32:le](3 vi:bool:if[:day_06::walk#7, :day_06::walk#8](vi:interface(0 1 2 4 5 6 7 8 9 10 11))))
-    4
-    5
-    6
-    7
-    8
-    9
-    vi:dup(10 3)
-    11
-  )
-}
-
-:day_06::walk#9 {
+:option_party::main#40 {
   ^ = vi:interface(vi:bool)
 }
 
-:day_06::walk#7 {
-  ^ = vi:interface(
-    vi:ref(0 0)
-    vi:eraser
-    vi:eraser
-    vi:eraser
-    vi:eraser
-    vi:ref(1 1)
-    vi:eraser
-    vi:eraser
-    vi:eraser
-    vi:eraser
-    vi:bool
-  )
+:option_party::main#38 {
+  ^ = vi:interface(vi:bool#1)
 }
 
-:day_06::walk#8 {
-  ^ = vi:interface(
-    vi:ref(vi:tuple(vi:dup(vi:dup(0 1) 2) 3) 4)
+:option_party::main#39 {
+  ^ = vi:interface(0)
+  vi:interface(0) = vi:graft[:option_party::main#40]
+}
+
+:option_party::main#48 {
+  ^ = vi:interface(vi:bool)
+}
+
+:option_party::main#46 {
+  ^ = vi:interface(vi:bool#1)
+}
+
+:option_party::main#47 {
+  ^ = vi:interface(0)
+  vi:interface(0) = vi:graft[:option_party::main#48]
+}
+
+:option_party::main#56 {
+  ^ = vi:interface(vi:bool)
+}
+
+:option_party::main#54 {
+  ^ = vi:interface(vi:bool#1)
+}
+
+:option_party::main#55 {
+  ^ = vi:interface(0)
+  vi:interface(0) = vi:graft[:option_party::main#56]
+}
+
+:option_party::main#64 {
+  ^ = vi:interface(vi:bool#1)
+}
+
+:option_party::main#62 {
+  ^ = vi:interface(0)
+  vi:interface(0) = vi:graft[:option_party::main#64]
+}
+
+:option_party::main#63 {
+  ^ = vi:interface(vi:bool)
+}
+
+:option_party::main#72 {
+  ^ = vi:interface(vi:bool#1)
+}
+
+:option_party::main#70 {
+  ^ = vi:interface(0)
+  vi:interface(0) = vi:graft[:option_party::main#72]
+}
+
+:option_party::main#71 {
+  ^ = vi:interface(vi:bool)
+}
+
+:option_party::main#80 {
+  ^ = vi:interface(vi:bool#1)
+}
+
+:option_party::main#78 {
+  ^ = vi:interface(0)
+  vi:interface(0) = vi:graft[:option_party::main#80]
+}
+
+:option_party::main#79 {
+  ^ = vi:interface(vi:bool)
+}
+
+:root::debug::Show::ShowVariant::variant::show_variant#4[
+  :root::debug::Show::tuple[:root::debug::Show::ShowTuple::nil],
+  :root::debug::Show::ShowVariant::variant[:root::numeric::N32, :root::debug::Show::ShowVariant::never],
+] {
+  ^0 = vi:interface(
+    0
+    vi:eraser
+    vi:enum:variant#1[vi:enum#5](vi:tuple(0 vi:enum:variant#2[vi:enum#5](vi:tuple(vi:n32 1 1))))
+    vi:enum:variant[vi:enum#2](vi:tuple)
+  )
+  ^1 = vi:tuple
+}
+
+:root::debug::Show::ShowVariant::variant::show_variant#5[
+  :root::debug::Show::tuple[:root::debug::Show::ShowTuple::nil],
+  :root::debug::Show::ShowVariant::variant[:root::numeric::N32, :root::debug::Show::ShowVariant::never],
+] {
+  ^0 = vi:interface(
+    vi:eraser
+    vi:tuple(vi:dup(0 vi:ext#2[vi:n32:ne](vi:n32 vi:bool:if[:root::data::List::head_tail#2, :root::data::List::head_tail#3](vi:interface(0 1 2 vi:enum:match[vi:enum#2, :root::logical::Option::assume#4, :root::logical::Option::assume#5](vi:interface(vi:tuple(3 4))))))) 1 2)
     5
-    6
-    7
-    8
-    9
-    10
-    11
-    vi:dup(12 vi:ext#2[vi:n32:lt](13 vi:bool:if[:root::data::Array::at#2, :root::data::Array::at#3](vi:interface(
-      14
-      vi:ref(15 16)
-      12
-      vi:enum:match[vi:enum#2, :root::logical::Option::assume#4, :root::logical::Option::assume#5](vi:interface(vi:ref(vi:dup(17 vi:ext#2[vi:n32:eq](vi:n32#35 vi:bool:if[:day_06::walk#11, :day_06::walk#12](vi:interface(
-        vi:ref(vi:tuple(0 18) 4)
-        5
-        6
-        7
-        8
-        9
-        10
-        11
-        vi:ref(17 19)
-        20
-      )))) 19)))
-    ))))
-    vi:dup(21 vi:ext#2[vi:n32:lt](2 vi:bool:if[:root::data::Array::at#2, :root::data::Array::at#3](vi:interface(
-      1
-      vi:ref(3 18)
-      21
-      vi:enum:match[vi:enum#2, :root::logical::Option::assume#4, :root::logical::Option::assume#5](vi:interface(vi:ref(
-        vi:tuple(vi:dup(vi:dup(22 14) 13) 15)
-        vi:tuple(22 16)
-      )))
-    ))))
-    20
+    vi:enum:variant#1[vi:enum#2](6)
   )
+  ^1 = vi:enum:match[
+    vi:enum#2,
+    :root::debug::Show::ShowVariant::variant::show_variant#4[:root::numeric::N32, :root::debug::Show::ShowVariant::never],
+    :root::debug::Show::ShowVariant::variant::show_variant#5[:root::numeric::N32, :root::debug::Show::ShowVariant::never],
+  ](vi:interface(3 4 5 6))
 }
 
-:day_06::walk#11 {
-  ^ = vi:interface(
-    0
-    1
-    2
-    3
-    vi:tuple(4 5)
-    vi:ref(vi:dup(6 7) 8)
-    vi:dup(9 vi:ext#2[vi:n32:lt](10 vi:bool:if[:day_06::walk#2, :day_06::walk#3](vi:interface(
-      0
-      1
-      2
-      3
-      vi:tuple(11 4)
-      vi:ref(6 8)
-      9
-      12
-    ))))
-    vi:eraser
-    vi:ref(13 13)
-    12
-  )
-  vi:n32 = vi:ext#2[vi:n32:sub](5 11)
-  vi:n32#3 = vi:ext#2[vi:n32:mul](7 vi:dup(vi:eraser 10))
-}
-
-:day_06::walk#12 {
-  ^ = vi:interface(
-    0
-    vi:eraser
-    1
-    2
-    3
-    vi:ref(4 5)
-    6
-    7
-    vi:ref(vi:dup(vi:eraser vi:ext#2[vi:n32:eq](vi:n32#88 vi:bool:if[:day_06::walk#14, :day_06::walk#15](vi:interface(
-      vi:ref(4 vi:dup(8 9))
-      vi:ref(6 vi:dup(10 vi:ext#2[vi:n32:lt](11 vi:bool:if[:day_06::walk#2, :day_06::walk#3](vi:interface(0 7 1 2 3 vi:ref(8 5) 10 12)))))
-    )))) vi:n32#88)
-    12
-  )
-  vi:n32#3 = vi:ext#2[vi:n32:mul](9 vi:dup(vi:eraser 11))
-}
-
-:day_06::walk#14 {
-  ^ = vi:interface(
-    vi:ref(0 0)
-    vi:ref(vi:ext#2[vi:n32:add](vi:n32#1 1) 1)
-  )
-}
-
-:day_06::walk#15 {
-  ^ = vi:interface(
-    vi:ref(vi:ext#2[vi:n32:add](vi:n32#1 0) 0)
-    vi:ref(1 1)
-  )
-}
-
-:root::ops::elementwise::binary::singleton_singleton::add::add[:root::derive::Singleton::tuple, :root::derive::Singleton::tuple, :root::derive::Singleton::tuple, :root::numeric::N32] {
-  ^ = vi:fn(
-    vi:tuple(vi:ext#2[vi:n32:add](0 1))
-    vi:tuple(0)
-    vi:tuple(1)
-  )
-}
-
-:root::derive::Singleton::cast_deconstruct::cast[:root::derive::Singleton::tuple] {
-  ^ = vi:fn(vi:tuple(0) 0)
-}
-
-:day_06::clear#1 {
-  ^ = vi:interface(0 1 2 vi:tuple(
-    vi:dup(3 vi:ext#2[vi:n32:lt](4 vi:bool:if[
-      :root::ops::Range::exclusive_iter::advance#2[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32],
-      :root::ops::Range::exclusive_iter::advance#3[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32],
-    ](vi:interface(3 5 vi:enum:match[vi:enum#2, :day_06::clear#4, :day_06::clear#5](vi:interface(0 1 2))))))
-    vi:dup(5 4)
-  ))
-}
-
-:day_06::clear#4 {
+:root::debug::Show::ShowVariant::variant::show_variant#4[:root::numeric::N32, :root::debug::Show::ShowVariant::never] {
   ^0 = vi:interface(
-    vi:ref(0 0)
-    vi:ref(1 1)
+    0
     vi:eraser
+    vi:enum:variant#1[vi:enum#5](vi:tuple(0 vi:enum:variant[vi:enum#5](1)))
+    vi:enum:variant[vi:enum#2](2)
   )
+  ^1 = vi:dup(2 vi:dup(3 vi:ext#2[vi:n32:ne](vi:n32 vi:bool:if[:root::numeric::N32::to_string::cast#2, :root::numeric::N32::to_string::cast#3](vi:interface(3 1)))))
+}
+
+:root::debug::Show::ShowVariant::variant::show_variant#5[:root::numeric::N32, :root::debug::Show::ShowVariant::never] {
+  ^0 = vi:interface(vi:eraser vi:eraser vi:eraser vi:enum:variant#1[vi:enum#2](0))
+  ^1 = vi:dup(0 vi:eraser)
+}
+
+:root::logical::Option::map#4[
+  vi:closure:drop#3[:option_party::main],
+  vi:closure#3[:option_party::main],
+] {
+  ^0 = vi:interface(0 vi:enum:variant[vi:enum#2](vi:tuple))
+  ^1 = vi:tuple
+  vi:graft[:option_party::main#8] = vi:fn(0 vi:tuple)
+  vi:tuple = vi:tuple
+}
+
+:root::logical::Option::map#5[
+  vi:closure:drop#3[:option_party::main],
+  vi:closure#3[:option_party::main],
+] {
+  ^0 = vi:interface(0 vi:enum:variant#1[vi:enum#2](1))
+  ^1 = 2
+  vi:graft[:option_party::main#7] = vi:fn(0 vi:tuple(2) 1)
+}
+
+:root::logical::Option::map#4[
+  vi:closure:drop#4[:option_party::main],
+  vi:closure#4[:option_party::main],
+] {
+  ^0 = vi:interface(0 vi:enum:variant[vi:enum#2](vi:tuple))
+  ^1 = vi:tuple
+  vi:graft[:option_party::main#10] = vi:fn(0 vi:tuple)
+  vi:tuple = vi:tuple
+}
+
+:root::logical::Option::map#5[
+  vi:closure:drop#4[:option_party::main],
+  vi:closure#4[:option_party::main],
+] {
+  ^0 = vi:interface(0 vi:enum:variant#1[vi:enum#2](1))
+  ^1 = 2
+  vi:graft[:option_party::main#9] = vi:fn(0 vi:tuple(2) 1)
+}
+
+:root::logical::Option::map#4[
+  vi:closure:drop#5[:option_party::main],
+  vi:closure#5[:option_party::main],
+] {
+  ^0 = vi:interface(0 vi:enum:variant[vi:enum#2](vi:tuple))
+  ^1 = vi:tuple
+  vi:graft[:option_party::main#12] = vi:fn(0 vi:tuple)
+  vi:tuple = vi:tuple
+}
+
+:root::logical::Option::map#5[
+  vi:closure:drop#5[:option_party::main],
+  vi:closure#5[:option_party::main],
+] {
+  ^0 = vi:interface(0 vi:enum:variant#1[vi:enum#2](1))
+  ^1 = 2
+  vi:graft[:option_party::main#11] = vi:fn(0 vi:tuple(2) 1)
+}
+
+:option_party::increment_option#4 {
+  ^0 = vi:interface
   ^1 = vi:tuple
 }
 
-:day_06::clear#5 {
-  ^0 = vi:interface(
-    vi:ref(vi:tuple(vi:dup(vi:dup(0 1) 2) 3) 4)
-    vi:ref(5 6)
-    7
-  )
-  ^1 = vi:tuple(8 vi:tuple(
-    vi:dup(9 vi:ext#2[vi:n32:lt](10 vi:bool:if[
-      :root::ops::Range::exclusive_iter::advance#2[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32],
-      :root::ops::Range::exclusive_iter::advance#3[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32],
-    ](vi:interface(9 11 vi:enum:match[vi:enum#2, :day_06::clear#4, :day_06::clear#5](vi:interface(
-      vi:ref(vi:tuple(0 12) 4)
-      vi:ref(13 6)
-      14
-    ))))))
-    vi:dup(11 10)
-  ))
-  vi:graft[:root::util::duplicate::fork] = vi:fn(
-    vi:ref(7 14)
-    vi:dup(15 16)
-  )
-  vi:graft[:root::util::duplicate::fork] = vi:fn(
-    vi:ref(8 17)
-    vi:dup(18 vi:ext#2[vi:n32:lt](2 vi:bool:if[:root::data::Array::at#2, :root::data::Array::at#3](vi:interface(
-      1
-      vi:ref(3 12)
-      18
-      vi:enum:match[vi:enum#2, :root::logical::Option::assume#4, :root::logical::Option::assume#5](vi:interface(19))
-    ))))
-  )
-  vi:n32 = vi:ext#2[vi:n32:lt](16 vi:bool:if[
-    :root::ops::Range::exclusive_iter::advance#2[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32],
-    :root::ops::Range::exclusive_iter::advance#3[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32],
-  ](vi:interface(vi:n32 15 vi:enum:match[vi:enum#2, :day_06::clear#9, :day_06::clear#10](vi:interface(vi:ref(5 13) 17 19)))))
+:option_party::increment_option#5 {
+  ^0 = vi:interface
+  ^1 = vi:ref(vi:ext#2[vi:n32:add](vi:n32#1 0) 0)
 }
 
-:day_06::clear#6 {
-  ^ = vi:interface(0 1 2 vi:tuple(
-    vi:dup(3 vi:ext#2[vi:n32:lt](4 vi:bool:if[
-      :root::ops::Range::exclusive_iter::advance#2[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32],
-      :root::ops::Range::exclusive_iter::advance#3[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32],
-    ](vi:interface(3 5 vi:enum:match[vi:enum#2, :day_06::clear#9, :day_06::clear#10](vi:interface(0 1 2))))))
-    vi:dup(5 4)
-  ))
-}
-
-:day_06::clear#9 {
-  ^0 = vi:interface(
-    vi:ref(0 0)
-    vi:eraser
-    vi:ref(1 1)
-  )
+:root::logical::Option::map#4[
+  vi:closure:drop#1[:option_party::add_options],
+  vi:closure#1[:option_party::add_options],
+] {
+  ^0 = vi:interface(vi:eraser vi:enum:variant[vi:enum#2](vi:tuple))
   ^1 = vi:tuple
 }
 
-:day_06::clear#10 {
+:root::logical::Option::map#5[
+  vi:closure:drop#1[:option_party::add_options],
+  vi:closure#1[:option_party::add_options],
+] {
   ^0 = vi:interface(
-    vi:ref(0 1)
-    2
-    vi:ref(vi:tuple(vi:dup(vi:dup(3 4) 5) 6) 7)
+    vi:interface(vi:ext#2[vi:n32:add](0 1))
+    vi:enum:variant#1[vi:enum#2](1)
   )
-  ^1 = vi:tuple(8 vi:tuple(
-    vi:dup(9 vi:ext#2[vi:n32:lt](10 vi:bool:if[
-      :root::ops::Range::exclusive_iter::advance#2[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32],
-      :root::ops::Range::exclusive_iter::advance#3[:root::util::duplicate, :root::util::erase, :root::numeric::N32, :root::ops::Range::Step::n32],
-    ](vi:interface(9 11 vi:enum:match[vi:enum#2, :day_06::clear#9, :day_06::clear#10](vi:interface(
-      vi:ref(12 1)
-      13
-      vi:ref(vi:tuple(3 14) 7)
-    ))))))
-    vi:dup(11 10)
-  ))
-  vi:graft[:root::util::duplicate::fork] = vi:fn(vi:ref(2 13) 15)
-  vi:graft[:root::util::duplicate::fork] = vi:fn(
-    vi:ref(8 16)
-    vi:dup(17 vi:ext#2[vi:n32:lt](5 vi:bool:if[:root::data::Array::at#2, :root::data::Array::at#3](vi:interface(
-      4
-      vi:ref(6 14)
-      17
-      vi:enum:match[vi:enum#2, :root::logical::Option::assume#4, :root::logical::Option::assume#5](vi:interface(vi:ref(vi:dup(18 vi:ext#2[vi:n32:eq](vi:n32#88 vi:bool:if[:day_06::clear#12, :day_06::clear#13](vi:interface(
-        vi:ref(0 12)
-        15
-        16
-        vi:ref(18 19)
-      )))) 19)))
-    ))))
-  )
+  ^1 = 0
 }
 
-:day_06::clear#12 {
-  ^ = vi:interface(
-    vi:ref(
-      vi:tuple(
-        vi:ext#2[vi:n32:add](vi:n32#1 0)
-        1
-        vi:tuple(vi:tuple(2 3) 4)
-      )
-      vi:tuple(0 1 4)
-    )
-    3
-    2
-    vi:ref(vi:eraser vi:n32#46)
-  )
+:root::logical::Option::map#4[
+  vi:closure:drop[:option_party::add_options],
+  vi:closure[:option_party::add_options],
+] {
+  ^0 = vi:interface(vi:eraser vi:enum:variant[vi:enum#2](vi:tuple))
+  ^1 = vi:tuple
 }
 
-:day_06::clear#13 {
-  ^ = vi:interface(
-    vi:ref(0 0)
-    vi:eraser
-    vi:eraser
-    vi:ref(1 1)
+:root::logical::Option::map#5[
+  vi:closure:drop[:option_party::add_options],
+  vi:closure[:option_party::add_options],
+] {
+  ^0 = vi:interface(
+    vi:interface(vi:enum:match[
+      vi:enum#2,
+      :root::logical::Option::map#4[
+        vi:closure:drop#1[:option_party::add_options],
+        vi:closure#1[:option_party::add_options],
+      ],
+      :root::logical::Option::map#5[
+        vi:closure:drop#1[:option_party::add_options],
+        vi:closure#1[:option_party::add_options],
+      ],
+    ](vi:interface(vi:interface(0) 1)))
+    vi:enum:variant#1[vi:enum#2](1)
   )
+  ^1 = 0
+}
+
+:root::logical::Option::or_option#4[:root::util::erase] {
+  ^0 = vi:interface(0 0)
+  ^1 = vi:tuple
+}
+
+:root::logical::Option::or_option#5[:root::util::erase] {
+  ^0 = vi:interface(vi:eraser vi:enum:variant#1[vi:enum#2](0))
+  ^1 = 0
 }
 
