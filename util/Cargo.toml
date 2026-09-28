@@ -5,7 +5,9 @@ edition = "2024"
 
 [dependencies]
 hashbrown = "0.14.5"
+macro_rules_attribute = "0.2.3"
 nohash-hasher = "0.2.0"
+paste = "1.0.15"
 slab = "0.4.12"
 stacker = "0.1.24"
 
