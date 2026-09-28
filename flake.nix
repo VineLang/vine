@@ -52,6 +52,10 @@
           inherit pkgs craneLib;
         };
 
+        self.vixen = import ./vixen.nix {
+          inherit pkgs craneLib;
+        };
+
         self.tests = import ./tests/tests.nix {
           inherit
             pkgs

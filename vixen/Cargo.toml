@@ -1,0 +1,20 @@
+[package]
+name = "vixen"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow = "1.0.104"
+async-fs = "2.2.0"
+blake3 = { version = "1.8.7", features = ["serde"] }
+blocking = "1.7.0"
+clap = { version = "4.6.7", features = ["derive"] }
+derive_more = { version = "2.1.1", features = ["from"] }
+futures = "0.3.34"
+macro_rules_attribute = "0.2.3"
+reqwest = "0.13.5"
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.151"
+tempdir = "0.3.7"
+tokio = { version = "1.53.1", features = ["full"] }
+vine-util = { version = "0.0.0", path = "../util" }
