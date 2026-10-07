@@ -1,7 +1,5 @@
-use std::{
-  collections::{BTreeMap, HashMap},
-  mem::take,
-};
+use hashbrown::HashMap;
+use std::{collections::BTreeMap, mem::take};
 
 use ivy::{
   name::{FromTable, NameId, Table},

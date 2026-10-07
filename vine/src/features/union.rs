@@ -1,4 +1,5 @@
-use std::{collections::HashMap, mem::take};
+use hashbrown::HashMap;
+use std::mem::take;
 
 use vine_util::idx::IdxVec;
 

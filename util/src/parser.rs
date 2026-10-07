@@ -1,3 +1,5 @@
+use alloc::vec::Vec;
+
 use crate::{
   lexer::{Lex, Token, TokenSet},
   nat::Nat,

@@ -7,7 +7,13 @@ edition = "2024"
 hashbrown = "0.14.5"
 nohash-hasher = "0.2.0"
 slab = "0.4.12"
-stacker = "0.1.24"
+stacker = { version = "0.1.24", optional = true }
 
 [lints.clippy]
 absolute_paths = "warn"
+std_instead_of_alloc = "warn"
+alloc_instead_of_core = "warn"
+
+[features]
+default = ["std"]
+std = ["dep:stacker"]

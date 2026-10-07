@@ -1,5 +1,7 @@
 use core::{fmt, slice};
 
+use alloc::vec::Vec;
+
 use crate::runtime::{
   Runtime,
   port::{Port, Tag},

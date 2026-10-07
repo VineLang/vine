@@ -38,10 +38,9 @@
 //! the address of a [`Tag::Graft`] port as an `&UnsafeCell<Graft>` if it's one
 //! of the grafts we're currently creating, rather than the usual `&Graft`.
 
-use std::{
-  cell::UnsafeCell,
-  collections::{BTreeSet, HashMap, hash_map::Entry},
-};
+use alloc::{boxed::Box, collections::BTreeSet, vec::Vec};
+use core::cell::UnsafeCell;
+use hashbrown::{HashMap, hash_map::Entry};
 
 use ivy::{
   name::{FromTable, NameId, Table},

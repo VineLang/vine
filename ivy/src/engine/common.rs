@@ -1,4 +1,5 @@
-use std::collections::HashSet;
+use alloc::vec::Vec;
+use hashbrown::HashSet;
 
 use vine_util::register::Register;
 
@@ -175,7 +176,7 @@ pub fn eta_reduce<'r>(
 mod test {
   use super::*;
 
-  use std::fmt;
+  use core::fmt;
 
   use crate::{
     engine::optimize,

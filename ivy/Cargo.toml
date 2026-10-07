@@ -6,3 +6,8 @@ edition = "2024"
 [dependencies]
 unicode-id-start = "1.4.0"
 vine-util = { path = "../util" }
+hashbrown = "0.14.5"
+
+[features]
+default = ["std"]
+std = []

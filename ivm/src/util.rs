@@ -1,4 +1,6 @@
-use std::cell::UnsafeCell;
+use core::cell::UnsafeCell;
+
+use alloc::{boxed::Box, vec::Vec};
 
 pub struct Arena<T: ?Sized> {
   values: UnsafeCell<Vec<Option<Box<T>>>>,

@@ -1,4 +1,5 @@
-use std::collections::{BTreeMap, hash_map::Entry};
+use hashbrown::hash_map::Entry;
+use std::collections::BTreeMap;
 
 use vine_util::{
   lexer::Lex,

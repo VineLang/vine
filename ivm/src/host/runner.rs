@@ -1,5 +1,6 @@
+use alloc::{string::String, vec::Vec};
+use hashbrown::HashMap;
 use std::{
-  collections::HashMap,
   io::{self, Write},
   sync::{Mutex, MutexGuard},
 };
@@ -11,10 +12,7 @@ use ivy::{
 use vine_util::register::Register;
 
 use crate::{
-  host::{
-    Host,
-    ext::common::{self, IO},
-  },
+  host::{Host, ext},
   program::Program,
   runtime::{
     Hooks, Runtime,
@@ -28,7 +26,7 @@ use crate::{
 };
 
 pub struct Runner<'ivm, 'ext> {
-  io: ExtTy<'ivm, IO>,
+  io: ExtTy<'ivm, ext::platform::IO>,
   runtime: Runtime<'ivm, 'ext>,
   root: Wire<'ivm>,
 }
@@ -41,7 +39,7 @@ impl<'ivm, 'ext> Runner<'ivm, 'ext> {
     table: &mut Table,
     nets: &HashMap<NameId, FlatNet>,
   ) -> Self {
-    let io = host.register_ext_ty::<IO>();
+    let io = host.register_ext_ty::<ext::platform::IO>();
 
     host.register(table, extrinsics);
 
@@ -52,7 +50,7 @@ impl<'ivm, 'ext> Runner<'ivm, 'ext> {
     let mut runtime = host.init(heap);
 
     let node = unsafe { runtime.new_node(Tag::Comb, 0) };
-    runtime.link_wire(node.1, Port::new_ext_val(io.wrap_static(IO)));
+    runtime.link_wire(node.1, Port::new_ext_val(io.wrap_static(ext::platform::IO)));
     runtime.link(Port::new_graft(main), node.0);
 
     Self { io, root: node.2, runtime }
@@ -91,8 +89,11 @@ impl CaptureOutput {
   pub fn extrinsics<'a: 'ivm, 'b: 'ivm, 'ivm>(
     &'a self,
     args: &'b [String],
-  ) -> impl Register<Host<'ivm>> where {
-    common::all(args, || &[][..], || SharedWriter(self.output.lock().unwrap()))
+  ) -> impl Register<Host<'ivm>> {
+    (
+      ext::common::all(),
+      ext::platform::all(args, || &[][..], || SharedWriter(self.output.lock().unwrap())),
+    )
   }
 
   pub fn into_output(self) -> Vec<u8> {

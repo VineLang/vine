@@ -1,7 +1,5 @@
-use std::{
-  collections::{BTreeSet, HashMap},
-  hash::Hash,
-};
+use hashbrown::HashMap;
+use std::{collections::BTreeSet, hash::Hash};
 
 use crate::{
   components::finder::candidates::{CandidateSets, VisSet},

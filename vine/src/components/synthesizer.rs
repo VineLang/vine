@@ -1,8 +1,5 @@
-use std::{
-  collections::HashMap,
-  iter,
-  mem::{replace, take},
-};
+use hashbrown::HashMap;
+use std::{iter, mem::{replace, take}};
 
 use ivy::{
   name::{NameId, Table},

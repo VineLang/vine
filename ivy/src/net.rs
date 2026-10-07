@@ -1,8 +1,6 @@
-use std::{
-  collections::{HashMap, hash_map::Entry},
-  fmt::Write,
-  mem::take,
-};
+use alloc::{string::String, vec::Vec};
+use core::{fmt::Write, mem::take};
+use hashbrown::{HashMap, hash_map::Entry};
 
 use vine_util::{idx::Counter, new_idx};
 
@@ -313,7 +311,7 @@ impl TreeNet {
         TreeNode::Node(name, children) => {
           let node_index = net.nodes.len();
           let pri = up.unwrap_or_else(|| net.wire());
-          net.push(FlatNode { name: name.clone(), pri, aux: vec![] });
+          net.push(FlatNode { name: name.clone(), pri, aux: Vec::new() });
           let aux = children.iter().map(|child| embed(net, None, child)).collect();
           net.nodes[node_index].aux = aux;
           pri

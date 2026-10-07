@@ -1,5 +1,6 @@
-use std::{collections::HashMap, fmt, mem::take};
+use std::{fmt, mem::take};
 
+use hashbrown::HashMap;
 use ivy::{
   guide,
   name::{FromTable, NameId, Table},

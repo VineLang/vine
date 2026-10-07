@@ -1,4 +1,4 @@
-use std::{
+use core::{
   any::TypeId,
   marker::PhantomData,
   mem::{ManuallyDrop, transmute_copy},
@@ -8,6 +8,8 @@ use ivy::name::{NameId, Table};
 use vine_util::register::{Register, Registry};
 
 pub mod common;
+#[cfg(feature = "std")]
+pub mod platform;
 
 use crate::{
   host::{
