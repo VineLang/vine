@@ -1,0 +1,8 @@
+[package]
+name = "vine"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+unicode-id-start = "1.5.0"
+vine-util = { version = "0.0.0", path = "../util" }

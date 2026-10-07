@@ -19,3 +19,5 @@ pub use exact_size::*;
 
 mod ensure_sufficient_stack;
 pub use ensure_sufficient_stack::*;
+
+pub use macro_rules_attribute::apply;
