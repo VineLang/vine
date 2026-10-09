@@ -1,69 +1,25 @@
 use std::fmt;
 
 use unicode_id_start::{is_id_continue, is_id_start};
-use vine_util::lexer::{Lex, LexerState, Token as TokenTrait};
+use vine_util::{
+  apply, for_enum,
+  lexer::{Lex, LexerState, Token as TokenTrait},
+};
 
-#[derive(Debug, Clone, Copy)]
-pub struct RawSpan {
-  start: usize,
-  end: usize,
-}
+pub struct Diag;
 
+#[apply(for_enum!)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(u8)]
 pub enum Token {
-  Dot,
-  DotDot,
-  DotDotDot,
-  DotDotEq,
-  Comma,
-  Semi,
-  Colon,
-  ColonColon,
-  Amp,
-  AmpAmp,
-  Pipe,
-  PipePipe,
-  Caret,
-  At,
-  Hash,
-  HashBracket,
-  Plus,
-  PlusPlus,
-  Minus,
-  Star,
-  StarStar,
-  Slash,
-  Percent,
-  Bang,
-  Question,
-  Dollar,
-  Tilde,
-  Eq,
-  EqEq,
-  Ne,
-  Lt,
-  Gt,
-  Le,
-  Ge,
-  Arrow,
-  Shl,
-  Shr,
-  OpenBrace,
-  CloseBrace,
-  OpenParen,
-  CloseParen,
-  OpenBracket,
-  CloseBracket,
-  Hole,
+  Underscore,
 
+  // Keywords
   Pub,
   Mod,
   Use,
   As,
   Fn,
-  Struct,
-  Enum,
   Type,
   Trait,
   Impl,
@@ -87,19 +43,83 @@ pub enum Token {
   False,
   And,
   Or,
+  All,
+  Any,
   Try,
   Unsafe,
   Safe,
 
-  Ident,
+  // Punctuation
+  Dot,
+  DotDotDot,
+  Comma,
+  Semi,
+  OpenBrace,
+  CloseBrace,
+  OpenParen,
+  CloseParen,
+  OpenBracket,
+  CloseBracket,
+  Colon,
+  ColonColon,
+  Hash,
+  Dollar,
+  Backslash,
+  QuestQuest,
+  QuestQuestQuest,
+
+  // Operators
+  DotDot,
+  DotDotEq,
+  Plus,
+  PlusEq,
+  PlusPlus,
+  PlusPlusEq,
+  Minus,
+  MinusEq,
+  Star,
+  StarEq,
+  StarStar,
+  StarStarEq,
+  Caret,
+  CaretEq,
+  Amp,
+  AmpEq,
+  AmpAmp,
+  Pipe,
+  PipeEq,
+  At,
+  Question,
+  Slash,
+  SlashEq,
+  Percent,
+  PercentEq,
+  Bang,
+  Shl,
+  ShlEq,
+  Shr,
+  ShrEq,
+  Tilde,
+  TildeEq,
+  Eq,
+  EqEq,
+  BangEq,
+  Lt,
+  Gt,
+  LtEq,
+  GtEq,
+
+  BareIdent,
   TupleKey,
-  Num,
+  Numeric,
   OpenString,
   OpenChar,
 
   Eof,
 
   // Fake token types for better error reporting
+  GroupIdent,
+  GroupKeyword,
   GroupExpr,
   GroupExprPostfix,
   GroupPat,
@@ -142,7 +162,7 @@ impl<'src> Lex<'src> for Lexer<'src> {
     self.start_token();
     match self.char() {
       Some('\n') => {
-        self.trivia.push((self.offset(), Trivia::Line));
+        self.trivia.push((self.offset(), TriviaComponent::Line));
         self.bump();
         self.lex()
       }
@@ -155,8 +175,7 @@ impl<'src> Lex<'src> for Lexer<'src> {
       Some('.') => match self.bump() {
         Some('.') => match self.bump() {
           Some('.') => self.bump_ok(Token::DotDotDot),
-          Some('=') => self.bump_ok(Token::DotDotEq),
-          _ => Ok(Token::DotDot),
+          _ => self.eq(Token::DotDot, Token::DotDotEq),
         },
         Some('0'..='9') => {
           self.bump();
@@ -165,32 +184,13 @@ impl<'src> Lex<'src> for Lexer<'src> {
         }
         _ => Ok(Token::Dot),
       },
-      Some('#') => match self.bump() {
-        Some('[') => self.bump_ok(Token::HashBracket),
-        _ => Ok(Token::Hash),
-      },
-      Some('-') => match self.bump() {
-        Some('>') => self.bump_ok(Token::Arrow),
-        _ => Ok(Token::Minus),
-      },
       Some('<') => match self.bump() {
-        Some('<') => self.bump_ok(Token::Shl),
-        Some('=') => self.bump_ok(Token::Le),
-        _ => Ok(Token::Lt),
+        Some('<') => self.bump_eq(Token::Shl, Token::ShlEq),
+        _ => self.eq(Token::Lt, Token::LtEq),
       },
       Some('>') => match self.bump() {
-        Some('>') => self.bump_ok(Token::Shr),
-        Some('=') => self.bump_ok(Token::Ge),
-        _ => Ok(Token::Gt),
-      },
-      Some('!') => match self.bump() {
-        Some('=') => self.bump_ok(Token::Ne),
-        _ => Ok(Token::Bang),
-      },
-
-      Some('=') => match self.bump() {
-        Some('=') => self.bump_ok(Token::EqEq),
-        _ => Ok(Token::Eq),
+        Some('>') => self.bump_eq(Token::Shr, Token::ShrEq),
+        _ => self.eq(Token::Gt, Token::GtEq),
       },
       Some(':') => match self.bump() {
         Some(':') => self.bump_ok(Token::ColonColon),
@@ -198,35 +198,46 @@ impl<'src> Lex<'src> for Lexer<'src> {
       },
       Some('&') => match self.bump() {
         Some('&') => self.bump_ok(Token::AmpAmp),
-        _ => Ok(Token::Amp),
-      },
-      Some('|') => match self.bump() {
-        Some('|') => self.bump_ok(Token::PipePipe),
-        _ => Ok(Token::Pipe),
+        _ => self.eq(Token::Amp, Token::AmpEq),
       },
       Some('+') => match self.bump() {
-        Some('+') => self.bump_ok(Token::PlusPlus),
-        _ => Ok(Token::Plus),
+        Some('+') => self.bump_eq(Token::PlusPlus, Token::PlusPlusEq),
+        _ => self.eq(Token::Plus, Token::PlusEq),
       },
       Some('*') => match self.bump() {
-        Some('*') => self.bump_ok(Token::StarStar),
-        _ => Ok(Token::Star),
+        Some('*') => self.bump_eq(Token::StarStar, Token::StarStarEq),
+        _ => self.eq(Token::Star, Token::StarEq),
       },
+      Some('?') => match self.bump() {
+        Some('?') => match self.bump() {
+          Some('?') => {
+            self.bump_while(|x| x != '\n');
+            Ok(Token::QuestQuestQuest)
+          }
+          _ => Ok(Token::QuestQuest),
+        },
+        _ => Ok(Token::Question),
+      },
+
+      Some('-') => self.bump_eq(Token::Minus, Token::MinusEq),
+      Some('!') => self.bump_eq(Token::Bang, Token::BangEq),
+      Some('=') => self.bump_eq(Token::Eq, Token::EqEq),
+      Some('|') => self.bump_eq(Token::Pipe, Token::PipeEq),
+      Some('%') => self.bump_eq(Token::Percent, Token::PercentEq),
+      Some('~') => self.bump_eq(Token::Tilde, Token::TildeEq),
+      Some('^') => self.bump_eq(Token::Caret, Token::CaretEq),
 
       Some(',') => self.bump_ok(Token::Comma),
       Some(';') => self.bump_ok(Token::Semi),
-      Some('^') => self.bump_ok(Token::Caret),
       Some('@') => self.bump_ok(Token::At),
-      Some('%') => self.bump_ok(Token::Percent),
-      Some('?') => self.bump_ok(Token::Question),
       Some('$') => self.bump_ok(Token::Dollar),
-      Some('~') => self.bump_ok(Token::Tilde),
       Some('{') => self.bump_ok(Token::OpenBrace),
       Some('}') => self.bump_ok(Token::CloseBrace),
       Some('(') => self.bump_ok(Token::OpenParen),
       Some(')') => self.bump_ok(Token::CloseParen),
       Some('[') => self.bump_ok(Token::OpenBracket),
       Some(']') => self.bump_ok(Token::CloseBracket),
+      Some('#') => self.bump_ok(Token::Hash),
 
       Some('"' | '`') => self.bump_ok(Token::OpenString),
       Some('\'') => self.bump_ok(Token::OpenChar),
@@ -236,14 +247,14 @@ impl<'src> Lex<'src> for Lexer<'src> {
           self.skip_comment(false);
           self.lex()
         }
-        _ => Ok(Token::Slash),
+        _ => self.eq(Token::Slash, Token::SlashEq),
       },
       Some('\\') => match self.bump() {
         Some('\\') => {
           self.skip_comment(true);
           self.lex()
         }
-        _ => todo!(),
+        _ => Ok(Token::Backslash),
       },
 
       Some('0'..='9') => {
@@ -266,24 +277,37 @@ impl<'src> Lex<'src> for Lexer<'src> {
             self.teleport(before_dot);
           }
         }
-        Ok(Token::Num)
+        Ok(Token::Numeric)
       }
 
       Some(c) if unicode_id_start::is_id_start(c) || c == '_' => {
         self.bump();
         self.bump_while(unicode_id_start::is_id_continue);
         let str = &self.src()[self.range().start..self.offset()];
-        Ok(keyword(str).unwrap_or(Token::Ident))
+        Ok(keyword(str).unwrap_or(Token::BareIdent))
       }
 
       None => Ok(Token::Eof),
 
-      Some(_) => Err(Diag::LexError { span: self.span() }),
+      Some(_) => todo!(),
+      // Some(_) => Err(Diag::LexError { span: self.span() }),
     }
   }
 }
 
 impl<'src> Lexer<'src> {
+  fn bump_eq(&mut self, token: Token, token_eq: Token) -> Result<Token, Diag> {
+    self.bump();
+    self.eq(token, token_eq)
+  }
+
+  fn eq(&mut self, token: Token, token_eq: Token) -> Result<Token, Diag> {
+    match self.char() {
+      Some('=') => self.bump_ok(token_eq),
+      _ => Ok(token),
+    }
+  }
+
   fn skip_comment(&mut self, suppress: bool) {
     let char = if suppress { '\\' } else { '/' };
     let block = self.char() == Some(char);
@@ -328,14 +352,12 @@ impl<'src> Lexer<'src> {
 
 fn keyword(str: &str) -> Option<Token> {
   match str {
-    "_" => Some(Token::Hole),
+    "_" => Some(Token::Underscore),
     "pub" => Some(Token::Pub),
     "mod" => Some(Token::Mod),
     "use" => Some(Token::Use),
     "as" => Some(Token::As),
     "fn" => Some(Token::Fn),
-    "struct" => Some(Token::Struct),
-    "enum" => Some(Token::Enum),
     "type" => Some(Token::Type),
     "trait" => Some(Token::Trait),
     "impl" => Some(Token::Impl),
@@ -359,6 +381,8 @@ fn keyword(str: &str) -> Option<Token> {
     "false" => Some(Token::False),
     "and" => Some(Token::And),
     "or" => Some(Token::Or),
+    "all" => Some(Token::All),
+    "any" => Some(Token::Any),
     "try" => Some(Token::Try),
     "unsafe" => Some(Token::Unsafe),
     "safe" => Some(Token::Safe),
@@ -366,9 +390,9 @@ fn keyword(str: &str) -> Option<Token> {
   }
 }
 
-pub fn is_ident(str: &str) -> bool {
+pub fn is_word(str: &str) -> bool {
   let mut chars = str.chars();
-  chars.next().is_some_and(is_id_start) && chars.all(is_id_continue) && keyword(str).is_none()
+  chars.next().is_some_and(|x| is_id_start(x) || x == '_') && chars.all(is_id_continue)
 }
 
 impl TokenTrait for Token {
@@ -377,102 +401,157 @@ impl TokenTrait for Token {
   }
 }
 
+pub enum TokenInfo {
+  Underscore,
+  Keyword(&'static str),
+  Punctuation(&'static str),
+  Operator(&'static str),
+  Other(&'static str),
+}
+
+impl Token {
+  pub fn info(&self) -> TokenInfo {
+    match self {
+      Token::Underscore => TokenInfo::Underscore,
+
+      Token::Pub => TokenInfo::Keyword("pub"),
+      Token::Mod => TokenInfo::Keyword("mod"),
+      Token::Use => TokenInfo::Keyword("use"),
+      Token::As => TokenInfo::Keyword("as"),
+      Token::Fn => TokenInfo::Keyword("fn"),
+      Token::Type => TokenInfo::Keyword("type"),
+      Token::Trait => TokenInfo::Keyword("trait"),
+      Token::Impl => TokenInfo::Keyword("impl"),
+      Token::Match => TokenInfo::Keyword("match"),
+      Token::Let => TokenInfo::Keyword("let"),
+      Token::Const => TokenInfo::Keyword("const"),
+      Token::In => TokenInfo::Keyword("in"),
+      Token::Is => TokenInfo::Keyword("is"),
+      Token::Return => TokenInfo::Keyword("return"),
+      Token::Do => TokenInfo::Keyword("do"),
+      Token::Loop => TokenInfo::Keyword("loop"),
+      Token::While => TokenInfo::Keyword("while"),
+      Token::For => TokenInfo::Keyword("for"),
+      Token::Break => TokenInfo::Keyword("break"),
+      Token::Continue => TokenInfo::Keyword("continue"),
+      Token::If => TokenInfo::Keyword("if"),
+      Token::Assert => TokenInfo::Keyword("assert"),
+      Token::When => TokenInfo::Keyword("when"),
+      Token::Else => TokenInfo::Keyword("else"),
+      Token::True => TokenInfo::Keyword("true"),
+      Token::False => TokenInfo::Keyword("false"),
+      Token::And => TokenInfo::Keyword("and"),
+      Token::Or => TokenInfo::Keyword("or"),
+      Token::All => TokenInfo::Keyword("all"),
+      Token::Any => TokenInfo::Keyword("any"),
+      Token::Try => TokenInfo::Keyword("try"),
+      Token::Unsafe => TokenInfo::Keyword("unsafe"),
+      Token::Safe => TokenInfo::Keyword("safe"),
+
+      Token::Dot => TokenInfo::Punctuation("."),
+      Token::DotDotDot => TokenInfo::Punctuation("..."),
+      Token::Comma => TokenInfo::Punctuation(","),
+      Token::Semi => TokenInfo::Punctuation(";"),
+      Token::OpenBrace => TokenInfo::Punctuation("{"),
+      Token::CloseBrace => TokenInfo::Punctuation("}"),
+      Token::OpenParen => TokenInfo::Punctuation("("),
+      Token::CloseParen => TokenInfo::Punctuation(")"),
+      Token::OpenBracket => TokenInfo::Punctuation("["),
+      Token::CloseBracket => TokenInfo::Punctuation("]"),
+      Token::Colon => TokenInfo::Punctuation(":"),
+      Token::ColonColon => TokenInfo::Punctuation("::"),
+      Token::Hash => TokenInfo::Punctuation("#"),
+      Token::Dollar => TokenInfo::Punctuation("$"),
+      Token::Backslash => TokenInfo::Punctuation("\\"),
+      Token::QuestQuest => TokenInfo::Punctuation("??"),
+      Token::QuestQuestQuest => TokenInfo::Punctuation("???"),
+
+      Token::DotDot => TokenInfo::Operator(".."),
+      Token::DotDotEq => TokenInfo::Operator("..="),
+      Token::Plus => TokenInfo::Operator("+"),
+      Token::PlusEq => TokenInfo::Operator("+="),
+      Token::PlusPlus => TokenInfo::Operator("++"),
+      Token::PlusPlusEq => TokenInfo::Operator("++="),
+      Token::Minus => TokenInfo::Operator("-"),
+      Token::MinusEq => TokenInfo::Operator("-="),
+      Token::Star => TokenInfo::Operator("*"),
+      Token::StarEq => TokenInfo::Operator("*="),
+      Token::StarStar => TokenInfo::Operator("**"),
+      Token::StarStarEq => TokenInfo::Operator("**="),
+      Token::Caret => TokenInfo::Operator("^"),
+      Token::CaretEq => TokenInfo::Operator("^="),
+      Token::Amp => TokenInfo::Operator("&"),
+      Token::AmpEq => TokenInfo::Operator("&="),
+      Token::AmpAmp => TokenInfo::Operator("&&"),
+      Token::Pipe => TokenInfo::Operator("|"),
+      Token::PipeEq => TokenInfo::Operator("|="),
+      Token::At => TokenInfo::Operator("@"),
+      Token::Question => TokenInfo::Operator("?"),
+      Token::Slash => TokenInfo::Operator("/"),
+      Token::SlashEq => TokenInfo::Operator("/="),
+      Token::Percent => TokenInfo::Operator("%"),
+      Token::PercentEq => TokenInfo::Operator("%="),
+      Token::Bang => TokenInfo::Operator("!"),
+      Token::Shl => TokenInfo::Operator("<<"),
+      Token::ShlEq => TokenInfo::Operator("<<="),
+      Token::Shr => TokenInfo::Operator(">>"),
+      Token::ShrEq => TokenInfo::Operator(">>="),
+      Token::Tilde => TokenInfo::Operator("~"),
+      Token::TildeEq => TokenInfo::Operator("~="),
+      Token::Eq => TokenInfo::Operator("="),
+      Token::EqEq => TokenInfo::Operator("=="),
+      Token::BangEq => TokenInfo::Operator("!="),
+      Token::Lt => TokenInfo::Operator("<"),
+      Token::Gt => TokenInfo::Operator(">"),
+      Token::LtEq => TokenInfo::Operator("<="),
+      Token::GtEq => TokenInfo::Operator(">="),
+
+      Token::Eof => TokenInfo::Other("eof"),
+
+      Token::BareIdent => TokenInfo::Other("a bare identifier"),
+      Token::Numeric => TokenInfo::Other("a numeric literal"),
+      Token::TupleKey => TokenInfo::Other("a tuple key"),
+      Token::OpenString => TokenInfo::Other("a string literal"),
+      Token::OpenChar => TokenInfo::Other("a character literal"),
+
+      Token::GroupIdent => TokenInfo::Other("an identifier"),
+      Token::GroupKeyword => TokenInfo::Other("a keyword"),
+      Token::GroupExpr => TokenInfo::Other("an expression"),
+      Token::GroupExprPostfix => TokenInfo::Other("an operator"),
+      Token::GroupPat => TokenInfo::Other("a pattern"),
+      Token::GroupTy => TokenInfo::Other("a type"),
+      Token::GroupStmt => TokenInfo::Other("a statement"),
+      Token::GroupItem => TokenInfo::Other("an item"),
+    }
+  }
+}
+
 impl fmt::Display for Token {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    f.write_str(match self {
-      Token::Dot => "`.`",
-      Token::DotDot => "`..`",
-      Token::DotDotDot => "`...`",
-      Token::DotDotEq => "`..=`",
-      Token::Comma => "`,`",
-      Token::Semi => "`;`",
-      Token::Colon => "`:`",
-      Token::ColonColon => "`::`",
-      Token::Amp => "`&`",
-      Token::AmpAmp => "`&&`",
-      Token::Pipe => "`|`",
-      Token::PipePipe => "`||`",
-      Token::Caret => "`^`",
-      Token::At => "`@`",
-      Token::Hash => "`#`",
-      Token::HashBracket => "`#[`",
-      Token::Plus => "`+`",
-      Token::PlusPlus => "`++`",
-      Token::Minus => "`-`",
-      Token::Star => "`*`",
-      Token::StarStar => "`**`",
-      Token::Slash => "`/`",
-      Token::Percent => "`%`",
-      Token::Bang => "`!`",
-      Token::Question => "`?`",
-      Token::Dollar => "`$`",
-      Token::Tilde => "`~`",
-      Token::Eq => "`=`",
-      Token::EqEq => "`==`",
-      Token::Ne => "`!=`",
-      Token::Lt => "`<`",
-      Token::Gt => "`>`",
-      Token::Le => "`<=`",
-      Token::Ge => "`>=`",
-      Token::Arrow => "`->`",
-      Token::Shl => "`<<`",
-      Token::Shr => "`>>`",
-      Token::OpenBrace => "`{`",
-      Token::CloseBrace => "`}`",
-      Token::OpenParen => "`(`",
-      Token::CloseParen => "`)`",
-      Token::OpenBracket => "`[`",
-      Token::CloseBracket => "`]`",
-      Token::Hole => "`_`",
+    match self.info() {
+      TokenInfo::Underscore => write!(f, "`_`"),
+      TokenInfo::Keyword(str) => write!(f, "`{str}`"),
+      TokenInfo::Punctuation(str) => write!(f, "`{str}`"),
+      TokenInfo::Operator(str) => write!(f, "`{str}`"),
+      TokenInfo::Other(str) => write!(f, "{str}"),
+    }
+  }
+}
 
-      Token::Pub => "`pub`",
-      Token::Mod => "`mod`",
-      Token::Use => "`use`",
-      Token::As => "`as`",
-      Token::Fn => "`fn`",
-      Token::Struct => "`struct`",
-      Token::Enum => "`enum`",
-      Token::Type => "`type`",
-      Token::Trait => "`trait`",
-      Token::Impl => "`impl`",
-      Token::Match => "`match`",
-      Token::Let => "`let`",
-      Token::Const => "`const`",
-      Token::In => "`in`",
-      Token::Is => "`is`",
-      Token::Return => "`return`",
-      Token::Do => "`do`",
-      Token::Loop => "`loop`",
-      Token::While => "`while`",
-      Token::For => "`for`",
-      Token::Break => "`break`",
-      Token::Continue => "`continue`",
-      Token::If => "`if`",
-      Token::Assert => "`assert`",
-      Token::When => "`when`",
-      Token::Else => "`else`",
-      Token::True => "`true`",
-      Token::False => "`false`",
-      Token::And => "`and`",
-      Token::Or => "`or`",
-      Token::Try => "`try`",
-      Token::Unsafe => "`unsafe`",
-      Token::Safe => "`safe`",
-
-      Token::Ident => "an identifier",
-      Token::Num => "a numeric literal",
-      Token::TupleKey => "a tuple key",
-      Token::OpenString => "a string literal",
-      Token::OpenChar => "a character literal",
-
-      Token::Eof => "eof",
-
-      Token::GroupExpr => "an expression",
-      Token::GroupExprPostfix => "an operator",
-      Token::GroupPat => "a pattern",
-      Token::GroupTy => "a type",
-      Token::GroupStmt => "a statement",
-      Token::GroupItem => "an item",
-    })
+#[test]
+fn token_roundtrip() {
+  let all_tokens = for_enum!(Variant in Token {
+    [$(Token::$Variant),*]
+  });
+  for token in all_tokens {
+    let str = match token.info() {
+      TokenInfo::Underscore => "_",
+      TokenInfo::Keyword(str) | TokenInfo::Punctuation(str) | TokenInfo::Operator(str) => str,
+      TokenInfo::Other(_) => continue,
+    };
+    eprintln!("{token:?} {token}");
+    let mut lexer = Lexer::new(str);
+    assert_eq!(lexer.lex().ok(), Some(token));
+    assert_eq!(lexer.lex().ok(), Some(Token::Eof));
   }
 }

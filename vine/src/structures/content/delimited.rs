@@ -1,4 +1,4 @@
-use crate::structures::content::{Color, Colored, IntoElement};
+use crate::structures::content::{IntoElement, Style, Styled};
 
 use super::{Element, Shape, Shapes, Surround, Writer};
 
@@ -70,31 +70,31 @@ pub struct Delims {
     &'static str, // suffix
     &'static str, // close
   ),
-  pub color: Color,
+  pub style: Style,
 }
 
-const VAGUE: Color = Color::VAGUE;
+use Style::Punctuation as Punct;
 impl Delims {
   pub const TUPLE: &Delims =
-    &Delims { empty: "()", single: ("(", ", ", ",)"), multi: ("(", "", ",", ")"), color: VAGUE };
+    &Delims { empty: "()", single: ("(", ", ", ",)"), multi: ("(", "", ",", ")"), style: Punct };
   pub const BRACE: &Delims =
-    &Delims { empty: "{}", single: ("{ ", " ", " }"), multi: ("{", "", "", "}"), color: VAGUE };
+    &Delims { empty: "{}", single: ("{ ", " ", " }"), multi: ("{", "", "", "}"), style: Punct };
   pub const BRACE_COMMA: &Delims =
-    &Delims { empty: "{}", single: ("{ ", ", ", " }"), multi: ("{", "", ",", "}"), color: VAGUE };
+    &Delims { empty: "{}", single: ("{ ", ", ", " }"), multi: ("{", "", ",", "}"), style: Punct };
   pub const BRACE_COMMA_UNSPACED: &Delims =
-    &Delims { empty: "{}", single: ("{", ", ", "}"), multi: ("{", "", ",", "}"), color: VAGUE };
+    &Delims { empty: "{}", single: ("{", ", ", "}"), multi: ("{", "", ",", "}"), style: Punct };
   pub const PAREN_COMMA: &Delims =
-    &Delims { empty: "()", single: ("(", ", ", ")"), multi: ("(", "", ",", ")"), color: VAGUE };
+    &Delims { empty: "()", single: ("(", ", ", ")"), multi: ("(", "", ",", ")"), style: Punct };
   pub const BRACKET_COMMA: &Delims =
-    &Delims { empty: "[]", single: ("[", ", ", "]"), multi: ("[", "", ",", "]"), color: VAGUE };
+    &Delims { empty: "[]", single: ("[", ", ", "]"), multi: ("[", "", ",", "]"), style: Punct };
   pub const NONE: &Delims =
-    &Delims { empty: "", single: ("", "", ""), multi: ("", "", "", ""), color: Color::NORMAL };
+    &Delims { empty: "", single: ("", "", ""), multi: ("", "", "", ""), style: Style::Normal };
 }
 
 impl IntoElement for Delimited {
   fn into_element(mut self) -> Box<dyn Element> {
     if self.children.is_empty() {
-      return Box::new(Colored(self.delims.color, self.delims.empty));
+      return Box::new(Styled(self.delims.style, self.delims.empty));
     }
     let (open, separator, close) = self.delims.single;
     let mut initial_shape = Shape::of(open);
@@ -146,20 +146,20 @@ impl Element for DelimitedBase {
 
   fn format(&mut self, writer: &mut Writer, _: Surround) {
     let (open, prefix, suffix, close) = self.delims.multi;
-    writer.write_color(self.delims.color, open);
+    writer.write_style(self.delims.style, open);
     writer.indent_if(self.indent, |writer| {
       for child in &mut self.children {
         if self.omit_separators {
           child.format(writer, Surround::EMPTY);
         } else {
-          writer.write_color(self.delims.color, prefix);
+          writer.write_style(self.delims.style, prefix);
           child.format(writer, Surround::new(Shape::of(prefix), Shape::of(suffix)));
-          writer.write_color(self.delims.color, suffix);
+          writer.write_style(self.delims.style, suffix);
         }
         writer.line();
       }
     });
-    writer.write_color(self.delims.color, close);
+    writer.write_style(self.delims.style, close);
   }
 }
 
@@ -178,16 +178,16 @@ impl Element for DelimitedStandard {
   fn format(&mut self, writer: &mut Writer, surround: Surround) {
     if surround.permits(self.shape, writer.width()) {
       let (open, separator, close) = self.base.delims.single;
-      writer.write_color(self.base.delims.color, open);
+      writer.write_style(self.base.delims.style, open);
       let mut first = true;
       for child in &mut self.base.children {
         if !first {
-          writer.write_color(self.base.delims.color, separator);
+          writer.write_style(self.base.delims.style, separator);
         }
         first = false;
         child.format(writer, Surround::EMPTY);
       }
-      writer.write_color(self.base.delims.color, close);
+      writer.write_style(self.base.delims.style, close);
     } else {
       self.base.format(writer, surround);
     }
@@ -217,15 +217,15 @@ impl Element for DelimitedBreakFinal {
     if surround
       .permits(self.initial_shape + self.final_shapes.min + Shape::of(close), writer.width())
     {
-      writer.write_color(self.base.delims.color, open);
+      writer.write_style(self.base.delims.style, open);
       let last = self.base.children.len() - 1;
       for child in &mut self.base.children[0..last] {
         child.format(writer, Surround::EMPTY);
-        writer.write_color(self.base.delims.color, separator);
+        writer.write_style(self.base.delims.style, separator);
       }
       self.base.children[last]
         .format(writer, surround.inside(self.initial_shape, Shape::of(close)));
-      writer.write_color(self.base.delims.color, close);
+      writer.write_style(self.base.delims.style, close);
     } else {
       self.base.format(writer, surround);
     }

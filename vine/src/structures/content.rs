@@ -9,9 +9,9 @@ pub use shape::*;
 use vine_util::sum_tree::SumTree;
 pub use writer::*;
 
-use crate::structures::ast::Ident;
+use crate::components::lexer::{Token, TokenInfo};
 
-/// A rich representation of text, incorporating colors and dynamic
+/// A rich representation of text, incorporating styles and dynamic
 /// reformatting.
 ///
 /// `Content` consists of a sequence of `Element`s.
@@ -229,35 +229,35 @@ impl Element for String {
   }
 }
 
-pub struct Colored<T>(pub Color, pub T);
+pub struct Styled<T>(pub Style, pub T);
 
-impl Element for Colored<char> {
+impl Element for Styled<char> {
   fn measure(&mut self) -> Shapes {
     Shapes::from(Shape::CHAR)
   }
 
   fn format(&mut self, writer: &mut Writer, _: Surround) {
-    writer.write_color_char(self.0, self.1);
+    writer.write_style_char(self.0, self.1);
   }
 }
 
-impl Element for Colored<&'static str> {
+impl Element for Styled<&'static str> {
   fn measure(&mut self) -> Shapes {
     Shapes::from(Shape::of(self.1))
   }
 
   fn format(&mut self, writer: &mut Writer, _: Surround) {
-    writer.write_color(self.0, self.1);
+    writer.write_style(self.0, self.1);
   }
 }
 
-impl Element for Colored<String> {
+impl Element for Styled<String> {
   fn measure(&mut self) -> Shapes {
     Shapes::from(Shape::of(&self.1))
   }
 
   fn format(&mut self, writer: &mut Writer, _: Surround) {
-    writer.write_color(self.0, &self.1);
+    writer.write_style(self.0, &self.1);
   }
 }
 
@@ -369,38 +369,23 @@ impl Element for Indent {
   }
 }
 
-/// Highlight as a keyword.
-pub struct Keyword(pub &'static str);
-
-impl IntoElement for Keyword {
+impl IntoElement for Token {
   fn into_element(self) -> Box<dyn Element> {
-    Box::new(Colored(Color::KEYWORD, self.0))
+    match self.info() {
+      TokenInfo::Keyword(str) => Box::new(Styled(Style::Normal, str)),
+      TokenInfo::Underscore => Box::new(Styled(Style::Punctuation, "_")),
+      TokenInfo::Punctuation(str) => Box::new(Styled(Style::Punctuation, str)),
+      TokenInfo::Operator(str) => Box::new(Styled(Style::Operator, str)),
+      TokenInfo::Other(_) => unimplemented!(),
+    }
   }
 }
 
-/// Highlight as punctuation.
-pub struct Punct(pub &'static str);
-
-impl IntoElement for Punct {
-  fn into_element(self) -> Box<dyn Element> {
-    Box::new(Colored(Color::VAGUE, self.0))
-  }
-}
-
-/// Highlight as an operator.
-pub struct Operator(pub &'static str);
-
-impl IntoElement for Operator {
-  fn into_element(self) -> Box<dyn Element> {
-    Box::new(Colored(Color::KEYWORD, self.0))
-  }
-}
-
-impl IntoElement for Ident {
-  fn into_element(self) -> Box<dyn Element> {
-    Box::new(self.0)
-  }
-}
+// impl IntoElement for Ident {
+//   fn into_element(self) -> Box<dyn Element> {
+//     Box::new(self.0)
+//   }
+// }
 
 /// Prints each child on a separate line.
 pub struct Lines(Box<[Box<dyn Element>]>);

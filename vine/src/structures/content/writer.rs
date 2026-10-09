@@ -92,12 +92,12 @@ impl<'a> Writer<'a> {
     match self.state {
       State::Text => {}
       State::Space => {
-        self.output.write(Color::NORMAL, " ");
+        self.output.write(Style::Normal, " ");
         self.state = State::Text;
       }
       State::Line | State::Blank => {
         for _ in 0..self.indent {
-          self.output.write(Color::NORMAL, "  ");
+          self.output.write(Style::Normal, "  ");
         }
         self.state = State::Text;
       }
@@ -105,30 +105,30 @@ impl<'a> Writer<'a> {
   }
 
   pub fn write(&mut self, str: &str) {
-    self.write_color(Color::NORMAL, str);
+    self.write_style(Style::Normal, str);
   }
 
-  pub fn write_color(&mut self, color: Color, str: &str) {
+  pub fn write_style(&mut self, style: Style, str: &str) {
     if !str.is_empty() {
       self.pre_write();
-      self.output.write(color, str);
+      self.output.write(style, str);
     }
   }
 
   pub fn write_char(&mut self, char: char) {
-    self.write_color_char(Color::NORMAL, char);
+    self.write_style_char(Style::Normal, char);
   }
 
-  pub fn write_color_char(&mut self, color: Color, char: char) {
+  pub fn write_style_char(&mut self, style: Style, char: char) {
     self.pre_write();
-    self.output.write_char(color, char);
+    self.output.write_char(style, char);
   }
 }
 
 pub trait Output {
   fn line(&mut self);
-  fn write_char(&mut self, color: Color, char: char);
-  fn write(&mut self, color: Color, str: &str);
+  fn write_char(&mut self, style: Style, char: char);
+  fn write(&mut self, style: Style, str: &str);
 }
 
 impl Output for String {
@@ -136,24 +136,38 @@ impl Output for String {
     *self += "\n";
   }
 
-  fn write_char(&mut self, _: Color, char: char) {
+  fn write_char(&mut self, _: Style, char: char) {
     self.push(char);
   }
 
-  fn write(&mut self, _: Color, str: &str) {
+  fn write(&mut self, _: Style, str: &str) {
     self.push_str(str);
   }
 }
 
 #[derive(Debug, Clone, Copy)]
-pub struct Color(pub u8, pub u8, pub u8);
+pub enum Style {
+  Normal,
+  String,
+  Comment,
+  Keyword,
+  Operator,
+  Punctuation,
+  Special,
+  Vague,
+  Error,
+}
 
-impl Color {
-  pub const NORMAL: Color = Color(0xbd, 0xc3, 0xc7);
-  pub const STRING: Color = Color(0x6e, 0xbf, 0x9c);
-  pub const COMMENT: Color = Color(0x6d, 0x72, 0x78);
-  pub const KEYWORD: Color = Color(0x67, 0xc6, 0x87);
-  pub const SPECIAL: Color = Color(0x92, 0xcc, 0xa5);
-  pub const VAGUE: Color = Color(0x93, 0x98, 0x9d);
-  pub const ERROR: Color = Color(0xda, 0x79, 0x75);
+impl Style {
+  pub fn color(&self) -> (u8, u8, u8) {
+    match self {
+      Style::Normal => (0xbd, 0xc3, 0xc7),
+      Style::String => (0x6e, 0xbf, 0x9c),
+      Style::Comment => (0x6d, 0x72, 0x78),
+      Style::Keyword | Style::Operator => (0x67, 0xc6, 0x87),
+      Style::Punctuation | Style::Vague => (0x93, 0x98, 0x9d),
+      Style::Special => (0x92, 0xcc, 0xa5),
+      Style::Error => (0xda, 0x79, 0x75),
+    }
+  }
 }
