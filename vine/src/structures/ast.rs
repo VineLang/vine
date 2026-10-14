@@ -1,54 +1,151 @@
-use vine_util::{apply, for_enum};
+use std::{
+  any::{Any, TypeId},
+  mem::transmute,
+  ops::Range,
+};
+
+use vine_util::{apply, for_enum, idx::IdxVec, new_idx};
 
 use derive_more::From;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Type();
 #[derive(Debug, Clone, Copy)]
-pub struct Span();
-#[derive(Debug, Clone, Copy)]
 pub struct IdentValue();
 
-#[derive(Debug, Clone)]
-pub struct Ident {
-  pub span: Span,
-  pub value: IdentValue,
+new_idx!(pub FileId);
+new_idx!(pub ItemId);
+
+pub struct Ast {
+  pub files: IdxVec<FileId, File>,
+}
+
+pub struct File {
+  pub items: IdxVec<ItemId, Item>,
 }
 
 #[derive(Debug, Clone, Copy)]
-pub struct Item {
+pub struct FullSpan {
+  pub file: FileId,
+  pub item: ItemId,
   pub span: Span,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct Span {
+  pub start: usize,
+  pub end: usize,
+}
+
+#[derive(Debug, Clone)]
+pub struct SpanIdent {
+  pub span: Span,
+  pub ident: IdentValue,
+}
+
+#[derive(Debug, Clone)]
+pub struct Item {
+  pub range: Range<usize>,
+  pub docs: Vec<String>,
+  pub attrs: Vec<Attr>,
+  pub vis: Vis,
+  pub unsafe_: bool,
   pub kind: Box<ItemKind>,
 }
 
-#[derive(Debug, Clone, Copy)]
-pub enum ItemKind {}
+#[derive(Debug, Clone)]
+pub enum ItemKind {
+  Use(ItemUse),
+  Mod(ItemMod),
+  Fn(ItemFn),
+  Const(ItemConst),
+  Type(ItemType),
+  Trait(ItemTrait),
+  Impl(ItemImpl),
+}
 
-// #[derive(Clone)]
-// pub struct Item {
-//   pub span: Span,
-//   pub name_span: Span,
-//   pub docs: Vec<String>,
-//   pub vis: Vis,
-//   pub unsafe_: bool,
-//   pub attrs: Vec<Attr>,
-//   pub kind: ItemKind,
-// }
+#[derive(Debug, Clone)]
+pub struct ItemMod {
+  pub name: SpanIdent,
+  pub generics: GenericParams,
+  pub kind: ItemModKind,
+}
 
-// #[derive(Debug, Clone)]
-// pub enum ItemKind {
-//   Fn(FnItem),
-//   Const(ConstItem),
-//   Struct(StructItem),
-//   Enum(EnumItem),
-//   Type(TypeItem),
-//   Mod(ModItem),
-//   Trait(TraitItem),
-//   Impl(ImplItem),
-//   Use(UseItem),
-//   OuterMod,
-//   Taken,
-// }
+#[derive(Debug, Clone)]
+pub enum ItemModKind {
+  Local(Vec<ItemId>),
+  External,
+}
+
+#[derive(Debug, Clone)]
+pub struct ItemFn {
+  pub method: bool,
+  pub name: SpanIdent,
+  pub generics: GenericParams,
+  pub args: Sequence<Pat>,
+  pub ret: Return,
+  pub body: Option<Block>,
+}
+
+#[derive(Debug, Clone)]
+pub struct ItemConst {
+  pub name: Ident,
+  pub generics: GenericParams,
+  pub ty: Ty,
+  pub value: Option<Expr>,
+}
+
+#[derive(Debug, Clone)]
+pub struct ItemType {
+  pub flex: Flex,
+  pub name: Ident,
+  pub generics: GenericParams,
+  pub kind: ItemTypeKind,
+}
+
+#[derive(Debug, Clone)]
+pub enum ItemTypeKind {
+  Opaque,
+  Alias(Ty),
+  Wrapper(Vis, Ty),
+}
+
+#[derive(Debug, Clone)]
+pub struct ItemTrait {
+  pub name: Ident,
+  pub inherent: Vec<Ident>,
+  pub generics: GenericParams,
+  pub items: Vec<ItemId>,
+}
+
+#[derive(Debug, Clone)]
+pub struct ItemImpl {
+  pub name: Ident,
+  pub generics: GenericParams,
+  pub trait_: Trait,
+  pub kind: ItemImplKind,
+}
+
+#[derive(Debug, Clone)]
+pub enum ItemImplKind {
+  IndirectBasic,
+  Indirect { impl_: Impl },
+  Direct { items: Vec<ItemId> },
+}
+
+#[derive(Debug, Clone)]
+pub enum Vis {
+  Private,
+  Public,
+  Within(Ident),
+}
+
+#[derive(Debug, Clone)]
+pub enum Return {
+  Implicit,
+  Ty(Ty),
+  Pat(Pat),
+}
 
 #[derive(Debug, Clone)]
 pub struct Expr {
@@ -65,7 +162,7 @@ pub enum ExprKind {
 
   Path(ExprPath),
   Unwrap(ExprUnwrap),
-  Project(ExprProject),
+  Field(ExprField),
   Method(ExprMethod),
   Call(ExprCall),
   Assign(ExprAssign),
@@ -169,20 +266,20 @@ pub enum TyKind {
   Underscore(TyUnderscore),
 
   Path(TyPath),
-  Safe(TySafe),
-  Annotation(TyAnnotation),
 
   FnPath(TyFnPath),
-
   IfConst(TyIfConst),
 
   Loan(TyLoan),
-  Borrow(TyBorrow),
   Inverse(TyInverse),
 
   Enum(TyEnum),
   Tuple(TyTuple),
   Object(TyObject),
+
+  Unwrap(TyUnwrap),
+  Field(TyField),
+  Borrow(TyBorrow),
 }
 
 pub struct Text {
@@ -196,6 +293,8 @@ pub enum Resolve<T> {
 }
 
 pub use Resolve::*;
+
+use crate::features::use_::ItemUse;
 
 impl<T> Resolve<T> {
   pub fn resolved(self) -> T {
@@ -228,10 +327,12 @@ impl<T> Resolve<T> {
   }
 }
 
+#[derive(Debug, Clone)]
 pub struct Children<T> {
   pub entries: Vec<ChildrenEntry<T>>,
 }
 
+#[derive(Debug, Clone)]
 pub enum ChildrenEntry<T> {
   Blank,
   Text(Text),
@@ -287,19 +388,23 @@ impl<T> Children<T> {
   }
 }
 
+#[derive(Debug, Clone)]
 pub struct Sequence<T> {
   pub children: Children<SequenceChild<T>>,
 }
 
+#[derive(Debug, Clone)]
 pub enum SequenceChild<T> {
   Entry(T),
   Spread(T),
 }
 
+#[derive(Debug, Clone)]
 pub struct Object<T> {
   pub children: Children<ObjectChild<T>>,
 }
 
+#[derive(Debug, Clone)]
 pub enum ObjectChild<T> {
   Entry(Ident, T),
   Spread(T),

@@ -12,6 +12,7 @@ macro_rules! for_enum {
     $crate::for_enum!(_ ($) $enum $($rest)+)
   };
   (_ ($d:tt) $enum:ident { $($variant:ident $(($($_0:tt)*))? $({$($_1:tt)*})?),* $(,)? } ) => {
+    #[allow(unused)]
     #[doc(hidden)]
     macro_rules! $enum {
       ($d macro:ident) => {

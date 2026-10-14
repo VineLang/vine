@@ -2009,6 +2009,7 @@ name = "vine"
 version = "0.1.0"
 dependencies = [
  "derive_more",
+ "macro_rules_attribute",
  "unicode-id-start",
  "vine-util",
 ]

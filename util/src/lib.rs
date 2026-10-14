@@ -12,6 +12,7 @@ pub mod for_enum;
 pub mod stack_stack;
 pub mod sum_tree;
 mod unwrap_vec;
+pub mod visit;
 pub use unwrap_vec::*;
 
 mod exact_size;
@@ -19,5 +20,3 @@ pub use exact_size::*;
 
 mod ensure_sufficient_stack;
 pub use ensure_sufficient_stack::*;
-
-pub use macro_rules_attribute::apply;

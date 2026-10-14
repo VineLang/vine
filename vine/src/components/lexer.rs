@@ -1,8 +1,9 @@
 use std::fmt;
 
+use macro_rules_attribute::apply;
 use unicode_id_start::{is_id_continue, is_id_start};
 use vine_util::{
-  apply, for_enum,
+  for_enum,
   lexer::{Lex, LexerState, Token as TokenTrait},
 };
 
@@ -395,6 +396,10 @@ pub fn is_word(str: &str) -> bool {
   chars.next().is_some_and(|x| is_id_start(x) || x == '_') && chars.all(is_id_continue)
 }
 
+pub fn is_keyword(str: &str) -> bool {
+  keyword(str).is_some()
+}
+
 impl TokenTrait for Token {
   fn into_u8(self) -> u8 {
     self as u8
@@ -523,6 +528,10 @@ impl Token {
       Token::GroupStmt => TokenInfo::Other("a statement"),
       Token::GroupItem => TokenInfo::Other("an item"),
     }
+  }
+
+  pub fn is_keyword(self) -> bool {
+    matches!(self.info(), TokenInfo::Underscore | TokenInfo::Keyword(_))
   }
 }
 

@@ -118,6 +118,17 @@ pub mod Stack {
   }
 }
 
+if foo is Some(@bar) {
+  bar += 1;
+}
+
+
+match foo {
+  
+}
+
+foo.{ a: b.c }
+
 struct Lazy[T](~Request[T]);
 enum Request[T] {
   Get(~T),
