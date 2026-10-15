@@ -3,7 +3,7 @@
 pub mod build;
 pub mod hash;
 
-use macro_rules_attribute::apply;
+use macro_rules_attribute::derive;
 
 use anyhow::Result;
 use async_fs as afs;
@@ -135,20 +135,17 @@ impl Task {
   }
 }
 
-#[apply(for_enum!)]
-#[derive(Debug, Clone, Serialize, Deserialize, Hash, From)]
+#[derive(Debug, Clone, Serialize, Deserialize, Hash, From, for_enum!)]
 pub enum TaskFetch {
   Get(Get),
 }
 
-#[apply(for_enum!)]
-#[derive(Debug, Clone, Serialize, Deserialize, Hash, From)]
+#[derive(Debug, Clone, Serialize, Deserialize, Hash, From, for_enum!)]
 pub enum TaskBuild {
   Concat(Concat),
 }
 
-#[apply(for_enum!)]
-#[derive(Debug, Clone, Serialize, Deserialize, Hash, From)]
+#[derive(Debug, Clone, Serialize, Deserialize, Hash, From, for_enum!)]
 pub enum TaskReact {
   Main(Main),
   GetAll(GetAll),

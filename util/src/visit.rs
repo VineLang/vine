@@ -2,6 +2,7 @@ use std::{
   any::{Any, TypeId},
   fmt::Debug,
   mem::transmute,
+  ops::Range,
 };
 
 pub trait Visitor<'a> {
@@ -72,18 +73,69 @@ use crate::idx::{Idx, IdxVec};
 
 #[macro_export]
 macro_rules! derive_visit {
-  ($(#[$_0:meta])* $_1:vis struct $name:ident { $($_2:vis $key:ident: $_3:ty),* $(,)? }) => {
+  ($(#[$_0:meta])* $_1:vis struct $name:ident $({ $($(#[$_2:meta])* $_3:vis $key:ident: $_4:ty),* $(,)? })? $(;)?) => {
     impl $crate::visit::Visit for $name {
       #[inline]
       fn visit_children<'a>(&'a self, visitor: &mut impl $crate::visit::Visitor<'a>) {
-        let $name { $($key),* } = self;
-        $($crate::visit::Visitor::visit(visitor, $key);)*
+        let $name $({ $($key),* })? = self;
+        $($($crate::visit::Visitor::visit(visitor, $key);)*)?
       }
 
       #[inline]
       fn visit_children_mut<'a>(&'a mut self, visitor: &mut impl $crate::visit::VisitorMut<'a>) {
-        let $name { $($key),* } = self;
-        $($crate::visit::VisitorMut::visit(visitor, $key);)*
+        let $name $({ $($key),* })? = self;
+        $($($crate::visit::VisitorMut::visit(visitor, $key);)*)?
+      }
+    }
+  };
+
+  ($(#[$_0:meta])* $_1:vis enum $name:ident { $(
+    $(#[$_2:meta])*
+    $variant:ident
+      $({ $(#[$_3:meta])* $($key:ident: $_4:ty),* $(,)? })?
+      $(($($ty0:ty $(, $($ty1:ty $(, $($ty2:ty $(, $($ty3:ty $(,)?)?)?)?)?)?)?)?))?
+  ),* $(,)? }) => {
+    impl $crate::visit::Visit for $name {
+      #[inline]
+      fn visit_children<'a>(&'a self, visitor: &mut impl $crate::visit::Visitor<'a>) {
+        match self {
+          $($name::$variant {
+              $($($key,)*)?
+              $($(0: $crate::macro_seq!(($ty0); _0),
+              $($(1: $crate::macro_seq!(($ty1); _1),
+              $($(2: $crate::macro_seq!(($ty2); _2),
+              $($(3: $crate::macro_seq!(($ty3); _3),
+              )?)?)?)?)?)?)?)?
+          } => {
+            $($($crate::visit::Visitor::visit(visitor, $key);)*)?
+            $($($crate::visit::Visitor::visit(visitor, $crate::macro_seq!(($ty0); _0));
+            $($($crate::visit::Visitor::visit(visitor, $crate::macro_seq!(($ty1); _1));
+            $($($crate::visit::Visitor::visit(visitor, $crate::macro_seq!(($ty2); _2));
+            $($($crate::visit::Visitor::visit(visitor, $crate::macro_seq!(($ty3); _3));
+            )?)?)?)?)?)?)?)?
+          })*
+        }
+      }
+
+      #[inline]
+      fn visit_children_mut<'a>(&'a mut self, visitor: &mut impl $crate::visit::VisitorMut<'a>) {
+        match self {
+          $($name::$variant {
+              $($($key,)*)?
+              $($(0: $crate::macro_seq!(($ty0); _0),
+              $($(1: $crate::macro_seq!(($ty1); _1),
+              $($(2: $crate::macro_seq!(($ty2); _2),
+              $($(3: $crate::macro_seq!(($ty3); _3),
+              )?)?)?)?)?)?)?)?
+          } => {
+            $($($crate::visit::VisitorMut::visit(visitor, $key);)*)?
+            $($($crate::visit::VisitorMut::visit(visitor, $crate::macro_seq!(($ty0); _0));
+            $($($crate::visit::VisitorMut::visit(visitor, $crate::macro_seq!(($ty1); _1));
+            $($($crate::visit::VisitorMut::visit(visitor, $crate::macro_seq!(($ty2); _2));
+            $($($crate::visit::VisitorMut::visit(visitor, $crate::macro_seq!(($ty3); _3));
+            )?)?)?)?)?)?)?)?
+          })*
+        }
       }
     }
   };
@@ -100,8 +152,6 @@ macro_rules! trivial_visit {
     })*
   };
 }
-
-use macro_rules_attribute::derive;
 
 impl<I: Idx + 'static, T: Visit> Visit for IdxVec<I, T> {
   #[inline]
@@ -151,7 +201,21 @@ impl<T: Visit> Visit for Option<T> {
   }
 }
 
-trivial_visit!(bool, usize, String);
+impl<T: Visit> Visit for Box<T> {
+  #[inline]
+  fn visit_children<'a>(&'a self, visitor: &mut impl Visitor<'a>) {
+    visitor.visit(&**self);
+  }
+
+  #[inline]
+  fn visit_children_mut<'a>(&'a mut self, visitor: &mut impl VisitorMut<'a>) {
+    visitor.visit(&mut **self);
+  }
+}
+
+trivial_visit!(bool, usize, String, Range<usize>, ());
+
+use macro_rules_attribute::derive;
 
 #[derive(Debug, Visit!)]
 struct Foo {

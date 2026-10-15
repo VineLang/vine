@@ -1,11 +1,9 @@
 #[macro_export]
 macro_rules! for_enum {
   (
-    $(#[$meta:meta])*
-    $vis:vis enum $enum:ident $($rest:tt)+
+    $(#[$_0:meta])*
+    $_1:vis enum $enum:ident $($rest:tt)+
   ) => {
-    $(#[$meta])*
-    $vis enum $enum $($rest)*
     $crate::for_enum!(_ ($) $enum $($rest)+);
   };
   (_ ($d:tt) $enum:ident $init:tt $($rest:tt)+) => {

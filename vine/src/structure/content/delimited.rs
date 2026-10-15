@@ -1,6 +1,4 @@
-use crate::structures::content::{IntoElement, Style, Styled};
-
-use super::{Element, Shape, Shapes, Surround, Writer};
+use super::*;
 
 /// A delimited sequence of elements.
 pub struct Delimited {

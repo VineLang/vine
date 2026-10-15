@@ -1,4 +1,4 @@
-use crate::structures::content::Length;
+use super::*;
 
 pub struct Writer<'a> {
   pub max_width: Length,

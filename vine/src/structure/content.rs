@@ -1,3 +1,5 @@
+use super::*;
+
 mod delimited;
 mod shape;
 mod writer;
@@ -9,7 +11,7 @@ pub use shape::*;
 use vine_util::sum_tree::SumTree;
 pub use writer::*;
 
-use crate::components::lexer::{Token, TokenInfo};
+use crate::component::lexer::{Token, TokenInfo};
 
 /// A rich representation of text, incorporating styles and dynamic
 /// reformatting.

@@ -1,4 +1,6 @@
-use crate::structures::content::Content;
+use super::*;
+
+use crate::structure::content::Content;
 
 pub trait Diag<Ctx = ()> {}
 

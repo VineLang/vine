@@ -1,6 +1,8 @@
+use super::*;
+
 use std::fmt;
 
-use macro_rules_attribute::apply;
+use macro_rules_attribute::derive;
 use unicode_id_start::{is_id_continue, is_id_start};
 use vine_util::{
   for_enum,
@@ -9,8 +11,7 @@ use vine_util::{
 
 pub struct Diag;
 
-#[apply(for_enum!)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, for_enum!)]
 #[repr(u8)]
 pub enum Token {
   Underscore,

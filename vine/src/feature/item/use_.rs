@@ -1,24 +1,23 @@
-use crate::{
-  features::path::PathComponent,
-  structures::ast::{Span, SpanIdent},
-};
+use super::*;
 
-#[derive(Debug, Clone)]
+use crate::feature::path::PathComponent;
+
+#[derive_(Debug, Clone, Visit!)]
 pub struct ItemUse {
   pub imports: Vec<ImportTree>,
 }
 
-#[derive(Debug, Clone)]
+#[derive_(Debug, Clone, Visit!)]
 pub struct ImportTree {
   pub span: Span,
   pub component: PathComponent,
   pub kinds: Vec<ImportKind>,
 }
 
-#[derive(Debug, Clone)]
+#[derive_(Debug, Clone, Visit!)]
 pub enum ImportKind {
   Direct(Span),
-  Alias(SpanIdent),
+  Alias(Spanned<Ident>),
   Implicit(Span),
   All(Span),
   AllImplicit(Span),

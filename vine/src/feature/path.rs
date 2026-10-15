@@ -1,41 +1,43 @@
-use crate::structures::ast::{Expr, IdentValue, Sequence, Span};
+use super::*;
 
-#[derive(Debug, Clone)]
+use crate::feature::generics::GenericArgs;
+
+#[derive_(Debug, Clone, Visit!)]
 pub struct PathComponent {
   pub span: Span,
   pub stock: bool,
-  pub ident: IdentValue,
+  pub ident: Ident,
 }
 
-#[derive(Debug, Clone)]
+#[derive_(Debug, Clone, Visit!)]
 pub struct Path {
   pub components: Vec<PathComponent>,
   pub generics: GenericArgs,
 }
 
-#[derive(Debug, Clone)]
+#[derive_(Debug, Clone, Visit!)]
 pub struct ExprPath {
   pub path: Path,
   pub args: Option<Sequence<Expr>>,
 }
 
-#[derive(Debug, Clone)]
+#[derive_(Debug, Clone, Visit!)]
 pub struct PatPath {
   pub path: Path,
   pub args: Option<Sequence<Expr>>,
 }
 
-#[derive(Debug, Clone)]
+#[derive_(Debug, Clone, Visit!)]
 pub struct TyPath {
   pub path: Path,
 }
 
-#[derive(Debug, Clone)]
+#[derive_(Debug, Clone, Visit!)]
 pub struct TraitPath {
   pub path: Path,
 }
 
-#[derive(Debug, Clone)]
+#[derive_(Debug, Clone, Visit!)]
 pub struct ImplPath {
   pub path: Path,
 }
