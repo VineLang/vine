@@ -12,6 +12,8 @@ pub struct ExprInlineIvy {
   pub net: Net<Interpolation>,
 }
 
+impl ParseKind<Expr, ExprInlineIvy> for Parser<'_> {} // todo
+
 impl Visit for ExprInlineIvy {
   fn visit_children<'a>(&'a self, visitor: &mut impl Visitor<'a>) {
     visitor.visit(&self.interpolations);

@@ -9,6 +9,8 @@ pub struct StmtAssign {
   pub value: Expr,
 }
 
+impl ParseKind<Stmt, StmtAssign> for Parser<'_> {} // todo
+
 #[derive_(Debug, Clone, Visit!)]
 pub struct ExprBinaryOp {
   pub lhs: Expr,
@@ -16,17 +18,23 @@ pub struct ExprBinaryOp {
   pub rhs: Expr,
 }
 
+impl ParseKind<Expr, ExprBinaryOp> for Parser<'_> {} // todo
+
 #[derive_(Debug, Clone, Visit!)]
 pub struct ExprUnaryOp {
   pub op: Spanned<UnaryOp>,
   pub child: Expr,
 }
 
+impl ParseKind<Expr, ExprUnaryOp> for Parser<'_> {} // todo
+
 #[derive_(Debug, Clone, Visit!)]
 pub struct ExprComparisonOp {
   pub head: Expr,
   pub comparisons: Vec<Comparison>,
 }
+
+impl ParseKind<Expr, ExprComparisonOp> for Parser<'_> {} // todo
 
 #[derive_(Debug, Clone, Visit!)]
 pub struct Comparison {
@@ -40,6 +48,8 @@ pub struct PatComparisonOp {
   pub comparison: Comparison,
 }
 
+impl ParseKind<Pat, PatComparisonOp> for Parser<'_> {} // todo
+
 #[derive_(Debug, Clone, Visit!)]
 pub struct ExprCast {
   pub value: Expr,
@@ -47,16 +57,22 @@ pub struct ExprCast {
   pub ty: Ty,
 }
 
+impl ParseKind<Expr, ExprCast> for Parser<'_> {} // todo
+
 #[derive_(Debug, Clone, Visit!)]
 pub struct ExprIndex {
   pub container: Expr,
   pub index: Expr,
 }
 
+impl ParseKind<Expr, ExprIndex> for Parser<'_> {} // todo
+
 #[derive_(Debug, Clone, Visit!)]
 pub struct ExprRange {
   pub kind: RangeKind,
 }
+
+impl ParseKind<Expr, ExprRange> for Parser<'_> {} // todo
 
 #[derive_(Debug, Clone, Visit!)]
 pub enum RangeKind {

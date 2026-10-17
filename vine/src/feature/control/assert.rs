@@ -5,3 +5,5 @@ pub struct StmtAssert {
   pub cond: Expr,
   pub else_: Option<Block>,
 }
+
+impl ParseKind<Stmt, StmtAssert> for Parser<'_> {} // todo

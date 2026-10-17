@@ -9,3 +9,5 @@ pub struct ExprMethod {
   pub generics: GenericParams,
   pub args: Sequence<Expr>,
 }
+
+impl ParseKind<Expr, ExprMethod> for Parser<'_> {} // todo

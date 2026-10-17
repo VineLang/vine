@@ -6,6 +6,8 @@ pub struct StmtLet {
   pub kind: LetKind,
 }
 
+impl ParseKind<Stmt, StmtLet> for Parser<'_> {} // todo
+
 #[derive_(Debug, Clone, Visit!)]
 pub enum LetKind {
   Uninit,

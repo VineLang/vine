@@ -1,5 +1,11 @@
 use super::*;
 
+use crate::component::{
+  lexer::{Diag, Token},
+  parser::{ParseKind, Parser, Precedence},
+};
+use vine_util::parser::Parse;
+
 pub mod control;
 pub mod item;
 pub mod path;

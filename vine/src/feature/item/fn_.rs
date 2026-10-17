@@ -15,6 +15,8 @@ pub struct TyFnPath {
   pub path: Path,
 }
 
+impl ParseKind<Ty, TyFnPath> for Parser<'_> {} // todo
+
 #[derive_(Debug, Clone, Visit!)]
 pub struct AttrTest;
 

@@ -88,3 +88,5 @@ impl Exponent {
     }
   }
 }
+
+impl ParseKind<Expr, ExprLiteral> for Parser<'_> {} // todo

@@ -8,3 +8,5 @@ pub struct ExprFor {
   pub body: Block,
   pub else_: Option<Block>,
 }
+
+impl ParseKind<Expr, ExprFor> for Parser<'_> {} // todo

@@ -7,10 +7,14 @@ pub struct ExprString {
   pub string: StringLiteral<Expr>,
 }
 
+impl ParseKind<Expr, ExprString> for Parser<'_> {} // todo
+
 #[derive_(Debug, Clone, Visit!)]
 pub struct PatString {
   pub string: StringLiteral<Pat>,
 }
+
+impl ParseKind<Pat, PatString> for Parser<'_> {} // todo
 
 #[derive_(Debug, Clone)]
 pub struct StringLiteral<T = !> {

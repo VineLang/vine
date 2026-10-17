@@ -6,15 +6,21 @@ pub struct ExprIs {
   pub pat: Pat,
 }
 
+impl ParseKind<Expr, ExprIs> for Parser<'_> {} // todo
+
 #[derive_(Debug, Clone, Visit!)]
 pub struct ExprAny {
   pub conds: Children<Expr>,
 }
 
+impl ParseKind<Expr, ExprAny> for Parser<'_> {} // todo
+
 #[derive_(Debug, Clone, Visit!)]
 pub struct ExprAll {
   pub conds: Children<Expr>,
 }
+
+impl ParseKind<Expr, ExprAll> for Parser<'_> {} // todo
 
 #[derive_(Debug, Clone, Visit!)]
 pub struct ExprImplies {
@@ -22,10 +28,14 @@ pub struct ExprImplies {
   pub conclusion: Expr,
 }
 
+impl ParseKind<Expr, ExprImplies> for Parser<'_> {} // todo
+
 #[derive_(Debug, Clone, Visit!)]
 pub struct ExprNot {
   pub child: Expr,
 }
+
+impl ParseKind<Expr, ExprNot> for Parser<'_> {} // todo
 
 #[derive_(Debug, Clone, Visit!)]
 pub struct PatIs {
@@ -33,10 +43,14 @@ pub struct PatIs {
   pub pat: Pat,
 }
 
+impl ParseKind<Pat, PatIs> for Parser<'_> {} // todo
+
 #[derive_(Debug, Clone, Visit!)]
 pub struct PatAny {
   pub conds: Children<Pat>,
 }
+
+impl ParseKind<Pat, PatAny> for Parser<'_> {} // todo
 
 #[derive_(Debug, Clone, Visit!)]
 pub struct PatAll {
@@ -53,3 +67,5 @@ pub struct PatCond {
   pub pat: Pat,
   pub cond: Expr,
 }
+
+impl ParseKind<Pat, PatCond> for Parser<'_> {} // todo
