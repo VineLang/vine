@@ -6,10 +6,11 @@ pub struct ExprPlacement {
   pub space: Expr,
 }
 
-impl ParsePratt<Expr, ExprPlacement> for Parser<'_> {} // todo
-
 #[derive_(Debug, Clone, Visit!)]
 pub struct PatPlacement {
   pub value: Pat,
   pub space: Pat,
 }
+
+impl ParsePratt<Expr, ExprPlacement> for Parser<'_> {} // todo
+impl ParsePratt<Pat, PatPlacement> for Parser<'_> {} // todo

@@ -1,7 +1,5 @@
 use super::*;
 
-use vine_util::visit::{Visitor, VisitorMut};
-
 #[derive_(Debug, Clone, Visit!)]
 pub struct ExprString {
   pub string: StringLiteral<Expr>,

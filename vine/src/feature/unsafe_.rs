@@ -1,23 +1,26 @@
 use super::*;
 
+pub type ExprSafe = Safe<Expr>;
+pub type PatSafe = Safe<Pat>;
+pub type ImplSafe = Safe<Impl>;
+
 #[derive_(Debug, Clone, Visit!)]
-pub struct ExprSafe {
+pub struct Safe<T> {
   pub safe_: Spanned<()>,
-  pub child: Expr,
+  pub child: T,
 }
 
-impl ParsePratt<Expr, ExprSafe> for Parser<'_> {} // todo
-
-#[derive_(Debug, Clone, Visit!)]
-pub struct PatSafe {
-  pub safe_: Spanned<()>,
-  pub child: Pat,
-}
-
-impl ParsePratt<Pat, PatSafe> for Parser<'_> {} // todo
-
-#[derive_(Debug, Clone, Visit!)]
-pub struct ImplSafe {
-  pub safe_: Spanned<()>,
-  pub child: Impl,
+impl<T> ParsePratt<T, Safe<T>> for Parser<'_>
+where
+  Self: ParsePratt<T>,
+{
+  fn _parse_initial(&mut self, _left_prec: Precedence) -> Result<Option<Safe<T>>, Diag> {
+    let safe_ = self.token_span();
+    if self.eat(Token::Safe)? {
+      let child = self.parse_pratt(Precedence::Prefix)?;
+      Ok(Some(Safe { safe_, child }))
+    } else {
+      Ok(None)
+    }
+  }
 }

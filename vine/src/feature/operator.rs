@@ -9,8 +9,6 @@ pub struct StmtAssign {
   pub value: Expr,
 }
 
-impl ParsePratt<Stmt, StmtAssign> for Parser<'_> {} // todo
-
 #[derive_(Debug, Clone, Visit!)]
 pub struct ExprBinaryOp {
   pub lhs: Expr,
@@ -18,28 +16,16 @@ pub struct ExprBinaryOp {
   pub rhs: Expr,
 }
 
-impl ParsePratt<Expr, ExprBinaryOp> for Parser<'_> {} // todo
-
 #[derive_(Debug, Clone, Visit!)]
 pub struct ExprUnaryOp {
   pub op: Spanned<UnaryOp>,
   pub child: Expr,
 }
 
-impl ParsePratt<Expr, ExprUnaryOp> for Parser<'_> {} // todo
-
 #[derive_(Debug, Clone, Visit!)]
 pub struct ExprComparisonOp {
   pub head: Expr,
   pub comparisons: Vec<Comparison>,
-}
-
-impl ParsePratt<Expr, ExprComparisonOp> for Parser<'_> {} // todo
-
-#[derive_(Debug, Clone, Visit!)]
-pub struct Comparison {
-  pub op: Spanned<ComparisonOp>,
-  pub value: Expr,
 }
 
 #[derive_(Debug, Clone, Visit!)]
@@ -48,7 +34,11 @@ pub struct PatComparisonOp {
   pub comparison: Comparison,
 }
 
-impl ParsePratt<Pat, PatComparisonOp> for Parser<'_> {} // todo
+#[derive_(Debug, Clone, Visit!)]
+pub struct Comparison {
+  pub op: Spanned<ComparisonOp>,
+  pub value: Expr,
+}
 
 #[derive_(Debug, Clone, Visit!)]
 pub struct ExprCast {
@@ -57,27 +47,16 @@ pub struct ExprCast {
   pub ty: Ty,
 }
 
-impl ParsePratt<Expr, ExprCast> for Parser<'_> {} // todo
-
 #[derive_(Debug, Clone, Visit!)]
 pub struct ExprIndex {
   pub container: Expr,
   pub index: Expr,
 }
 
-impl ParsePratt<Expr, ExprIndex> for Parser<'_> {} // todo
-
 #[derive_(Debug, Clone, Visit!)]
-pub struct ExprRange {
-  pub kind: RangeKind,
-}
-
-impl ParsePratt<Expr, ExprRange> for Parser<'_> {} // todo
-
-#[derive_(Debug, Clone, Visit!)]
-pub enum RangeKind {
-  Inclusive(Option<Expr>, Option<Expr>),
-  Exclusive(Option<Expr>, Expr),
+pub enum ExprRange {
+  Exclusive(Option<Expr>, Option<Expr>),
+  Inclusive(Option<Expr>, Expr),
 }
 
 #[derive_(Debug, Clone, Copy, Visit!)]
@@ -131,6 +110,23 @@ impl AssignOp {
 }
 
 impl BinaryOp {
+  pub fn precedence(self) -> Precedence {
+    match self {
+      BinaryOp::BitOr => Precedence::BitOr,
+      BinaryOp::BitXor => Precedence::BitXor,
+      BinaryOp::BitAnd => Precedence::BitAnd,
+      BinaryOp::Shl => Precedence::BitShift,
+      BinaryOp::Shr => Precedence::BitShift,
+      BinaryOp::Add => Precedence::Additive,
+      BinaryOp::Sub => Precedence::Additive,
+      BinaryOp::Mul => Precedence::Multiplicative,
+      BinaryOp::Div => Precedence::Multiplicative,
+      BinaryOp::Rem => Precedence::Multiplicative,
+      BinaryOp::Concat => Precedence::Additive,
+      BinaryOp::Pow => Precedence::Exponential,
+    }
+  }
+
   fn tokens(self) -> (Token, Token) {
     match self {
       BinaryOp::BitOr => (Token::Pipe, Token::PipeEq),
@@ -176,6 +172,189 @@ impl ComparisonOp {
       ComparisonOp::Le => Token::LtEq,
       ComparisonOp::Ge => Token::GtEq,
       ComparisonOp::In => Token::In,
+    }
+  }
+}
+
+impl ParsePratt<Stmt, StmtAssign> for Parser<'_> {} // todo
+
+impl Parse<AssignOp> for Parser<'_> {
+  fn _parse(&mut self) -> Result<Option<AssignOp>, Diag> {
+    for_enum!(Op in BinaryOp {
+      if self.eat(Token::Eq)? {
+        Ok(Some(AssignOp::Normal))
+      } else if self.eat(Token::TildeEq)? {
+        Ok(Some(AssignOp::Inverse))
+      } $(else if self.eat(BinaryOp::$Op.token_eq())? {
+        Ok(Some(AssignOp::BinaryOp(BinaryOp::$Op)))
+      })* else {
+        Ok(None)
+      }
+    })
+  }
+}
+
+impl ParsePratt<Expr, ExprBinaryOp> for Parser<'_> {
+  fn _parse_suffix(
+    &mut self,
+    left_prec: Precedence,
+    initial: Expr,
+  ) -> Result<Result<ExprBinaryOp, Expr>, Diag> {
+    let span = self.token_span().span;
+    for_enum!(Op in BinaryOp { $(
+      if left_prec.weaker(BinaryOp::$Op.precedence()) && self.eat(BinaryOp::$Op.token())? {
+        let op = Spanned { span, inner: BinaryOp::$Op };
+        let rhs = self.parse_pratt(BinaryOp::$Op.precedence())?;
+        return Ok(Ok(ExprBinaryOp { lhs: initial, op, rhs } ));
+      }
+    )* });
+    Ok(Err(initial))
+  }
+}
+
+impl ParsePratt<Expr, ExprUnaryOp> for Parser<'_> {
+  fn _parse_initial(&mut self, _: Precedence) -> Result<Option<ExprUnaryOp>, Diag> {
+    let span = self.token_span().span;
+    for_enum!(Op in UnaryOp { $(
+      if self.eat(UnaryOp::$Op.token())? {
+        let op = Spanned { span, inner: UnaryOp::$Op };
+        let child = self.parse_pratt(Precedence::Prefix)?;
+        return Ok(Some(ExprUnaryOp { op, child }));
+      }
+    )* });
+    Ok(None)
+  }
+}
+
+impl ParsePratt<Expr, ExprComparisonOp> for Parser<'_> {
+  fn _parse_suffix(
+    &mut self,
+    left_prec: Precedence,
+    initial: Expr,
+  ) -> Result<Result<ExprComparisonOp, Expr>, Diag> {
+    if left_prec.weaker(Precedence::Comparison)
+      && let Some(comparison) = self.try_parse::<Comparison>()?
+    {
+      let mut comparisons = vec![comparison];
+      while let Some(comparison) = self.try_parse::<Comparison>()? {
+        comparisons.push(comparison);
+      }
+      Ok(Ok(ExprComparisonOp { head: initial, comparisons }))
+    } else {
+      Ok(Err(initial))
+    }
+  }
+}
+
+impl ParsePratt<Pat, PatComparisonOp> for Parser<'_> {
+  fn _parse_initial(&mut self, _: Precedence) -> Result<Option<PatComparisonOp>, Diag> {
+    if let Some(comparison) = self.try_parse::<Comparison>()? {
+      Ok(Some(PatComparisonOp { pat: None, comparison }))
+    } else {
+      Ok(None)
+    }
+  }
+
+  fn _parse_suffix(
+    &mut self,
+    left_prec: Precedence,
+    initial: Pat,
+  ) -> Result<Result<PatComparisonOp, Pat>, Diag> {
+    if left_prec.weaker(Precedence::Comparison)
+      && let Some(comparison) = self.try_parse::<Comparison>()?
+    {
+      Ok(Ok(PatComparisonOp { pat: Some(initial), comparison }))
+    } else {
+      Ok(Err(initial))
+    }
+  }
+}
+
+impl Parse<Comparison> for Parser<'_> {
+  fn _parse(&mut self) -> Result<Option<Comparison>, Diag> {
+    if let Some(op) = self.try_parse::<Spanned<ComparisonOp>>()? {
+      let value = self.parse_pratt::<Expr>(Precedence::Comparison)?;
+      Ok(Some(Comparison { op, value }))
+    } else {
+      Ok(None)
+    }
+  }
+}
+
+impl Parse<ComparisonOp> for Parser<'_> {
+  fn _parse(&mut self) -> Result<Option<ComparisonOp>, Diag> {
+    for_enum!(Op in ComparisonOp {
+      $(if self.eat(ComparisonOp::$Op.token())? {
+        Ok(Some(ComparisonOp::$Op))
+      } else)* {
+        Ok(None)
+      }
+    })
+  }
+}
+
+impl ParsePratt<Expr, ExprCast> for Parser<'_> {
+  fn _parse_suffix(
+    &mut self,
+    left_prec: Precedence,
+    initial: Expr,
+  ) -> Result<Result<ExprCast, Expr>, Diag> {
+    let op = self.token_span();
+    if left_prec.weaker(Precedence::Annotation) && self.eat(Token::As)? {
+      let ty = self.parse_pratt(Precedence::Annotation)?;
+      Ok(Ok(ExprCast { value: initial, op, ty }))
+    } else {
+      Ok(Err(initial))
+    }
+  }
+
+  fn _parse_dot(&mut self, initial: Expr) -> Result<Result<ExprCast, Expr>, Diag> {
+    let op = self.token_span();
+    if self.eat(Token::As)? {
+      self.expect(Token::OpenBracket)?;
+      let ty = self.parse()?;
+      self.expect(Token::OpenBracket)?;
+      Ok(Ok(ExprCast { value: initial, op, ty }))
+    } else {
+      Ok(Err(initial))
+    }
+  }
+}
+
+impl ParsePratt<Expr, ExprIndex> for Parser<'_> {
+  fn _parse_dot(&mut self, initial: Expr) -> Result<Result<ExprIndex, Expr>, Diag> {
+    if self.eat(Token::OpenBracket)? {
+      let index = self.parse()?;
+      self.expect(Token::CloseBracket)?;
+      Ok(Ok(ExprIndex { container: initial, index }))
+    } else {
+      Ok(Err(initial))
+    }
+  }
+}
+
+impl ParsePratt<Expr, ExprRange> for Parser<'_> {
+  fn _parse_initial(&mut self, _left_prec: Precedence) -> Result<Option<ExprRange>, Diag> {
+    if self.eat(Token::DotDot)? {
+      Ok(Some(ExprRange::Exclusive(None, self.try_parse_pratt(Precedence::Range)?)))
+    } else if self.eat(Token::DotDotEq)? {
+      Ok(Some(ExprRange::Inclusive(None, self.parse_pratt(Precedence::Range)?)))
+    } else {
+      Ok(None)
+    }
+  }
+
+  fn _parse_suffix(
+    &mut self,
+    left_prec: Precedence,
+    initial: Expr,
+  ) -> Result<Result<ExprRange, Expr>, Diag> {
+    if left_prec.weaker(Precedence::Range) && self.eat(Token::DotDot)? {
+      Ok(Ok(ExprRange::Exclusive(Some(initial), self.try_parse_pratt(Precedence::Range)?)))
+    } else if left_prec.weaker(Precedence::Range) && self.eat(Token::DotDotEq)? {
+      Ok(Ok(ExprRange::Inclusive(Some(initial), self.parse_pratt(Precedence::Range)?)))
+    } else {
+      Ok(Err(initial))
     }
   }
 }

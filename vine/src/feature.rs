@@ -2,9 +2,9 @@ use super::*;
 
 use crate::component::{
   lexer::{Diag, Token},
-  parser::{ParsePratt, Parser, Precedence},
+  parser::{Parse, ParsePratt, Parser, Precedence},
 };
-use vine_util::parser::Parse;
+use vine_util::parser::Parse as _;
 
 pub mod control;
 pub mod item;

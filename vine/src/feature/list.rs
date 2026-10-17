@@ -1,15 +1,29 @@
 use super::*;
 
-#[derive_(Debug, Clone, Visit!)]
-pub struct ExprList {
-  pub children: Sequence<Expr>,
-}
+use crate::component::parser::ParseSequence;
 
-impl ParsePratt<Expr, ExprList> for Parser<'_> {} // todo
+pub type ExprList = List<Expr>;
+pub type PatList = List<Pat>;
 
 #[derive_(Debug, Clone, Visit!)]
-pub struct PatList {
-  pub children: Sequence<Pat>,
+pub struct List<T> {
+  pub children: Sequence<T>,
 }
 
-impl ParsePratt<Pat, PatList> for Parser<'_> {} // todo
+impl<T: ParseSequence> ParsePratt<T, List<T>> for Parser<'_>
+where
+  Self: Parse<T>,
+{
+  fn _parse_initial(&mut self, _: Precedence) -> Result<Option<List<T>>, Diag> {
+    if self.eat(Token::OpenBracket)? {
+      let children = self.parse_children::<SequenceChild<T>>(
+        None,
+        Some(Token::Comma),
+        Some(Token::CloseBracket),
+      )?;
+      Ok(Some(List { children }))
+    } else {
+      Ok(None)
+    }
+  }
+}

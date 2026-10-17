@@ -46,7 +46,7 @@ use crate::feature::{
     StmtAssign,
   },
   path::{ExprPath, ImplPath, PatPath, TraitPath, TyPath},
-  placement::ExprPlacement,
+  placement::{ExprPlacement, PatPlacement},
   read::ExprRead,
   string::{ExprString, PatString},
   tuple::{ExprTuple, PatTuple, TyTuple},
@@ -275,6 +275,7 @@ pub enum PatKind {
   Loan(PatLoan),
   Borrow(PatBorrow),
   Inverse(PatInverse),
+  Placement(PatPlacement),
 
   Variant(PatVariant),
   Tuple(PatTuple),
@@ -390,7 +391,7 @@ impl<T: Debug + 'static> Visit for Resolve<T> {
 }
 
 /// A textual comment, possibly spanning multiple lines.
-#[derive_(Debug, Clone)]
+#[derive_(Default, Debug, Clone)]
 pub struct Text {
   pub lines: Vec<String>,
 }
@@ -480,6 +481,12 @@ impl<T> Children<T> {
   }
 }
 
+impl<T> From<T> for ChildrenEntry<T> {
+  fn from(child: T) -> Self {
+    ChildrenEntry::Child { docs: Text::default(), child, trailing: Text::default() }
+  }
+}
+
 impl<T: Visit> Visit for Children<T> {
   fn visit_children<'a>(&'a self, visitor: &mut impl Visitor<'a>) {
     for child in self.iter() {
@@ -494,6 +501,12 @@ impl<T: Visit> Visit for Children<T> {
   }
 }
 
+impl<T> Default for Children<T> {
+  fn default() -> Self {
+    Self { entries: Default::default() }
+  }
+}
+
 /// A tuple-like collection of children, with regular entries and spreads.
 pub type Sequence<T> = Children<SequenceChild<T>>;
 
@@ -504,7 +517,7 @@ pub enum SequenceChild<T> {
     label: Option<Spanned<Ident>>,
     child: T,
   },
-  Spread(T),
+  Spread(Option<T>),
 }
 
 /// An object-like key-value collection, with key-value pairs and spreads.
@@ -518,7 +531,7 @@ pub struct Object<T> {
 #[derive_(Debug, Clone, Visit!)]
 pub enum ObjectChild<T> {
   Entry { key: Spanned<Ident>, value: T },
-  Spread(T),
+  Spread(Option<T>),
 }
 
 use crate::component::parser::{ParsePratt, Parser};

@@ -1,25 +1,16 @@
 use super::*;
 
-#[derive_(Debug, Clone, Visit!)]
-pub struct StmtHole;
+pub type ExprHole = Hole;
+pub type PatHole = Hole;
+pub type TyHole = Hole;
+pub type ImplHole = Hole;
+pub type TraitHole = Hole;
 
 #[derive_(Debug, Clone, Visit!)]
-pub struct ExprHole;
+pub struct Hole;
 
-#[derive_(Debug, Clone, Visit!)]
-pub struct PatHole;
-
-#[derive_(Debug, Clone, Visit!)]
-pub struct TyHole;
-
-#[derive_(Debug, Clone, Visit!)]
-pub struct ImplHole;
-
-#[derive_(Debug, Clone, Visit!)]
-pub struct TraitHole;
-
-impl ParsePratt<Expr, ExprHole> for Parser<'_> {} // todo
-impl ParsePratt<Pat, PatHole> for Parser<'_> {} // todo
-impl ParsePratt<Ty, TyHole> for Parser<'_> {} // todo
-impl ParsePratt<Impl, ImplHole> for Parser<'_> {} // todo
-impl ParsePratt<Trait, TraitHole> for Parser<'_> {} // todo
+impl<T> ParsePratt<T, Hole> for Parser<'_> {
+  fn _parse_initial(&mut self, _: Precedence) -> Result<Option<Hole>, Diag> {
+    if self.eat(Token::Underscore)? { Ok(Some(Hole)) } else { Ok(None) }
+  }
+}
