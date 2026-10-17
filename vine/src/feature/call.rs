@@ -6,7 +6,7 @@ pub struct ExprCall {
   pub args: Sequence<Expr>,
 }
 
-impl ParseKind<Expr, ExprCall> for Parser<'_> {} // todo
+impl ParsePratt<Expr, ExprCall> for Parser<'_> {} // todo
 
 #[derive_(Debug, Clone, Visit!)]
 pub struct TraitFn {
@@ -15,4 +15,4 @@ pub struct TraitFn {
   pub return_: Option<Ty>,
 }
 
-impl ParseKind<Trait, TraitFn> for Parser<'_> {} // todo
+impl ParsePratt<Trait, TraitFn> for Parser<'_> {} // todo

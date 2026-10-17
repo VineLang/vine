@@ -187,7 +187,7 @@ pub struct StmtExpr {
   pub semi: bool,
 }
 
-impl ParseKind<Stmt, StmtExpr> for Parser<'_> {} // todo
+impl ParsePratt<Stmt, StmtExpr> for Parser<'_> {} // todo
 
 #[derive_(Debug, Clone, Visit!)]
 pub struct Expr {
@@ -497,7 +497,7 @@ impl<T: Visit> Visit for Children<T> {
 /// A tuple-like collection of children, with regular entries and spreads.
 pub type Sequence<T> = Children<SequenceChild<T>>;
 
-#[derive_(Debug, Clone)]
+#[derive_(Debug, Clone, Visit!)]
 pub enum SequenceChild<T> {
   Entry {
     /// Can be present in tuple types; serves solely as documentation.
@@ -507,75 +507,21 @@ pub enum SequenceChild<T> {
   Spread(T),
 }
 
-impl<T: Visit> Visit for SequenceChild<T> {
-  fn visit_children<'a>(&'a self, visitor: &mut impl Visitor<'a>) {
-    match self {
-      SequenceChild::Entry { label, child } => {
-        visitor.visit(label);
-        visitor.visit(child);
-      }
-      SequenceChild::Spread(child) => visitor.visit(child),
-    }
-  }
-
-  fn visit_children_mut<'a>(&'a mut self, visitor: &mut impl VisitorMut<'a>) {
-    match self {
-      SequenceChild::Entry { label, child } => {
-        visitor.visit(label);
-        visitor.visit(child);
-      }
-      SequenceChild::Spread(child) => visitor.visit(child),
-    }
-  }
-}
-
 /// An object-like key-value collection, with key-value pairs and spreads.
-#[derive_(Debug, Clone)]
+#[derive_(Debug, Clone, Visit!)]
 pub struct Object<T> {
   /// Whether the entries are specified in order.
   pub ordered: bool,
   pub children: Children<ObjectChild<T>>,
 }
 
-impl<T: Visit> Visit for Object<T> {
-  fn visit_children<'a>(&'a self, visitor: &mut impl Visitor<'a>) {
-    visitor.visit(&self.children);
-  }
-
-  fn visit_children_mut<'a>(&'a mut self, visitor: &mut impl VisitorMut<'a>) {
-    visitor.visit(&mut self.children);
-  }
-}
-
-#[derive_(Debug, Clone)]
+#[derive_(Debug, Clone, Visit!)]
 pub enum ObjectChild<T> {
   Entry { key: Spanned<Ident>, value: T },
   Spread(T),
 }
 
-impl<T: Visit> Visit for ObjectChild<T> {
-  fn visit_children<'a>(&'a self, visitor: &mut impl Visitor<'a>) {
-    match self {
-      ObjectChild::Entry { key, value } => {
-        visitor.visit(key);
-        visitor.visit(value);
-      }
-      ObjectChild::Spread(child) => visitor.visit(child),
-    }
-  }
-
-  fn visit_children_mut<'a>(&'a mut self, visitor: &mut impl VisitorMut<'a>) {
-    match self {
-      ObjectChild::Entry { key, value } => {
-        visitor.visit(key);
-        visitor.visit(value);
-      }
-      ObjectChild::Spread(child) => visitor.visit(child),
-    }
-  }
-}
-
-use crate::component::parser::{ParseKind, Parser};
+use crate::component::parser::{ParsePratt, Parser};
 
 impl Expr {
   pub fn new(span: Span, kind: impl Into<ExprKind>) -> Self {

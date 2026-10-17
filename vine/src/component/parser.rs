@@ -64,29 +64,36 @@ impl<'src> Parser<'src> {
     todo!()
   }
 
-  pub fn parse_expr(&mut self, left_prec: Precedence) -> Result<Expr, Diag> {
-    self.pratt(left_prec)?.ok_or_else(|| self.unexpected_error())
-  }
+  // pub fn parse_expr(&mut self, left_prec: Precedence) -> Result<Expr, Diag> {
+  //   self.parse_pratt(left_prec)
+  // }
 
-  pub fn parse_pat(&mut self, left_prec: Precedence) -> Result<Pat, Diag> {
-    self.pratt(left_prec)?.ok_or_else(|| self.unexpected_error())
-  }
+  // pub fn parse_pat(&mut self, left_prec: Precedence) -> Result<Pat, Diag> {
+  //   self.parse_pratt(left_prec)
+  // }
 
-  pub fn parse_ty(&mut self, left_prec: Precedence) -> Result<Ty, Diag> {
-    self.pratt(left_prec)?.ok_or_else(|| self.unexpected_error())
-  }
+  // pub fn parse_ty(&mut self, left_prec: Precedence) -> Result<Ty, Diag> {
+  //   self.parse_pratt(left_prec)
+  // }
 
-  pub fn parse_impl(&mut self, left_prec: Precedence) -> Result<Impl, Diag> {
-    self.pratt(left_prec)?.ok_or_else(|| self.unexpected_error())
-  }
+  // pub fn parse_impl(&mut self, left_prec: Precedence) -> Result<Impl, Diag> {
+  //   self.parse_pratt(left_prec)
+  // }
 
-  pub fn parse_trait(&mut self, left_prec: Precedence) -> Result<Trait, Diag> {
-    self.pratt(left_prec)?.ok_or_else(|| self.unexpected_error())
-  }
+  // pub fn parse_trait(&mut self, left_prec: Precedence) -> Result<Trait, Diag> {
+  //   self.parse_pratt(left_prec)
+  // }
 
-  fn pratt<T>(&mut self, left_prec: Precedence) -> Result<Option<T>, Diag>
+  pub fn parse_pratt<T>(&mut self, left_prec: Precedence) -> Result<T, Diag>
   where
-    Self: ParseKind<T, T>,
+    Self: ParsePratt<T, T>,
+  {
+    self.try_parse_pratt(left_prec)?.ok_or_else(|| self.unexpected_error())
+  }
+
+  pub fn try_parse_pratt<T>(&mut self, left_prec: Precedence) -> Result<Option<T>, Diag>
+  where
+    Self: ParsePratt<T, T>,
   {
     if left_prec == Precedence::Root
       && let Some(term) = self._parse_full()?
@@ -97,6 +104,12 @@ impl<'src> Parser<'src> {
     let Some(mut term) = self._parse_initial()? else { return Ok(None) };
 
     loop {
+      if Self::ALLOW_DOT && self.eat(Token::Dot)? {
+        return match self._parse_dot(term)? {
+          Ok(term) => Ok(Some(term)),
+          Err(_) => self.unexpected(),
+        };
+      }
       match self._parse_suffix(left_prec, term)? {
         Ok(term_) => {
           term = term_;
@@ -108,7 +121,7 @@ impl<'src> Parser<'src> {
   }
 }
 
-impl ParseKind<Expr, Expr> for Parser<'_> {
+impl ParsePratt<Expr> for Parser<'_> {
   fn _parse_full(&mut self) -> Result<Option<Expr>, Diag> {
     let span = self.start_span();
     Ok(self._parse_initial()?.map(|kind: ExprKind| Expr::new(self.end_span(span), kind)))
@@ -131,9 +144,14 @@ impl ParseKind<Expr, Expr> for Parser<'_> {
         .map(|kind: ExprKind| Expr::new(self.end_span(span), kind)),
     )
   }
+
+  fn _parse_dot(&mut self, initial: Expr) -> Result<Result<Expr, Expr>, Diag> {
+    let span = initial.span.start;
+    Ok(self._parse_dot(initial)?.map(|kind: ExprKind| Expr::new(self.end_span(span), kind)))
+  }
 }
 
-impl ParseKind<Pat, Pat> for Parser<'_> {
+impl ParsePratt<Pat> for Parser<'_> {
   fn _parse_full(&mut self) -> Result<Option<Pat>, Diag> {
     let span = self.start_span();
     Ok(self._parse_initial()?.map(|kind: PatKind| Pat::new(self.end_span(span), kind)))
@@ -156,9 +174,11 @@ impl ParseKind<Pat, Pat> for Parser<'_> {
         .map(|kind: PatKind| Pat::new(self.end_span(span), kind)),
     )
   }
+
+  const ALLOW_DOT: bool = false;
 }
 
-impl ParseKind<Ty, Ty> for Parser<'_> {
+impl ParsePratt<Ty> for Parser<'_> {
   fn _parse_full(&mut self) -> Result<Option<Ty>, Diag> {
     let span = self.start_span();
     Ok(self._parse_initial()?.map(|kind: TyKind| Ty::new(self.end_span(span), kind)))
@@ -177,9 +197,14 @@ impl ParseKind<Ty, Ty> for Parser<'_> {
         .map(|kind: TyKind| Ty::new(self.end_span(span), kind)),
     )
   }
+
+  fn _parse_dot(&mut self, initial: Ty) -> Result<Result<Ty, Ty>, Diag> {
+    let span = initial.span.start;
+    Ok(self._parse_dot(initial)?.map(|kind: TyKind| Ty::new(self.end_span(span), kind)))
+  }
 }
 
-impl ParseKind<Impl, Impl> for Parser<'_> {
+impl ParsePratt<Impl> for Parser<'_> {
   fn _parse_full(&mut self) -> Result<Option<Impl>, Diag> {
     let span = self.start_span();
     Ok(self._parse_initial()?.map(|kind: ImplKind| Impl::new(self.end_span(span), kind)))
@@ -202,9 +227,11 @@ impl ParseKind<Impl, Impl> for Parser<'_> {
         .map(|kind: ImplKind| Impl::new(self.end_span(span), kind)),
     )
   }
+
+  const ALLOW_DOT: bool = false;
 }
 
-impl ParseKind<Trait, Trait> for Parser<'_> {
+impl ParsePratt<Trait> for Parser<'_> {
   fn _parse_full(&mut self) -> Result<Option<Trait>, Diag> {
     let span = self.start_span();
     Ok(self._parse_initial()?.map(|kind: TraitKind| Trait::new(self.end_span(span), kind)))
@@ -227,9 +254,11 @@ impl ParseKind<Trait, Trait> for Parser<'_> {
         .map(|kind: TraitKind| Trait::new(self.end_span(span), kind)),
     )
   }
+
+  const ALLOW_DOT: bool = false;
 }
 
-pub trait ParseKind<T, K> {
+pub trait ParsePratt<T, K = T> {
   fn _parse_full(&mut self) -> Result<Option<K>, Diag> {
     Ok(None)
   }
@@ -241,11 +270,17 @@ pub trait ParseKind<T, K> {
   fn _parse_suffix(&mut self, _left_prec: Precedence, initial: T) -> Result<Result<K, T>, Diag> {
     Ok(Err(initial))
   }
+
+  const ALLOW_DOT: bool = true;
+
+  fn _parse_dot(&mut self, initial: T) -> Result<Result<K, T>, Diag> {
+    Ok(Err(initial))
+  }
 }
 
-macro_rules! ParseKind {
+macro_rules! ParsePratt {
   (($_:tt) $($Term:ident $TermKind:ident),* $(,)?) => {
-    $(impl ParseKind<$Term, $TermKind> for Parser<'_> {
+    $(impl ParsePratt<$Term, $TermKind> for Parser<'_> {
       fn _parse_full(&mut self) -> Result<Option<$TermKind>, Diag> {
         for_enum!(Kind in $TermKind { $_(
           if let Some(kind) = self._parse_full()? {
@@ -277,11 +312,24 @@ macro_rules! ParseKind {
         )* });
         Ok(Err(initial))
       }
+
+      fn _parse_dot(
+        &mut self,
+        mut initial: $Term,
+      ) -> Result<Result<$TermKind, $Term>, Diag> {
+        for_enum!(Kind in $TermKind { $_(
+          match self._parse_dot(initial)? {
+            Ok(kind) => return Ok(Ok($TermKind::$Kind(kind))),
+            Err(initial_) => initial = initial_,
+          }
+        )* });
+        Ok(Err(initial))
+      }
     })*
   };
 }
 
-ParseKind!(($) Stmt StmtKind, Expr ExprKind, Pat PatKind, Ty TyKind, Impl ImplKind, Trait TraitKind);
+ParsePratt!(($) Stmt StmtKind, Expr ExprKind, Pat PatKind, Ty TyKind, Impl ImplKind, Trait TraitKind);
 
 #[derive_(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Precedence {

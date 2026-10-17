@@ -6,7 +6,7 @@ pub struct TyEnum {
   pub variants: Sequence<TyVariant>,
 }
 
-impl ParseKind<Ty, TyEnum> for Parser<'_> {} // todo
+impl ParsePratt<Ty, TyEnum> for Parser<'_> {} // todo
 
 #[derive_(Debug, Clone, Visit!)]
 pub struct TyVariant {
@@ -20,7 +20,7 @@ pub struct ExprVariant {
   pub content: Sequence<Expr>,
 }
 
-impl ParseKind<Expr, ExprVariant> for Parser<'_> {} // todo
+impl ParsePratt<Expr, ExprVariant> for Parser<'_> {} // todo
 
 #[derive_(Debug, Clone, Visit!)]
 pub struct PatVariant {
@@ -28,4 +28,4 @@ pub struct PatVariant {
   pub content: Sequence<Pat>,
 }
 
-impl ParseKind<Pat, PatVariant> for Parser<'_> {} // todo
+impl ParsePratt<Pat, PatVariant> for Parser<'_> {} // todo

@@ -21,7 +21,7 @@ pub struct ExprPath {
   pub args: Option<Sequence<Expr>>,
 }
 
-impl ParseKind<Expr, ExprPath> for Parser<'_> {} // todo
+impl ParsePratt<Expr, ExprPath> for Parser<'_> {} // todo
 
 #[derive_(Debug, Clone, Visit!)]
 pub struct PatPath {
@@ -29,25 +29,25 @@ pub struct PatPath {
   pub args: Option<Sequence<Expr>>,
 }
 
-impl ParseKind<Pat, PatPath> for Parser<'_> {} // todo
+impl ParsePratt<Pat, PatPath> for Parser<'_> {} // todo
 
 #[derive_(Debug, Clone, Visit!)]
 pub struct TyPath {
   pub path: Path,
 }
 
-impl ParseKind<Ty, TyPath> for Parser<'_> {} // todo
+impl ParsePratt<Ty, TyPath> for Parser<'_> {} // todo
 
 #[derive_(Debug, Clone, Visit!)]
 pub struct TraitPath {
   pub path: Path,
 }
 
-impl ParseKind<Trait, TraitPath> for Parser<'_> {} // todo
+impl ParsePratt<Trait, TraitPath> for Parser<'_> {} // todo
 
 #[derive_(Debug, Clone, Visit!)]
 pub struct ImplPath {
   pub path: Path,
 }
 
-impl ParseKind<Impl, ImplPath> for Parser<'_> {} // todo
+impl ParsePratt<Impl, ImplPath> for Parser<'_> {} // todo

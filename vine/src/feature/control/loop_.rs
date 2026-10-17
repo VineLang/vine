@@ -6,4 +6,4 @@ pub struct ExprLoop {
   pub body: Block,
 }
 
-impl ParseKind<Expr, ExprLoop> for Parser<'_> {} // todo
+impl ParsePratt<Expr, ExprLoop> for Parser<'_> {} // todo

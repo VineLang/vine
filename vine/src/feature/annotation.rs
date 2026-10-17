@@ -6,7 +6,7 @@ pub struct ExprAnnotation {
   pub ty: Ty,
 }
 
-impl ParseKind<Expr, ExprAnnotation> for Parser<'_> {} // todo
+impl ParsePratt<Expr, ExprAnnotation> for Parser<'_> {} // todo
 
 #[derive_(Debug, Clone, Visit!)]
 pub struct PatAnnotation {
@@ -14,7 +14,7 @@ pub struct PatAnnotation {
   pub ty: Ty,
 }
 
-impl ParseKind<Pat, PatAnnotation> for Parser<'_> {} // todo
+impl ParsePratt<Pat, PatAnnotation> for Parser<'_> {} // todo
 
 #[derive_(Debug, Clone, Visit!)]
 pub struct ImplAnnotation {
@@ -22,4 +22,4 @@ pub struct ImplAnnotation {
   pub trait_: Trait,
 }
 
-impl ParseKind<Impl, ImplAnnotation> for Parser<'_> {} // todo
+impl ParsePratt<Impl, ImplAnnotation> for Parser<'_> {} // todo

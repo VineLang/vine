@@ -36,11 +36,11 @@ pub struct StmtBreak {
   pub value: Option<Expr>,
 }
 
-impl ParseKind<Stmt, StmtBreak> for Parser<'_> {} // todo
+impl ParsePratt<Stmt, StmtBreak> for Parser<'_> {} // todo
 
 #[derive_(Debug, Clone, Visit!)]
 pub struct StmtContinue {
   pub target: Target,
 }
 
-impl ParseKind<Stmt, StmtContinue> for Parser<'_> {} // todo
+impl ParsePratt<Stmt, StmtContinue> for Parser<'_> {} // todo

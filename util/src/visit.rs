@@ -73,7 +73,7 @@ use crate::idx::{Idx, IdxVec};
 
 #[macro_export]
 macro_rules! derive_visit {
-  ($(#[$_0:meta])* $_1:vis struct $name:ident $(<$($T:ident),* $(,)?>)? $({ $($(#[$_2:meta])* $_3:vis $key:ident: $_4:ty),* $(,)? })? $(;)?) => {
+  ($(#[$_0:meta])* $_1:vis struct $name:ident $(<$($T:ident $(= $_2:ty)?),* $(,)?>)? $({ $($(#[$_3:meta])* $_4:vis $key:ident: $_5:ty),* $(,)? })? $(;)?) => {
     impl$(<$($T: $crate::visit::Visit),*>)? $crate::visit::Visit for $name$(<$($T),*>)? {
       #[inline]
       fn visit_children<'a>(&'a self, visitor: &mut impl $crate::visit::Visitor<'a>) {
@@ -89,10 +89,10 @@ macro_rules! derive_visit {
     }
   };
 
-  ($(#[$_0:meta])* $_1:vis enum $name:ident $(<$($T:ident),* $(,)?>)? { $(
-    $(#[$_2:meta])*
+  ($(#[$_0:meta])* $_1:vis enum $name:ident $(<$($T:ident $(= $_2:ty)?),* $(,)?>)? { $(
+    $(#[$_3:meta])*
     $variant:ident
-      $({ $(#[$_3:meta])* $($key:ident: $_4:ty),* $(,)? })?
+      $({ $(#[$_4:meta])* $($key:ident: $_5:ty),* $(,)? })?
       $(($($ty0:ty $(, $($ty1:ty $(, $($ty2:ty $(, $($ty3:ty $(,)?)?)?)?)?)?)?)?))?
   ),* $(,)? }) => {
     impl$(<$($T: $crate::visit::Visit),*>)? $crate::visit::Visit for $name$(<$($T),*>)? {
@@ -213,7 +213,7 @@ impl<T: Visit> Visit for Box<T> {
   }
 }
 
-trivial_visit!(bool, usize, String, Range<usize>, (), !);
+trivial_visit!(bool, usize, String, Range<usize>, (), !, char);
 
 use macro_rules_attribute::derive;
 

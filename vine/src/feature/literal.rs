@@ -89,4 +89,4 @@ impl Exponent {
   }
 }
 
-impl ParseKind<Expr, ExprLiteral> for Parser<'_> {} // todo
+impl ParsePratt<Expr, ExprLiteral> for Parser<'_> {} // todo

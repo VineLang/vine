@@ -8,4 +8,4 @@ pub struct ExprIf {
   pub else_: Option<Block>,
 }
 
-impl ParseKind<Expr, ExprIf> for Parser<'_> {} // todo
+impl ParsePratt<Expr, ExprIf> for Parser<'_> {} // todo

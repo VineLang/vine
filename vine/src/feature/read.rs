@@ -5,7 +5,7 @@ pub struct ExprRead {
   pub child: Expr,
 }
 
-impl ParseKind<Expr, ExprRead> for Parser<'_> {} // todo
+impl ParsePratt<Expr, ExprRead> for Parser<'_> {} // todo
 
 #[derive_(Debug, Clone, Visit!)]
 pub struct PatRead {

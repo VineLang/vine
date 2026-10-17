@@ -8,4 +8,4 @@ pub struct ExprWhile {
   pub else_: Option<Block>,
 }
 
-impl ParseKind<Expr, ExprWhile> for Parser<'_> {} // todo
+impl ParsePratt<Expr, ExprWhile> for Parser<'_> {} // todo

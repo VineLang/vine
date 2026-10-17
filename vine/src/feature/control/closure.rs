@@ -10,7 +10,7 @@ pub struct ExprClosure {
   pub body: Block,
 }
 
-impl ParseKind<Expr, ExprClosure> for Parser<'_> {} // todo
+impl ParsePratt<Expr, ExprClosure> for Parser<'_> {} // todo
 
 #[derive_(Debug, Clone, Visit!)]
 pub struct StmtClosure {
@@ -18,4 +18,4 @@ pub struct StmtClosure {
   pub closure: ExprClosure,
 }
 
-impl ParseKind<Stmt, StmtClosure> for Parser<'_> {} // todo
+impl ParsePratt<Stmt, StmtClosure> for Parser<'_> {} // todo

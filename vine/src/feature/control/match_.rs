@@ -7,7 +7,7 @@ pub struct ExprMatch {
   pub arms: Children<MatchArm>,
 }
 
-impl ParseKind<Expr, ExprMatch> for Parser<'_> {} // todo
+impl ParsePratt<Expr, ExprMatch> for Parser<'_> {} // todo
 
 #[derive_(Debug, Clone, Visit!)]
 pub struct MatchArm {

@@ -6,7 +6,7 @@ pub struct ExprUnwrap {
   pub bang: Spanned<()>,
 }
 
-impl ParseKind<Expr, ExprUnwrap> for Parser<'_> {} // todo
+impl ParsePratt<Expr, ExprUnwrap> for Parser<'_> {} // todo
 
 #[derive_(Debug, Clone, Visit!)]
 pub struct TyUnwrap {
@@ -14,4 +14,4 @@ pub struct TyUnwrap {
   pub bang: Spanned<()>,
 }
 
-impl ParseKind<Ty, TyUnwrap> for Parser<'_> {} // todo
+impl ParsePratt<Ty, TyUnwrap> for Parser<'_> {} // todo

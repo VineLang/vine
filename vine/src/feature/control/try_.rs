@@ -6,4 +6,4 @@ pub struct ExprTry {
   pub try_: Spanned<()>,
 }
 
-impl ParseKind<Expr, ExprTry> for Parser<'_> {} // todo
+impl ParsePratt<Expr, ExprTry> for Parser<'_> {} // todo

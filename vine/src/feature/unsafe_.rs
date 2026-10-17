@@ -6,7 +6,7 @@ pub struct ExprSafe {
   pub child: Expr,
 }
 
-impl ParseKind<Expr, ExprSafe> for Parser<'_> {} // todo
+impl ParsePratt<Expr, ExprSafe> for Parser<'_> {} // todo
 
 #[derive_(Debug, Clone, Visit!)]
 pub struct PatSafe {
@@ -14,7 +14,7 @@ pub struct PatSafe {
   pub child: Pat,
 }
 
-impl ParseKind<Pat, PatSafe> for Parser<'_> {} // todo
+impl ParsePratt<Pat, PatSafe> for Parser<'_> {} // todo
 
 #[derive_(Debug, Clone, Visit!)]
 pub struct ImplSafe {

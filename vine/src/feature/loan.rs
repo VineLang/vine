@@ -6,43 +6,25 @@ pub enum Mutable {
   Imm,
 }
 
-#[derive_(Debug, Clone, Visit!)]
-pub struct ExprLoan {
-  pub mut_: Mutable,
-  pub child: Expr,
-}
+pub type ExprLoan = Loan<Expr>;
+pub type PatLoan = Loan<Pat>;
+pub type TyLoan = Loan<Ty>;
 
 #[derive_(Debug, Clone, Visit!)]
-pub struct PatLoan {
+pub struct Loan<T> {
   pub mut_: Mutable,
-  pub child: Pat,
+  pub child: T,
 }
 
-#[derive_(Debug, Clone, Visit!)]
-pub struct TyLoan {
-  pub mut_: Mutable,
-  pub child: Ty,
-}
+pub type ExprBorrow = Borrow<Expr>;
+pub type PatBorrow = Borrow<Pat>;
+pub type TyBorrow = Borrow<Ty>;
 
 #[derive_(Debug, Clone, Visit!)]
-pub struct ExprBorrow {
+pub struct Borrow<T> {
   pub star: Spanned<()>,
   pub mut_: Mutable,
-  pub child: Expr,
-}
-
-#[derive_(Debug, Clone, Visit!)]
-pub struct PatBorrow {
-  pub star: Spanned<()>,
-  pub mut_: Mutable,
-  pub child: Pat,
-}
-
-#[derive_(Debug, Clone, Visit!)]
-pub struct TyBorrow {
-  pub star: Spanned<()>,
-  pub mut_: Mutable,
-  pub child: Ty,
+  pub child: T,
 }
 
 impl Parser<'_> {
@@ -57,33 +39,23 @@ impl Parser<'_> {
   }
 }
 
-impl ParseKind<Expr, ExprLoan> for Parser<'_> {
-  fn _parse_initial(&mut self) -> Result<Option<ExprLoan>, Diag> {
+impl<T> ParsePratt<T, Loan<T>> for Parser<'_>
+where
+  Self: ParsePratt<T>,
+{
+  fn _parse_initial(&mut self) -> Result<Option<Loan<T>>, Diag> {
     if let Some(mut_) = self.parse_loan_kind()? {
-      let child = self.parse_expr(Precedence::Prefix)?;
-      return Ok(Some(ExprLoan { mut_, child }));
+      let child = self.parse_pratt(Precedence::Prefix)?;
+      return Ok(Some(Loan { mut_, child }));
     }
     Ok(None)
   }
-}
 
-impl ParseKind<Pat, PatLoan> for Parser<'_> {
-  fn _parse_initial(&mut self) -> Result<Option<PatLoan>, Diag> {
+  fn _parse_dot(&mut self, initial: T) -> Result<Result<Loan<T>, T>, Diag> {
     if let Some(mut_) = self.parse_loan_kind()? {
-      let child = self.parse_pat(Precedence::Prefix)?;
-      return Ok(Some(PatLoan { mut_, child }));
+      return Ok(Ok(Loan { mut_, child: initial }));
     }
-    Ok(None)
-  }
-}
-
-impl ParseKind<Ty, TyLoan> for Parser<'_> {
-  fn _parse_initial(&mut self) -> Result<Option<TyLoan>, Diag> {
-    if let Some(mut_) = self.parse_loan_kind()? {
-      let child = self.parse_ty(Precedence::Prefix)?;
-      return Ok(Some(TyLoan { mut_, child }));
-    }
-    Ok(None)
+    Ok(Err(initial))
   }
 }
 
@@ -100,32 +72,22 @@ impl Parser<'_> {
   }
 }
 
-impl ParseKind<Expr, ExprBorrow> for Parser<'_> {
-  fn _parse_initial(&mut self) -> Result<Option<ExprBorrow>, Diag> {
+impl<T> ParsePratt<T, Borrow<T>> for Parser<'_>
+where
+  Self: ParsePratt<T>,
+{
+  fn _parse_initial(&mut self) -> Result<Option<Borrow<T>>, Diag> {
     if let Some((star, mut_)) = self.parse_borrow_kind()? {
-      let child = self.parse_expr(Precedence::Prefix)?;
-      return Ok(Some(ExprBorrow { star, mut_, child }));
+      let child = self.parse_pratt(Precedence::Prefix)?;
+      return Ok(Some(Borrow { star, mut_, child }));
     }
     Ok(None)
   }
-}
 
-impl ParseKind<Pat, PatBorrow> for Parser<'_> {
-  fn _parse_initial(&mut self) -> Result<Option<PatBorrow>, Diag> {
+  fn _parse_dot(&mut self, initial: T) -> Result<Result<Borrow<T>, T>, Diag> {
     if let Some((star, mut_)) = self.parse_borrow_kind()? {
-      let child = self.parse_pat(Precedence::Prefix)?;
-      return Ok(Some(PatBorrow { star, mut_, child }));
+      return Ok(Ok(Borrow { star, mut_, child: initial }));
     }
-    Ok(None)
-  }
-}
-
-impl ParseKind<Ty, TyBorrow> for Parser<'_> {
-  fn _parse_initial(&mut self) -> Result<Option<TyBorrow>, Diag> {
-    if let Some((star, mut_)) = self.parse_borrow_kind()? {
-      let child = self.parse_ty(Precedence::Prefix)?;
-      return Ok(Some(TyBorrow { star, mut_, child }));
-    }
-    Ok(None)
+    Ok(Err(initial))
   }
 }

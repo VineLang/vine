@@ -6,7 +6,7 @@ pub struct ExprField {
   pub field: Field,
 }
 
-impl ParseKind<Expr, ExprField> for Parser<'_> {} // todo
+impl ParsePratt<Expr, ExprField> for Parser<'_> {} // todo
 
 #[derive_(Debug, Clone, Visit!)]
 pub struct TyField {
@@ -14,7 +14,7 @@ pub struct TyField {
   pub field: Field,
 }
 
-impl ParseKind<Ty, TyField> for Parser<'_> {} // todo
+impl ParsePratt<Ty, TyField> for Parser<'_> {} // todo
 
 #[derive_(Debug, Clone, Visit!)]
 pub enum Field {
