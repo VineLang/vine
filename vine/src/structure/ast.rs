@@ -578,3 +578,123 @@ impl<T: Visit> Visit for ObjectChild<T> {
     }
   }
 }
+
+use crate::component::parser::{ParseKind, Parser};
+
+impl ParseKind<Stmt, StmtLet> for Parser<'_> {}
+impl ParseKind<Stmt, StmtClosure> for Parser<'_> {}
+impl ParseKind<Stmt, StmtAssert> for Parser<'_> {}
+impl ParseKind<Stmt, StmtAssign> for Parser<'_> {}
+impl ParseKind<Stmt, StmtBreak> for Parser<'_> {}
+impl ParseKind<Stmt, StmtContinue> for Parser<'_> {}
+impl ParseKind<Stmt, StmtExpr> for Parser<'_> {}
+impl ParseKind<Expr, ExprHole> for Parser<'_> {}
+impl ParseKind<Expr, ExprUnderscore> for Parser<'_> {}
+impl ParseKind<Expr, ExprPath> for Parser<'_> {}
+impl ParseKind<Expr, ExprUnwrap> for Parser<'_> {}
+impl ParseKind<Expr, ExprField> for Parser<'_> {}
+impl ParseKind<Expr, ExprMethod> for Parser<'_> {}
+impl ParseKind<Expr, ExprCall> for Parser<'_> {}
+impl ParseKind<Expr, ExprSafe> for Parser<'_> {}
+impl ParseKind<Expr, ExprVariant> for Parser<'_> {}
+impl ParseKind<Expr, ExprTuple> for Parser<'_> {}
+impl ParseKind<Expr, ExprObject> for Parser<'_> {}
+impl ParseKind<Expr, ExprList> for Parser<'_> {}
+impl ParseKind<Expr, ExprAnnotation> for Parser<'_> {}
+impl ParseKind<Expr, ExprLoan> for Parser<'_> {}
+impl ParseKind<Expr, ExprBorrow> for Parser<'_> {}
+impl ParseKind<Expr, ExprInverse> for Parser<'_> {}
+impl ParseKind<Expr, ExprPlacement> for Parser<'_> {}
+impl ParseKind<Expr, ExprRead> for Parser<'_> {}
+impl ParseKind<Expr, ExprDo> for Parser<'_> {}
+impl ParseKind<Expr, ExprMatch> for Parser<'_> {}
+impl ParseKind<Expr, ExprIf> for Parser<'_> {}
+impl ParseKind<Expr, ExprIfConst> for Parser<'_> {}
+impl ParseKind<Expr, ExprWhen> for Parser<'_> {}
+impl ParseKind<Expr, ExprWhile> for Parser<'_> {}
+impl ParseKind<Expr, ExprLoop> for Parser<'_> {}
+impl ParseKind<Expr, ExprFor> for Parser<'_> {}
+impl ParseKind<Expr, ExprClosure> for Parser<'_> {}
+impl ParseKind<Expr, ExprTry> for Parser<'_> {}
+impl ParseKind<Expr, ExprIs> for Parser<'_> {}
+impl ParseKind<Expr, ExprNot> for Parser<'_> {}
+impl ParseKind<Expr, ExprAny> for Parser<'_> {}
+impl ParseKind<Expr, ExprAll> for Parser<'_> {}
+impl ParseKind<Expr, ExprImplies> for Parser<'_> {}
+impl ParseKind<Expr, ExprBinaryOp> for Parser<'_> {}
+impl ParseKind<Expr, ExprComparisonOp> for Parser<'_> {}
+impl ParseKind<Expr, ExprUnaryOp> for Parser<'_> {}
+impl ParseKind<Expr, ExprCast> for Parser<'_> {}
+impl ParseKind<Expr, ExprIndex> for Parser<'_> {}
+impl ParseKind<Expr, ExprRange> for Parser<'_> {}
+impl ParseKind<Expr, ExprLiteral> for Parser<'_> {}
+impl ParseKind<Expr, ExprString> for Parser<'_> {}
+impl ParseKind<Expr, ExprInlineIvy> for Parser<'_> {}
+impl ParseKind<Pat, PatHole> for Parser<'_> {}
+impl ParseKind<Pat, PatUnderscore> for Parser<'_> {}
+impl ParseKind<Pat, PatPath> for Parser<'_> {}
+impl ParseKind<Pat, PatSafe> for Parser<'_> {}
+impl ParseKind<Pat, PatAnnotation> for Parser<'_> {}
+impl ParseKind<Pat, PatIs> for Parser<'_> {}
+impl ParseKind<Pat, PatAny> for Parser<'_> {}
+impl ParseKind<Pat, PatCond> for Parser<'_> {}
+impl ParseKind<Pat, PatLoan> for Parser<'_> {}
+impl ParseKind<Pat, PatBorrow> for Parser<'_> {}
+impl ParseKind<Pat, PatInverse> for Parser<'_> {}
+impl ParseKind<Pat, PatVariant> for Parser<'_> {}
+impl ParseKind<Pat, PatTuple> for Parser<'_> {}
+impl ParseKind<Pat, PatObject> for Parser<'_> {}
+impl ParseKind<Pat, PatList> for Parser<'_> {}
+impl ParseKind<Pat, PatComparisonOp> for Parser<'_> {}
+impl ParseKind<Pat, PatString> for Parser<'_> {}
+impl ParseKind<Ty, TyHole> for Parser<'_> {}
+impl ParseKind<Ty, TyUnderscore> for Parser<'_> {}
+impl ParseKind<Ty, TyPath> for Parser<'_> {}
+impl ParseKind<Ty, TyFnPath> for Parser<'_> {}
+impl ParseKind<Ty, TyIfConst> for Parser<'_> {}
+impl ParseKind<Ty, TyLoan> for Parser<'_> {}
+impl ParseKind<Ty, TyInverse> for Parser<'_> {}
+impl ParseKind<Ty, TyEnum> for Parser<'_> {}
+impl ParseKind<Ty, TyTuple> for Parser<'_> {}
+impl ParseKind<Ty, TyObject> for Parser<'_> {}
+impl ParseKind<Ty, TyUnwrap> for Parser<'_> {}
+impl ParseKind<Ty, TyField> for Parser<'_> {}
+impl ParseKind<Ty, TyBorrow> for Parser<'_> {}
+impl ParseKind<Impl, ImplHole> for Parser<'_> {}
+impl ParseKind<Impl, ImplUnderscore> for Parser<'_> {}
+impl ParseKind<Impl, ImplPath> for Parser<'_> {}
+impl ParseKind<Impl, ImplAuto> for Parser<'_> {}
+impl ParseKind<Impl, ImplAnnotation> for Parser<'_> {}
+impl ParseKind<Trait, TraitHole> for Parser<'_> {}
+impl ParseKind<Trait, TraitPath> for Parser<'_> {}
+impl ParseKind<Trait, TraitFn> for Parser<'_> {}
+
+impl Expr {
+  pub fn new(span: Span, kind: impl Into<ExprKind>) -> Self {
+    Expr { span, kind: Box::new(kind.into()), type_: Unresolved }
+  }
+}
+
+impl Pat {
+  pub fn new(span: Span, kind: impl Into<PatKind>) -> Self {
+    Pat { span, kind: Box::new(kind.into()), type_: Unresolved }
+  }
+}
+
+impl Ty {
+  pub fn new(span: Span, kind: impl Into<TyKind>) -> Self {
+    Ty { span, kind: Box::new(kind.into()), type_: Unresolved }
+  }
+}
+
+impl Impl {
+  pub fn new(span: Span, kind: impl Into<ImplKind>) -> Self {
+    Impl { span, kind: Box::new(kind.into()), type_: Unresolved }
+  }
+}
+
+impl Trait {
+  pub fn new(span: Span, kind: impl Into<TraitKind>) -> Self {
+    Trait { span, kind: Box::new(kind.into()), type_: Unresolved }
+  }
+}

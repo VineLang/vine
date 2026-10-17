@@ -9,7 +9,7 @@ pub mod visit;
 
 pub mod arithmetic;
 
-mod for_enum;
+pub mod for_enum;
 mod multi_iter;
 
 mod unwrap_vec;
