@@ -26,15 +26,21 @@ pub struct TyLoan {
 
 #[derive_(Debug, Clone, Visit!)]
 pub struct ExprBorrow {
+  pub star: Spanned<()>,
+  pub mut_: Mutable,
   pub child: Expr,
 }
 
 #[derive_(Debug, Clone, Visit!)]
 pub struct PatBorrow {
+  pub star: Spanned<()>,
+  pub mut_: Mutable,
   pub child: Pat,
 }
 
 #[derive_(Debug, Clone, Visit!)]
 pub struct TyBorrow {
+  pub star: Spanned<()>,
+  pub mut_: Mutable,
   pub child: Ty,
 }

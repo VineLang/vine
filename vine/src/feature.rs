@@ -5,6 +5,7 @@ pub mod item;
 pub mod path;
 
 pub mod annotation;
+pub mod builtin;
 pub mod call;
 pub mod enum_;
 pub mod field;

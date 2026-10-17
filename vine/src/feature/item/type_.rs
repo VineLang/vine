@@ -16,3 +16,11 @@ pub enum ItemTypeKind {
   Alias(Ty),
   Wrapper(Vis, Ty),
 }
+
+#[derive_(Debug, Clone, Visit!)]
+pub struct AttrSelfDual;
+
+#[derive_(Debug, Clone, Visit!)]
+pub struct AttrImpl {
+  pub traits: Sequence<Path>,
+}

@@ -14,3 +14,14 @@ pub enum ItemImplKind {
   Indirect { impl_: Impl },
   Direct { items: Vec<ItemId> },
 }
+
+#[derive_(Debug, Clone, Visit!)]
+pub struct AttrBasic;
+
+#[derive_(Debug, Clone, Visit!)]
+pub struct AttrManual;
+
+#[derive_(Debug, Clone, Visit!)]
+pub struct AttrBecome {
+  pub path: Path,
+}

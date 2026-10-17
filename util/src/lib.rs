@@ -1,3 +1,5 @@
+#![feature(never_type)]
+
 pub mod idx;
 
 pub mod lexer;

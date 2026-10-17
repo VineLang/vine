@@ -4,6 +4,7 @@ pub use crate::feature::path::Path;
 
 use crate::feature::{
   annotation::{ExprAnnotation, ImplAnnotation, PatAnnotation},
+  builtin::AttrBuiltin,
   call::{ExprCall, TraitFn},
   control::{
     assert::StmtAssert,
@@ -27,12 +28,12 @@ use crate::feature::{
   inline_ivy::ExprInlineIvy,
   inverse::{ExprInverse, PatInverse, TyInverse},
   item::{
-    const_::ItemConst,
-    fn_::{ItemFn, TyFnPath},
-    impl_::ItemImpl,
+    const_::{AttrConfigurable, ItemConst},
+    fn_::{AttrFrameless, AttrTest, ItemFn, TyFnPath},
+    impl_::{AttrBasic, AttrBecome, AttrManual, ItemImpl},
     mod_::ItemMod,
     trait_::ItemTrait,
-    type_::ItemType,
+    type_::{AttrImpl, AttrSelfDual, ItemType},
     use_::ItemUse,
   },
   list::{ExprList, PatList},
@@ -66,7 +67,7 @@ pub struct Type();
 #[derive_(Debug, Clone, Copy)]
 pub struct ImplType();
 #[derive_(Debug, Clone)]
-pub struct Ident(String);
+pub struct Ident(pub String);
 
 new_idx!(pub FileId);
 new_idx!(pub ItemId);
@@ -140,17 +141,17 @@ pub struct Attr {
   pub kind: AttrKind,
 }
 
-#[derive_(Debug, Clone, Visit!)]
+#[derive_(Debug, Clone, Visit!, for_enum!)]
 pub enum AttrKind {
-  Builtin(String),
-  Manual,
-  Basic,
-  Become(Path),
-  Frameless,
-  Configurable,
-  Test,
-  SelfDual,
-  Impl(Vec<Path>),
+  Builtin(AttrBuiltin),
+  Manual(AttrManual),
+  Basic(AttrBasic),
+  Become(AttrBecome),
+  Frameless(AttrFrameless),
+  Configurable(AttrConfigurable),
+  Test(AttrTest),
+  SelfDual(AttrSelfDual),
+  Impl(AttrImpl),
 }
 
 #[derive_(Debug, Clone, Visit!)]
@@ -403,6 +404,8 @@ pub struct Text {
 #[derive_(Debug, Clone)]
 pub struct Children<T> {
   /// These entries should be normalized such that:
+  /// - there are no two adjacent `Blank` entries
+  /// - `entries` does not begin or end with a `Blank` entry
   /// - there are no two adjacent `Text` entries
   /// - no `Text` entry immediately precedes a `Child` entry (as it would be
   ///   incorporated into the `docs`)

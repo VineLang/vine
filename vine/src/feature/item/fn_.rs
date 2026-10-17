@@ -14,3 +14,9 @@ pub struct ItemFn {
 pub struct TyFnPath {
   pub path: Path,
 }
+
+#[derive_(Debug, Clone, Visit!)]
+pub struct AttrTest;
+
+#[derive_(Debug, Clone, Visit!)]
+pub struct AttrFrameless;

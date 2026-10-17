@@ -213,7 +213,7 @@ impl<T: Visit> Visit for Box<T> {
   }
 }
 
-trivial_visit!(bool, usize, String, Range<usize>, ());
+trivial_visit!(bool, usize, String, Range<usize>, (), !);
 
 use macro_rules_attribute::derive;
 
