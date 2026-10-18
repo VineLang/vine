@@ -24,3 +24,15 @@ impl Flex {
     }
   }
 }
+
+impl Parse<Flex> for Parser<'_> {
+  fn _parse(&mut self) -> Result<Option<Flex>, Diag> {
+    for_enum!(Flex in Flex {
+      $(if let Some(token) = Flex::$Flex.token() && self.eat(token)? {
+        Ok(Some(Flex::$Flex))
+      } else)* {
+        Ok(Some(Flex::None))
+      }
+    })
+  }
+}

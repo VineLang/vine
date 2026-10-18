@@ -6,4 +6,14 @@ pub struct ExprDo {
   pub body: Block,
 }
 
-impl ParsePratt<Expr, ExprDo> for Parser<'_> {} // todo
+impl ParsePratt<Expr, ExprDo> for Parser<'_> {
+  fn _parse_full(&mut self) -> Result<Option<ExprDo>, Diag> {
+    if self.eat(Token::Do)? {
+      let label = self.parse()?;
+      let body = self.parse()?;
+      Ok(Some(ExprDo { label, body }))
+    } else {
+      Ok(None)
+    }
+  }
+}

@@ -6,7 +6,12 @@ pub struct StmtLet {
   pub kind: LetKind,
 }
 
-impl ParsePratt<Stmt, StmtLet> for Parser<'_> {} // todo
+// Handled directly by `Parse<StmtKind>`
+impl Parse<StmtLet> for Parser<'_> {
+  fn _parse(&mut self) -> Result<Option<StmtLet>, Diag> {
+    Ok(None)
+  }
+}
 
 #[derive_(Debug, Clone, Visit!)]
 pub enum LetKind {

@@ -1,18 +1,20 @@
 use super::*;
 
 #[derive_(Debug, Clone, Visit!)]
-pub struct ExprRead {
-  pub child: Expr,
+pub struct Read<T> {
+  pub child: T,
 }
 
-impl ParsePratt<Expr, ExprRead> for Parser<'_> {} // todo
-
-#[derive_(Debug, Clone, Visit!)]
-pub struct PatRead {
-  pub child: Pat,
-}
-
-#[derive_(Debug, Clone, Visit!)]
-pub struct TyRead {
-  pub child: Ty,
+impl<T> ParsePratt<T, Read<T>> for Parser<'_>
+where
+  Self: ParsePratt<T>,
+{
+  fn _parse_initial(&mut self, _: Precedence) -> Result<Option<Read<T>>, Diag> {
+    if self.eat(Token::At)? {
+      let child = self.parse_pratt(Precedence::Prefix)?;
+      Ok(Some(Read { child }))
+    } else {
+      Ok(None)
+    }
+  }
 }

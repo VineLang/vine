@@ -1,20 +1,6 @@
 use super::*;
 
 #[derive_(Debug, Clone, Visit!)]
-pub struct ExprString {
-  pub string: StringLiteral<Expr>,
-}
-
-impl ParsePratt<Expr, ExprString> for Parser<'_> {} // todo
-
-#[derive_(Debug, Clone, Visit!)]
-pub struct PatString {
-  pub string: StringLiteral<Pat>,
-}
-
-impl ParsePratt<Pat, PatString> for Parser<'_> {} // todo
-
-#[derive_(Debug, Clone, Visit!)]
 pub struct StringLiteral<T = !> {
   pub span: Span,
   pub kind: StringKind,
@@ -39,3 +25,6 @@ pub enum StringPiece<T = !> {
   Escape(char),
   Interpolation(T),
 }
+
+impl ParsePratt<Expr, StringLiteral<Expr>> for Parser<'_> {} // ugh
+impl ParsePratt<Pat, StringLiteral<Pat>> for Parser<'_> {} // ugh

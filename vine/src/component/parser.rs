@@ -85,12 +85,6 @@ impl<'src> Parser<'src> {
   where
     Self: ParsePratt<T, T>,
   {
-    if left_prec == Precedence::Root
-      && let Some(term) = self._parse_full()?
-    {
-      return Ok(Some(term));
-    }
-
     let Some(mut term) = self._parse_initial(left_prec)? else { return Ok(None) };
 
     loop {
@@ -143,6 +137,10 @@ impl<'src> Parser<'src> {
       self.expect(close)?;
     }
     Ok(Children { entries })
+  }
+
+  pub fn semi(&mut self) -> Result<(), Diag> {
+    todo!()
   }
 }
 
@@ -216,61 +214,6 @@ impl ParseSequence for Ty {
   }
 }
 
-pub trait ParseObject: Sized {
-  const ALLOW_SHORTHAND: bool;
-  fn from_shorthand(ident: Spanned<Ident>, annotation: Option<Ty>) -> Self;
-}
-
-impl<T: ParseObject> Parse<Object<T>> for Parser<'_>
-where
-  Self: Parse<T>,
-{
-  fn _parse(&mut self) -> Result<Option<Object<T>>, Diag> {
-    if self.eat(Token::OpenBrace)? {
-      let ordered = self.eat(Token::OpenBrace)?;
-      let children =
-        self.parse_children::<ObjectChild<T>>(None, Some(Token::Comma), Some(Token::CloseBrace))?;
-      if ordered {
-        self.expect(Token::CloseBrace)?;
-      }
-      Ok(Some(Object { ordered, children }))
-    } else {
-      Ok(None)
-    }
-  }
-}
-
-impl<T: ParseObject> Parse<ObjectChild<T>> for Parser<'_>
-where
-  Self: Parse<T>,
-{
-  fn _parse(&mut self) -> Result<Option<ObjectChild<T>>, Diag> {
-    if let Some(key) = self.try_parse::<Spanned<Ident>>()? {
-      if self.eat(Token::Colon)? {
-        if let Some(value) = self.try_parse()? {
-          Ok(Some(ObjectChild::Entry { key, value }))
-        } else if T::ALLOW_SHORTHAND && self.eat(Token::Colon)? {
-          let ty = self.parse_pratt(Precedence::Annotation)?;
-          let value = T::from_shorthand(key.clone(), Some(ty));
-          Ok(Some(ObjectChild::Entry { key, value }))
-        } else {
-          self.unexpected()
-        }
-      } else if T::ALLOW_SHORTHAND {
-        let value = T::from_shorthand(key.clone(), None);
-        Ok(Some(ObjectChild::Entry { key, value }))
-      } else {
-        self.unexpected()
-      }
-    } else if self.eat(Token::DotDotDot)? {
-      let spread = self.try_parse()?;
-      Ok(Some(ObjectChild::Spread(spread)))
-    } else {
-      Ok(None)
-    }
-  }
-}
-
 impl<T> Parse<Spanned<T>> for Parser<'_>
 where
   Self: Parse<T>,
@@ -315,7 +258,10 @@ where
   Self: ParsePratt<T>,
 {
   fn _parse(&mut self) -> Result<Option<T>, Diag> {
-    self.try_parse_pratt(Precedence::Root)
+    if let Some(term) = self._parse_full()? {
+      return Ok(Some(term));
+    }
+    self.try_parse_pratt(Precedence::Min)
   }
 }
 
@@ -405,11 +351,11 @@ impl ParsePratt<Trait, TraitKind> for Parser<'_> {}
 
 #[derive_(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Precedence {
-  Root,
+  Min,
+  PatCond,
   LogicalImplies,
   LogicalOr,
   LogicalAnd,
-  Is,
   Comparison,
   Range,
   BitOr,
@@ -444,26 +390,24 @@ impl Associativity {
 impl Precedence {
   pub fn assoc(self) -> Associativity {
     use Associativity::*;
-    use Precedence::*;
     match self {
-      Root => None,
-      Safe => Right,
-      LogicalImplies => Right,
-      LogicalOr => None,
-      LogicalAnd => None,
-      Is => None,
-      Comparison => None,
-      Range => None,
-      BitOr => Left,
-      BitXor => Left,
-      BitAnd => Left,
-      BitShift => Left,
-      Additive => Left,
-      Multiplicative => Left,
-      Exponential => Right,
-      Annotation => Right,
-      Prefix => Right,
-      Postfix => Left,
+      Precedence::Min => None,
+      Precedence::PatCond => None,
+      Precedence::LogicalImplies => Right,
+      Precedence::LogicalOr => None,
+      Precedence::LogicalAnd => None,
+      Precedence::Comparison => None,
+      Precedence::Range => None,
+      Precedence::BitOr => Left,
+      Precedence::BitXor => Left,
+      Precedence::BitAnd => Left,
+      Precedence::BitShift => Left,
+      Precedence::Additive => Left,
+      Precedence::Multiplicative => Left,
+      Precedence::Exponential => Right,
+      Precedence::Annotation => None,
+      Precedence::Prefix => None,
+      Precedence::Postfix => None,
     }
   }
 

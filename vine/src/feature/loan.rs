@@ -6,19 +6,11 @@ pub enum Mutable {
   Imm,
 }
 
-pub type ExprLoan = Loan<Expr>;
-pub type PatLoan = Loan<Pat>;
-pub type TyLoan = Loan<Ty>;
-
 #[derive_(Debug, Clone, Visit!)]
 pub struct Loan<T> {
   pub mut_: Mutable,
   pub child: T,
 }
-
-pub type ExprBorrow = Borrow<Expr>;
-pub type PatBorrow = Borrow<Pat>;
-pub type TyBorrow = Borrow<Ty>;
 
 #[derive_(Debug, Clone, Visit!)]
 pub struct Borrow<T> {

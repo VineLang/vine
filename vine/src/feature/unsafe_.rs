@@ -1,9 +1,5 @@
 use super::*;
 
-pub type ExprSafe = Safe<Expr>;
-pub type PatSafe = Safe<Pat>;
-pub type ImplSafe = Safe<Impl>;
-
 #[derive_(Debug, Clone, Visit!)]
 pub struct Safe<T> {
   pub safe_: Spanned<()>,

@@ -10,4 +10,4 @@ pub struct ExprMethod {
   pub args: Sequence<Expr>,
 }
 
-impl ParsePratt<Expr, ExprMethod> for Parser<'_> {} // todo
+impl ParsePratt<Expr, ExprMethod> for Parser<'_> {} // ugh

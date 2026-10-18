@@ -8,9 +8,6 @@ pub struct TyEnum {
   pub variants: Children<Variant<Ty>>,
 }
 
-pub type ExprVariant = Variant<Expr>;
-pub type PatVariant = Variant<Pat>;
-
 #[derive_(Debug, Clone, Visit!)]
 pub struct Variant<T> {
   pub tag: Spanned<Ident>,

@@ -1,19 +1,19 @@
 use super::*;
 
-pub use crate::feature::path::Path;
+pub use crate::feature::{control::block::Block, path::Path};
 
 use crate::feature::{
-  annotation::{ExprAnnotation, ImplAnnotation, PatAnnotation},
+  annotation::Annotation,
   builtin::AttrBuiltin,
   call::{ExprCall, TraitFn},
   control::{
     assert::StmtAssert,
+    block::StmtExpr,
     closure::{ExprClosure, StmtClosure},
     condition::{ExprAll, ExprAny, ExprImplies, ExprIs, ExprNot, PatAny, PatCond, PatIs},
     do_::ExprDo,
     for_::ExprFor,
-    if_::ExprIf,
-    if_const::{ExprIfConst, TyIfConst},
+    if_::{ExprIf, TyIfConst},
     label::{StmtBreak, StmtContinue},
     let_::StmtLet,
     loop_::ExprLoop,
@@ -22,11 +22,11 @@ use crate::feature::{
     when::ExprWhen,
     while_::ExprWhile,
   },
-  enum_::{ExprVariant, PatVariant, TyEnum},
-  field::{ExprField, TyField},
-  hole::{ExprHole, ImplHole, PatHole, TraitHole, TyHole},
+  enum_::{TyEnum, Variant},
+  field::Field,
+  hole::Hole,
   inline_ivy::ExprInlineIvy,
-  inverse::{ExprInverse, PatInverse, TyInverse},
+  inverse::Inverse,
   item::{
     const_::{AttrConfigurable, ItemConst},
     fn_::{AttrFrameless, AttrTest, ItemFn, TyFnPath},
@@ -36,23 +36,23 @@ use crate::feature::{
     type_::{AttrImpl, AttrSelfDual, ItemType},
     use_::ItemUse,
   },
-  list::{ExprList, PatList},
+  list::List,
   literal::ExprLiteral,
-  loan::{ExprBorrow, ExprLoan, PatBorrow, PatLoan, TyBorrow, TyLoan},
+  loan::{Borrow, Loan},
   method::ExprMethod,
-  object::{ExprObject, PatObject, TyObject},
+  object::Object,
   operator::{
     ExprBinaryOp, ExprCast, ExprComparisonOp, ExprIndex, ExprRange, ExprUnaryOp, PatComparisonOp,
     StmtAssign,
   },
   path::{ExprPath, ImplPath, PatPath, TraitPath, TyPath},
-  placement::{ExprPlacement, PatPlacement},
-  read::ExprRead,
-  string::{ExprString, PatString},
-  tuple::{ExprTuple, PatTuple, TyTuple},
-  underscore::{ExprUnderscore, ImplAuto, ImplUnderscore, PatUnderscore, TyUnderscore},
-  unsafe_::{ExprSafe, PatSafe},
-  unwrap::{ExprUnwrap, TyUnwrap},
+  placement::Placement,
+  read::Read,
+  string::StringLiteral,
+  tuple::Tuple,
+  underscore::{ImplAuto, Underscore},
+  unsafe_::Safe,
+  unwrap::Unwrap,
 };
 
 use std::ops::Range;
@@ -110,7 +110,7 @@ impl From<Span> for Spanned<()> {
 #[derive_(Debug, Clone, Visit!)]
 pub struct Item {
   pub range: Range<usize>,
-  pub docs: Vec<String>,
+  pub docs: Text,
   pub attrs: Vec<Attr>,
   pub vis: Vis,
   pub unsafe_: bool,
@@ -156,14 +156,6 @@ pub enum Vis {
 }
 
 #[derive_(Debug, Clone, Visit!)]
-pub struct Block {
-  pub span: Span,
-  pub pat: Option<Pat>,
-  pub stmts: Children<Stmt>,
-  pub close_brace: Spanned<()>,
-}
-
-#[derive_(Debug, Clone, Visit!)]
 pub struct Stmt {
   pub span: Span,
   pub kind: Box<StmtKind>,
@@ -178,16 +170,8 @@ pub enum StmtKind {
   Break(StmtBreak),
   Continue(StmtContinue),
   Expr(StmtExpr),
+  Hole(Hole),
 }
-
-#[derive_(Debug, Clone, Visit!)]
-pub struct StmtExpr {
-  pub expr: Expr,
-  /// Whether this expression statement is terminated by a semicolon.
-  pub semi: bool,
-}
-
-impl ParsePratt<Stmt, StmtExpr> for Parser<'_> {} // todo
 
 #[derive_(Debug, Clone, Visit!)]
 pub struct Expr {
@@ -198,33 +182,32 @@ pub struct Expr {
 
 #[derive_(Debug, Clone, From, Visit!, for_enum!)]
 pub enum ExprKind {
-  Hole(ExprHole),
-  Underscore(ExprUnderscore),
+  Hole(Hole),
+  Underscore(Underscore),
 
   Path(ExprPath),
-  Unwrap(ExprUnwrap),
-  Field(ExprField),
+  Unwrap(Unwrap<Expr>),
+  Field(Field<Expr>),
   Method(ExprMethod),
   Call(ExprCall),
-  Safe(ExprSafe),
+  Safe(Safe<Expr>),
 
-  Variant(ExprVariant),
-  Tuple(ExprTuple),
-  Object(ExprObject),
-  List(ExprList),
-  Annotation(ExprAnnotation),
+  Variant(Variant<Expr>),
+  Tuple(Tuple<Expr>),
+  Object(Object<Expr>),
+  List(List<Expr>),
+  Annotation(Annotation<Expr>),
 
-  Loan(ExprLoan),
-  Borrow(ExprBorrow),
-  Inverse(ExprInverse),
-  Placement(ExprPlacement),
-  Read(ExprRead),
+  Loan(Loan<Expr>),
+  Borrow(Borrow<Expr>),
+  Inverse(Inverse<Expr>),
+  Placement(Placement<Expr>),
+  Read(Read<Expr>),
 
   // Control flow
   Do(ExprDo),
   Match(ExprMatch),
   If(ExprIf),
-  IfConst(ExprIfConst),
   When(ExprWhen),
   While(ExprWhile),
   Loop(ExprLoop),
@@ -248,7 +231,7 @@ pub enum ExprKind {
   Range(ExprRange),
 
   Literal(ExprLiteral),
-  String(ExprString),
+  String(StringLiteral<Expr>),
   InlineIvy(ExprInlineIvy),
 }
 
@@ -261,29 +244,30 @@ pub struct Pat {
 
 #[derive_(Debug, Clone, From, Visit!, for_enum!)]
 pub enum PatKind {
-  Hole(PatHole),
-  Underscore(PatUnderscore),
+  Hole(Hole),
+  Underscore(Underscore),
 
   Path(PatPath),
-  Safe(PatSafe),
-  Annotation(PatAnnotation),
+  Safe(Safe<Pat>),
+  Annotation(Annotation<Pat>),
 
   Is(PatIs),
   Any(PatAny),
   Cond(PatCond),
 
-  Loan(PatLoan),
-  Borrow(PatBorrow),
-  Inverse(PatInverse),
-  Placement(PatPlacement),
+  Loan(Loan<Pat>),
+  Borrow(Borrow<Pat>),
+  Inverse(Inverse<Pat>),
+  Placement(Placement<Pat>),
+  Read(Read<Pat>),
 
-  Variant(PatVariant),
-  Tuple(PatTuple),
-  Object(PatObject),
-  List(PatList),
+  Variant(Variant<Pat>),
+  Tuple(Tuple<Pat>),
+  Object(Object<Pat>),
+  List(List<Pat>),
 
   Comparison(PatComparisonOp),
-  String(PatString),
+  String(StringLiteral<Pat>),
 }
 
 #[derive_(Debug, Clone, Visit!)]
@@ -295,24 +279,24 @@ pub struct Ty {
 
 #[derive_(Debug, Clone, From, Visit!, for_enum!)]
 pub enum TyKind {
-  Hole(TyHole),
-  Underscore(TyUnderscore),
+  Hole(Hole),
+  Underscore(Underscore),
 
   Path(TyPath),
 
   FnPath(TyFnPath),
   IfConst(TyIfConst),
 
-  Loan(TyLoan),
-  Inverse(TyInverse),
+  Loan(Loan<Ty>),
+  Inverse(Inverse<Ty>),
 
   Enum(TyEnum),
-  Tuple(TyTuple),
-  Object(TyObject),
+  Tuple(Tuple<Ty>),
+  Object(Object<Ty>),
 
-  Unwrap(TyUnwrap),
-  Field(TyField),
-  Borrow(TyBorrow),
+  Unwrap(Unwrap<Ty>),
+  Field(Field<Ty>),
+  Borrow(Borrow<Ty>),
 }
 
 #[derive_(Debug, Clone, Visit!)]
@@ -324,11 +308,11 @@ pub struct Impl {
 
 #[derive_(Debug, Clone, From, Visit!, for_enum!)]
 pub enum ImplKind {
-  Hole(ImplHole),
-  Underscore(ImplUnderscore),
+  Hole(Hole),
+  Underscore(Underscore),
   Path(ImplPath),
   Auto(ImplAuto),
-  Annotation(ImplAnnotation),
+  Annotation(Annotation<Impl>),
 }
 
 #[derive_(Debug, Clone, Visit!)]
@@ -340,7 +324,7 @@ pub struct Trait {
 
 #[derive_(Debug, Clone, From, Visit!, for_enum!)]
 pub enum TraitKind {
-  Hole(TraitHole),
+  Hole(Hole),
   Path(TraitPath),
   Fn(TraitFn),
 }
@@ -391,7 +375,7 @@ impl<T: Debug + 'static> Visit for Resolve<T> {
 }
 
 /// A textual comment, possibly spanning multiple lines.
-#[derive_(Default, Debug, Clone)]
+#[derive_(Default, Debug, Clone, Visit!)]
 pub struct Text {
   pub lines: Vec<String>,
 }
@@ -519,22 +503,6 @@ pub enum SequenceChild<T> {
   },
   Spread(Option<T>),
 }
-
-/// An object-like key-value collection, with key-value pairs and spreads.
-#[derive_(Debug, Clone, Visit!)]
-pub struct Object<T> {
-  /// Whether the entries are specified in order.
-  pub ordered: bool,
-  pub children: Children<ObjectChild<T>>,
-}
-
-#[derive_(Debug, Clone, Visit!)]
-pub enum ObjectChild<T> {
-  Entry { key: Spanned<Ident>, value: T },
-  Spread(Option<T>),
-}
-
-use crate::component::parser::{ParsePratt, Parser};
 
 impl Expr {
   pub fn new(span: Span, kind: impl Into<ExprKind>) -> Self {

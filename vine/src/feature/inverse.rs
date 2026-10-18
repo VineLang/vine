@@ -1,9 +1,5 @@
 use super::*;
 
-pub type ExprInverse = Inverse<Expr>;
-pub type PatInverse = Inverse<Pat>;
-pub type TyInverse = Inverse<Ty>;
-
 #[derive_(Debug, Clone, Visit!)]
 pub struct Inverse<T> {
   pub child: T,

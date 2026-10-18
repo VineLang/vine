@@ -2,9 +2,6 @@ use super::*;
 
 use crate::component::parser::ParseSequence;
 
-pub type ExprList = List<Expr>;
-pub type PatList = List<Pat>;
-
 #[derive_(Debug, Clone, Visit!)]
 pub struct List<T> {
   pub children: Sequence<T>,

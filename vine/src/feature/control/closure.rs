@@ -10,12 +10,29 @@ pub struct ExprClosure {
   pub body: Block,
 }
 
-impl ParsePratt<Expr, ExprClosure> for Parser<'_> {} // todo
-
 #[derive_(Debug, Clone, Visit!)]
 pub struct StmtClosure {
   pub name: Spanned<Ident>,
   pub closure: ExprClosure,
 }
 
-impl ParsePratt<Stmt, StmtClosure> for Parser<'_> {} // todo
+impl ParsePratt<Expr, ExprClosure> for Parser<'_> {
+  fn _parse_full(&mut self) -> Result<Option<ExprClosure>, Diag> {
+    if self.eat(Token::Fn)? {
+      let flex = self.parse()?;
+      let args = self.parse()?;
+      let return_ty = self.eat_then(Token::Colon, Self::parse)?;
+      let body = self.parse()?;
+      Ok(Some(ExprClosure { flex, args, return_ty, body }))
+    } else {
+      Ok(None)
+    }
+  }
+}
+
+// Handled directly by `Parse<StmtKind>`
+impl Parse<StmtClosure> for Parser<'_> {
+  fn _parse(&mut self) -> Result<Option<StmtClosure>, Diag> {
+    Ok(None)
+  }
+}

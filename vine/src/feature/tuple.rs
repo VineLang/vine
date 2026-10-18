@@ -1,22 +1,10 @@
 use super::*;
 
 #[derive_(Debug, Clone, Visit!)]
-pub struct ExprTuple {
-  pub children: Sequence<Expr>,
+pub struct Tuple<T> {
+  pub children: Sequence<T>,
 }
 
-impl ParsePratt<Expr, ExprTuple> for Parser<'_> {} // todo
-
-#[derive_(Debug, Clone, Visit!)]
-pub struct PatTuple {
-  pub children: Sequence<Pat>,
-}
-
-impl ParsePratt<Pat, PatTuple> for Parser<'_> {} // todo
-
-#[derive_(Debug, Clone, Visit!)]
-pub struct TyTuple {
-  pub children: Sequence<Ty>,
-}
-
-impl ParsePratt<Ty, TyTuple> for Parser<'_> {} // todo
+impl ParsePratt<Expr, Tuple<Expr>> for Parser<'_> {} // todo
+impl ParsePratt<Pat, Tuple<Pat>> for Parser<'_> {} // todo
+impl ParsePratt<Ty, Tuple<Ty>> for Parser<'_> {} // todo

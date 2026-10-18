@@ -176,7 +176,12 @@ impl ComparisonOp {
   }
 }
 
-impl ParsePratt<Stmt, StmtAssign> for Parser<'_> {} // todo
+// Handled directly by `Parse<StmtKind>`
+impl Parse<StmtAssign> for Parser<'_> {
+  fn _parse(&mut self) -> Result<Option<StmtAssign>, Diag> {
+    Ok(None)
+  }
+}
 
 impl Parse<AssignOp> for Parser<'_> {
   fn _parse(&mut self) -> Result<Option<AssignOp>, Diag> {

@@ -15,10 +15,14 @@ pub struct TyFnPath {
   pub path: Path,
 }
 
-impl ParsePratt<Ty, TyFnPath> for Parser<'_> {} // todo
-
 #[derive_(Debug, Clone, Visit!)]
 pub struct AttrTest;
 
 #[derive_(Debug, Clone, Visit!)]
 pub struct AttrFrameless;
+
+impl ParsePratt<Ty, TyFnPath> for Parser<'_> {
+  fn _parse_initial(&mut self, _: Precedence) -> Result<Option<TyFnPath>, Diag> {
+    if self.eat(Token::Fn)? { Ok(Some(TyFnPath { path: self.parse()? })) } else { Ok(None) }
+  }
+}
