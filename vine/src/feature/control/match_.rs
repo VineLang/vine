@@ -17,7 +17,7 @@ impl ParsePratt<Expr, ExprMatch> for Parser<'_> {
   fn _parse_full(&mut self) -> Result<Option<ExprMatch>, Diag> {
     if self.eat(Token::Match)? {
       let label = self.parse()?;
-      let value = self.parse_pratt(Precedence::Min)?;
+      let value = self.parse_pratt(Prec::Min)?;
       let arms = self.parse_children(Some(Token::OpenBrace), None, Some(Token::CloseBrace))?;
       Ok(Some(ExprMatch { label, value, arms }))
     } else {
@@ -28,7 +28,7 @@ impl ParsePratt<Expr, ExprMatch> for Parser<'_> {
 
 impl Parse<MatchArm> for Parser<'_> {
   fn _parse(&mut self) -> Result<Option<MatchArm>, Diag> {
-    if let Some(pat) = self.try_parse_pratt(Precedence::Min)? {
+    if let Some(pat) = self.try_parse_pratt(Prec::Min)? {
       let body = self.parse()?;
       self.eat(Token::Comma)?;
       Ok(Some(MatchArm { pat, body }))

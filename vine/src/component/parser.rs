@@ -74,18 +74,18 @@ impl<'src> Parser<'src> {
     self._parse()
   }
 
-  pub fn parse_pratt<T>(&mut self, left_prec: Precedence) -> Result<T, Diag>
+  pub fn parse_pratt<T>(&mut self, left_prec: Prec) -> Result<T, Diag>
   where
     Self: ParsePratt<T, T>,
   {
     self.try_parse_pratt(left_prec)?.ok_or_else(|| self.unexpected_error())
   }
 
-  pub fn try_parse_pratt<T>(&mut self, left_prec: Precedence) -> Result<Option<T>, Diag>
+  pub fn try_parse_pratt<T>(&mut self, left_prec: Prec) -> Result<Option<T>, Diag>
   where
     Self: ParsePratt<T, T>,
   {
-    let ctx = &mut PrecCtx { outer: left_prec, inner: Precedence::Max };
+    let ctx = &mut PrecCtx { outer: left_prec, inner: Prec::Max };
 
     let Some(mut term) = self._parse_initial(ctx)? else { return Ok(None) };
 
@@ -265,7 +265,7 @@ where
     if let Some(term) = self._parse_full()? {
       return Ok(Some(term));
     }
-    self.try_parse_pratt(Precedence::Min)
+    self.try_parse_pratt(Prec::Min)
   }
 }
 
@@ -354,12 +354,12 @@ impl ParsePratt<Impl, ImplKind> for Parser<'_> {}
 impl ParsePratt<Trait, TraitKind> for Parser<'_> {}
 
 pub struct PrecCtx {
-  outer: Precedence,
-  inner: Precedence,
+  outer: Prec,
+  inner: Prec,
 }
 
 impl PrecCtx {
-  pub fn sub(&mut self, prec: Precedence) -> Option<impl FnMut() -> Precedence> {
+  pub fn prec(&mut self, prec: Prec) -> Option<impl FnOnce() -> Prec> {
     if Assoc::between(self.outer, prec) == Assoc::Right
       && Assoc::between(self.inner, prec) == Assoc::Left
     {
@@ -374,7 +374,7 @@ impl PrecCtx {
 }
 
 #[derive_(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub enum Precedence {
+pub enum Prec {
   Min,
   PatCond,
   LogicalImplies,
@@ -391,7 +391,6 @@ pub enum Precedence {
   Exponential,
   Annotation,
   Prefix,
-  Postfix,
   Max,
 }
 
@@ -403,7 +402,7 @@ pub enum Assoc {
 }
 
 impl Assoc {
-  pub fn between(left_prec: Precedence, right_prec: Precedence) -> Assoc {
+  pub fn between(left_prec: Prec, right_prec: Prec) -> Assoc {
     match left_prec.cmp(&right_prec) {
       Ordering::Less => Assoc::Right,
       Ordering::Equal => left_prec.assoc(),
@@ -412,28 +411,27 @@ impl Assoc {
   }
 }
 
-impl Precedence {
+impl Prec {
   pub fn assoc(self) -> Assoc {
     use Assoc::*;
     match self {
-      Precedence::Min => None,
-      Precedence::PatCond => None,
-      Precedence::LogicalImplies => Right,
-      Precedence::LogicalOr => None,
-      Precedence::LogicalAnd => None,
-      Precedence::Comparison => None,
-      Precedence::Range => None,
-      Precedence::BitOr => Left,
-      Precedence::BitXor => Left,
-      Precedence::BitAnd => Left,
-      Precedence::BitShift => Left,
-      Precedence::Additive => Left,
-      Precedence::Multiplicative => Left,
-      Precedence::Exponential => Right,
-      Precedence::Annotation => None,
-      Precedence::Prefix => None,
-      Precedence::Postfix => None,
-      Precedence::Max => None,
+      Prec::Min => None,
+      Prec::PatCond => None,
+      Prec::LogicalImplies => Right,
+      Prec::LogicalOr => None,
+      Prec::LogicalAnd => None,
+      Prec::Comparison => None,
+      Prec::Range => None,
+      Prec::BitOr => Left,
+      Prec::BitXor => Left,
+      Prec::BitAnd => Left,
+      Prec::BitShift => Left,
+      Prec::Additive => Left,
+      Prec::Multiplicative => Left,
+      Prec::Exponential => Right,
+      Prec::Annotation => None,
+      Prec::Prefix => None,
+      Prec::Max => None,
     }
   }
 }

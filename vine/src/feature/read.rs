@@ -11,7 +11,7 @@ where
 {
   fn _parse_initial(&mut self, _: &mut PrecCtx) -> Result<Option<Read<T>>, Diag> {
     if self.eat(Token::At)? {
-      let child = self.parse_pratt(Precedence::Prefix)?;
+      let child = self.parse_pratt(Prec::Prefix)?;
       Ok(Some(Read { child }))
     } else {
       Ok(None)

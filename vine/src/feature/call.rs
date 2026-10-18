@@ -16,12 +16,10 @@ pub struct TraitFn {
 impl ParsePratt<Expr, ExprCall> for Parser<'_> {
   fn _parse_suffix(
     &mut self,
-    ctx: &mut PrecCtx,
+    _: &mut PrecCtx,
     initial: Expr,
   ) -> Result<Result<ExprCall, Expr>, Diag> {
-    if ctx.weaker(Precedence::Postfix)
-      && let Some(args) = self.try_parse::<Sequence<Expr>>()?
-    {
+    if let Some(args) = self.try_parse::<Sequence<Expr>>()? {
       Ok(Ok(ExprCall { callee: initial, args }))
     } else {
       Ok(Err(initial))

@@ -13,7 +13,7 @@ where
   fn _parse_initial(&mut self, _: &mut PrecCtx) -> Result<Option<Safe<T>>, Diag> {
     let safe_ = self.token_span();
     if self.eat(Token::Safe)? {
-      let child = self.parse_pratt(Precedence::Prefix)?;
+      let child = self.parse_pratt(Prec::Prefix)?;
       Ok(Some(Safe { safe_, child }))
     } else {
       Ok(None)

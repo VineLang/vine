@@ -37,7 +37,7 @@ where
 {
   fn _parse_initial(&mut self, _: &mut PrecCtx) -> Result<Option<Loan<T>>, Diag> {
     if let Some(mut_) = self.parse_loan_kind()? {
-      let child = self.parse_pratt(Precedence::Prefix)?;
+      let child = self.parse_pratt(Prec::Prefix)?;
       return Ok(Some(Loan { mut_, child }));
     }
     Ok(None)
@@ -70,7 +70,7 @@ where
 {
   fn _parse_initial(&mut self, _: &mut PrecCtx) -> Result<Option<Borrow<T>>, Diag> {
     if let Some((star, mut_)) = self.parse_borrow_kind()? {
-      let child = self.parse_pratt(Precedence::Prefix)?;
+      let child = self.parse_pratt(Prec::Prefix)?;
       return Ok(Some(Borrow { star, mut_, child }));
     }
     Ok(None)

@@ -11,7 +11,7 @@ where
 {
   fn _parse_initial(&mut self, _: &mut PrecCtx) -> Result<Option<Inverse<T>>, Diag> {
     if self.eat(Token::Tilde)? {
-      let child = self.parse_pratt(Precedence::Prefix)?;
+      let child = self.parse_pratt(Prec::Prefix)?;
       return Ok(Some(Inverse { child }));
     }
     Ok(None)

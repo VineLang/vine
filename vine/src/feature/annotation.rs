@@ -12,9 +12,10 @@ impl<T> ParsePratt<T, Annotation<T>> for Parser<'_> {
     ctx: &mut PrecCtx,
     initial: T,
   ) -> Result<Result<Annotation<T>, T>, Diag> {
-    if ctx.weaker(Precedence::Annotation) && self.eat(Token::Colon)? {
-      let ty = self.parse_pratt(Precedence::Annotation)?;
-      // todo
+    if let Some(prec) = ctx.prec(Prec::Annotation)
+      && self.eat(Token::Colon)?
+    {
+      let ty = self.parse_pratt(prec())?;
       Ok(Ok(Annotation { child: initial, ty }))
     } else {
       Ok(Err(initial))

@@ -112,7 +112,7 @@ pub enum Token {
   GtEq,
 
   BareIdent,
-  TupleKey,
+  TupleField,
   Numeric,
   OpenString,
   OpenChar,
@@ -182,7 +182,7 @@ impl<'src> Lex<'src> for Lexer<'src> {
         Some('0'..='9') => {
           self.bump();
           self.bump_while(|x| x.is_ascii_digit());
-          Ok(Token::TupleKey)
+          Ok(Token::TupleField)
         }
         _ => Ok(Token::Dot),
       },
@@ -516,7 +516,7 @@ impl Token {
 
       Token::BareIdent => TokenInfo::Other("a bare identifier"),
       Token::Numeric => TokenInfo::Other("a numeric literal"),
-      Token::TupleKey => TokenInfo::Other("a tuple key"),
+      Token::TupleField => TokenInfo::Other("a tuple key"),
       Token::OpenString => TokenInfo::Other("a string literal"),
       Token::OpenChar => TokenInfo::Other("a character literal"),
 

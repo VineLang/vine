@@ -54,7 +54,7 @@ where
         if let Some(value) = self.try_parse()? {
           Ok(Some(ObjectChild::Entry { key, value }))
         } else if T::ALLOW_SHORTHAND && self.eat(Token::Colon)? {
-          let ty = self.parse_pratt(Precedence::Annotation)?;
+          let ty = self.parse_pratt(Prec::Annotation)?;
           let value = T::from_shorthand(self.end_span(span), key.clone(), Some(ty));
           Ok(Some(ObjectChild::Entry { key, value }))
         } else {
