@@ -9,10 +9,10 @@ pub struct Annotation<T> {
 impl<T> ParsePratt<T, Annotation<T>> for Parser<'_> {
   fn _parse_suffix(
     &mut self,
-    left_prec: Precedence,
+    ctx: &mut PrecCtx,
     initial: T,
   ) -> Result<Result<Annotation<T>, T>, Diag> {
-    if left_prec.weaker(Precedence::Annotation) && self.eat(Token::Colon)? {
+    if ctx.weaker(Precedence::Annotation) && self.eat(Token::Colon)? {
       let ty = self.parse_pratt(Precedence::Annotation)?;
       // todo
       Ok(Ok(Annotation { child: initial, ty }))

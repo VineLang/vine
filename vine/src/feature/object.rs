@@ -79,7 +79,7 @@ impl<T: ParseObject> ParsePratt<T, Object<T>> for Parser<'_>
 where
   Self: Parse<T>,
 {
-  fn _parse_initial(&mut self, _: Precedence) -> Result<Option<Object<T>>, Diag> {
+  fn _parse_initial(&mut self, _: &mut PrecCtx) -> Result<Option<Object<T>>, Diag> {
     self.try_parse::<Object<T>>()
   }
 }

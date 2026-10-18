@@ -11,7 +11,7 @@ impl<T: ParseSequence> ParsePratt<T, List<T>> for Parser<'_>
 where
   Self: Parse<T>,
 {
-  fn _parse_initial(&mut self, _: Precedence) -> Result<Option<List<T>>, Diag> {
+  fn _parse_initial(&mut self, _: &mut PrecCtx) -> Result<Option<List<T>>, Diag> {
     if self.eat(Token::OpenBracket)? {
       let children = self.parse_children::<SequenceChild<T>>(
         None,

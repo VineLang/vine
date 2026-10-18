@@ -7,13 +7,13 @@ pub struct Underscore;
 pub struct ImplAuto;
 
 impl<T> ParsePratt<T, Underscore> for Parser<'_> {
-  fn _parse_initial(&mut self, _: Precedence) -> Result<Option<Underscore>, Diag> {
+  fn _parse_initial(&mut self, _: &mut PrecCtx) -> Result<Option<Underscore>, Diag> {
     if self.eat(Token::Underscore)? { Ok(Some(Underscore)) } else { Ok(None) }
   }
 }
 
 impl ParsePratt<Impl, ImplAuto> for Parser<'_> {
-  fn _parse_initial(&mut self, _: Precedence) -> Result<Option<ImplAuto>, Diag> {
+  fn _parse_initial(&mut self, _: &mut PrecCtx) -> Result<Option<ImplAuto>, Diag> {
     if self.eat(Token::At)? { Ok(Some(ImplAuto)) } else { Ok(None) }
   }
 }

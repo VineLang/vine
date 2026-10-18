@@ -85,7 +85,9 @@ impl<'src> Parser<'src> {
   where
     Self: ParsePratt<T, T>,
   {
-    let Some(mut term) = self._parse_initial(left_prec)? else { return Ok(None) };
+    let ctx = &mut PrecCtx { outer: left_prec, inner: Precedence::Max };
+
+    let Some(mut term) = self._parse_initial(ctx)? else { return Ok(None) };
 
     loop {
       if Self::ALLOW_DOT && self.eat(Token::Dot)? {
@@ -94,7 +96,7 @@ impl<'src> Parser<'src> {
           Err(_) => self.unexpected(),
         };
       }
-      match self._parse_suffix(left_prec, term)? {
+      match self._parse_suffix(ctx, term)? {
         Ok(term_) => {
           term = term_;
           continue;
@@ -238,11 +240,13 @@ pub trait ParsePratt<T, K = T> {
     Ok(None)
   }
 
-  fn _parse_initial(&mut self, _left_prec: Precedence) -> Result<Option<K>, Diag> {
+  fn _parse_initial(&mut self, ctx: &mut PrecCtx) -> Result<Option<K>, Diag> {
+    _ = ctx;
     Ok(None)
   }
 
-  fn _parse_suffix(&mut self, _left_prec: Precedence, initial: T) -> Result<Result<K, T>, Diag> {
+  fn _parse_suffix(&mut self, ctx: &mut PrecCtx, initial: T) -> Result<Result<K, T>, Diag> {
+    _ = ctx;
     Ok(Err(initial))
   }
 
@@ -281,13 +285,13 @@ macro_rules! ParsePratt {
         Ok(None)
       }
 
-      fn _parse_initial(&mut self, left_prec: Precedence) -> Result<Option<$Term>, Diag> {
+      fn _parse_initial(&mut self, ctx: &mut PrecCtx) -> Result<Option<$Term>, Diag> {
         let span = self.start_span();
-        if let Some(kind) = ParsePratt::<$Term, $TermKind>::_parse_initial(self, left_prec)? {
+        if let Some(kind) = ParsePratt::<$Term, $TermKind>::_parse_initial(self, ctx)? {
           return Ok(Some($Term::new(self.end_span(span), kind)))
         }
         for_enum!(Kind in $TermKind { $_(
-          if let Some(kind) = ParsePratt::<$Term, _>::_parse_initial(self, left_prec)? {
+          if let Some(kind) = ParsePratt::<$Term, _>::_parse_initial(self, ctx)? {
             return Ok(Some($Term::new(self.end_span(span), $TermKind::$Kind(kind))))
           }
         )* });
@@ -296,16 +300,16 @@ macro_rules! ParsePratt {
 
       fn _parse_suffix(
         &mut self,
-        left_prec: Precedence,
+        ctx: &mut PrecCtx,
         mut initial: $Term,
       ) -> Result<Result<$Term, $Term>, Diag> {
         let span = initial.span.start;
-        match ParsePratt::<$Term, $TermKind>::_parse_suffix(self, left_prec, initial)? {
+        match ParsePratt::<$Term, $TermKind>::_parse_suffix(self, ctx, initial)? {
           Ok(kind) => return Ok(Ok($Term::new(self.end_span(span), kind))),
           Err(initial_) => initial = initial_,
         }
         for_enum!(Kind in $TermKind { $_(
-          match self._parse_suffix(left_prec, initial)? {
+          match self._parse_suffix(ctx, initial)? {
             Ok(kind) => return Ok(Ok($Term::new(self.end_span(span), $TermKind::$Kind(kind)))),
             Err(initial_) => initial = initial_,
           }
@@ -349,6 +353,26 @@ impl ParsePratt<Impl, ImplKind> for Parser<'_> {}
 
 impl ParsePratt<Trait, TraitKind> for Parser<'_> {}
 
+pub struct PrecCtx {
+  outer: Precedence,
+  inner: Precedence,
+}
+
+impl PrecCtx {
+  pub fn sub(&mut self, prec: Precedence) -> Option<impl FnMut() -> Precedence> {
+    if Assoc::between(self.outer, prec) == Assoc::Right
+      && Assoc::between(self.inner, prec) == Assoc::Left
+    {
+      Some(move || {
+        self.inner = prec;
+        prec
+      })
+    } else {
+      None
+    }
+  }
+}
+
 #[derive_(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Precedence {
   Min,
@@ -368,28 +392,29 @@ pub enum Precedence {
   Annotation,
   Prefix,
   Postfix,
+  Max,
 }
 
 #[derive_(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Associativity {
+pub enum Assoc {
   None,
   Left,
   Right,
 }
 
-impl Associativity {
-  pub fn between(left_prec: Precedence, right_prec: Precedence) -> Associativity {
+impl Assoc {
+  pub fn between(left_prec: Precedence, right_prec: Precedence) -> Assoc {
     match left_prec.cmp(&right_prec) {
-      Ordering::Less => Associativity::Right,
+      Ordering::Less => Assoc::Right,
       Ordering::Equal => left_prec.assoc(),
-      Ordering::Greater => Associativity::Left,
+      Ordering::Greater => Assoc::Left,
     }
   }
 }
 
 impl Precedence {
-  pub fn assoc(self) -> Associativity {
-    use Associativity::*;
+  pub fn assoc(self) -> Assoc {
+    use Assoc::*;
     match self {
       Precedence::Min => None,
       Precedence::PatCond => None,
@@ -408,10 +433,7 @@ impl Precedence {
       Precedence::Annotation => None,
       Precedence::Prefix => None,
       Precedence::Postfix => None,
+      Precedence::Max => None,
     }
-  }
-
-  pub fn weaker(self, right_prec: Precedence) -> bool {
-    Associativity::between(self, right_prec) == Associativity::Right
   }
 }

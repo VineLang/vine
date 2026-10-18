@@ -22,7 +22,7 @@ pub struct AttrTest;
 pub struct AttrFrameless;
 
 impl ParsePratt<Ty, TyFnPath> for Parser<'_> {
-  fn _parse_initial(&mut self, _: Precedence) -> Result<Option<TyFnPath>, Diag> {
+  fn _parse_initial(&mut self, _: &mut PrecCtx) -> Result<Option<TyFnPath>, Diag> {
     if self.eat(Token::Fn)? { Ok(Some(TyFnPath { path: self.parse()? })) } else { Ok(None) }
   }
 }

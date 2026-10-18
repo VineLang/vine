@@ -10,7 +10,7 @@ impl<T> ParsePratt<T, Safe<T>> for Parser<'_>
 where
   Self: ParsePratt<T>,
 {
-  fn _parse_initial(&mut self, _left_prec: Precedence) -> Result<Option<Safe<T>>, Diag> {
+  fn _parse_initial(&mut self, _: &mut PrecCtx) -> Result<Option<Safe<T>>, Diag> {
     let safe_ = self.token_span();
     if self.eat(Token::Safe)? {
       let child = self.parse_pratt(Precedence::Prefix)?;

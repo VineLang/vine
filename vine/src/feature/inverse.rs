@@ -9,7 +9,7 @@ impl<T> ParsePratt<T, Inverse<T>> for Parser<'_>
 where
   Self: ParsePratt<T>,
 {
-  fn _parse_initial(&mut self, _left_prec: Precedence) -> Result<Option<Inverse<T>>, Diag> {
+  fn _parse_initial(&mut self, _: &mut PrecCtx) -> Result<Option<Inverse<T>>, Diag> {
     if self.eat(Token::Tilde)? {
       let child = self.parse_pratt(Precedence::Prefix)?;
       return Ok(Some(Inverse { child }));

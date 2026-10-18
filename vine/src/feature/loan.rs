@@ -35,7 +35,7 @@ impl<T> ParsePratt<T, Loan<T>> for Parser<'_>
 where
   Self: ParsePratt<T>,
 {
-  fn _parse_initial(&mut self, _left_prec: Precedence) -> Result<Option<Loan<T>>, Diag> {
+  fn _parse_initial(&mut self, _: &mut PrecCtx) -> Result<Option<Loan<T>>, Diag> {
     if let Some(mut_) = self.parse_loan_kind()? {
       let child = self.parse_pratt(Precedence::Prefix)?;
       return Ok(Some(Loan { mut_, child }));
@@ -68,7 +68,7 @@ impl<T> ParsePratt<T, Borrow<T>> for Parser<'_>
 where
   Self: ParsePratt<T>,
 {
-  fn _parse_initial(&mut self, _left_prec: Precedence) -> Result<Option<Borrow<T>>, Diag> {
+  fn _parse_initial(&mut self, _: &mut PrecCtx) -> Result<Option<Borrow<T>>, Diag> {
     if let Some((star, mut_)) = self.parse_borrow_kind()? {
       let child = self.parse_pratt(Precedence::Prefix)?;
       return Ok(Some(Borrow { star, mut_, child }));

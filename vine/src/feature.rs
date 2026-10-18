@@ -2,7 +2,7 @@ use super::*;
 
 use crate::component::{
   lexer::{Diag, Token},
-  parser::{Parse, ParsePratt, Parser, Precedence},
+  parser::{Parse, ParsePratt, Parser, PrecCtx, Precedence},
 };
 use vine_util::parser::Parse as _;
 

@@ -15,7 +15,7 @@ pub struct Variant<T> {
 }
 
 impl ParsePratt<Ty, TyEnum> for Parser<'_> {
-  fn _parse_initial(&mut self, _left_prec: Precedence) -> Result<Option<TyEnum>, Diag> {
+  fn _parse_initial(&mut self, _: &mut PrecCtx) -> Result<Option<TyEnum>, Diag> {
     let unsafe_ = self.eat(Token::Unsafe)?;
     if let Some(initial) = self.try_parse::<Variant<Ty>>()? {
       let mut variants = self
@@ -39,7 +39,7 @@ impl<T: ParseSequence> ParsePratt<T, Variant<T>> for Parser<'_>
 where
   Self: Parse<T>,
 {
-  fn _parse_initial(&mut self, _left_prec: Precedence) -> Result<Option<Variant<T>>, Diag> {
+  fn _parse_initial(&mut self, _: &mut PrecCtx) -> Result<Option<Variant<T>>, Diag> {
     self.try_parse::<Variant<T>>()
   }
 }

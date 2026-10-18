@@ -47,10 +47,10 @@ pub struct PatCond {
 impl ParsePratt<Expr, ExprIs> for Parser<'_> {
   fn _parse_suffix(
     &mut self,
-    left_prec: Precedence,
+    ctx: &mut PrecCtx,
     initial: Expr,
   ) -> Result<Result<ExprIs, Expr>, Diag> {
-    if left_prec.weaker(Precedence::Comparison) && self.eat(Token::Is)? {
+    if ctx.weaker(Precedence::Comparison) && self.eat(Token::Is)? {
       let pat = self.parse_pratt(Precedence::Comparison)?;
       Ok(Ok(ExprIs { expr: initial, pat }))
     } else {
@@ -62,10 +62,10 @@ impl ParsePratt<Expr, ExprIs> for Parser<'_> {
 impl ParsePratt<Expr, ExprImplies> for Parser<'_> {
   fn _parse_suffix(
     &mut self,
-    left_prec: Precedence,
+    ctx: &mut PrecCtx,
     initial: Expr,
   ) -> Result<Result<ExprImplies, Expr>, Diag> {
-    if left_prec.weaker(Precedence::Comparison) && self.eat(Token::Impl)? {
+    if ctx.weaker(Precedence::Comparison) && self.eat(Token::Impl)? {
       let conclusion = self.parse_pratt(Precedence::Comparison)?;
       Ok(Ok(ExprImplies { asusmption: initial, conclusion }))
     } else {
@@ -97,7 +97,7 @@ impl ParseAnyAll for ExprAll {
 }
 
 impl ParsePratt<Expr, ExprNot> for Parser<'_> {
-  fn _parse_initial(&mut self, _left_prec: Precedence) -> Result<Option<ExprNot>, Diag> {
+  fn _parse_initial(&mut self, _: &mut PrecCtx) -> Result<Option<ExprNot>, Diag> {
     if self.eat(Token::Bang)? {
       let child = self.parse_pratt(Precedence::Prefix)?;
       Ok(Some(ExprNot { child }))
@@ -110,10 +110,10 @@ impl ParsePratt<Expr, ExprNot> for Parser<'_> {
 impl ParsePratt<Pat, PatIs> for Parser<'_> {
   fn _parse_suffix(
     &mut self,
-    left_prec: Precedence,
+    ctx: &mut PrecCtx,
     initial: Pat,
   ) -> Result<Result<PatIs, Pat>, Diag> {
-    if left_prec.weaker(Precedence::Comparison) && self.eat(Token::Is)? {
+    if ctx.weaker(Precedence::Comparison) && self.eat(Token::Is)? {
       let pat = self.parse_pratt(Precedence::Comparison)?;
       Ok(Ok(PatIs { bind: initial, pat }))
     } else {
@@ -136,10 +136,10 @@ impl ParseAnyAll for PatAny {
 impl ParsePratt<Pat, PatCond> for Parser<'_> {
   fn _parse_suffix(
     &mut self,
-    left_prec: Precedence,
+    ctx: &mut PrecCtx,
     initial: Pat,
   ) -> Result<Result<PatCond, Pat>, Diag> {
-    if left_prec.weaker(Precedence::PatCond) && self.eat(Token::If)? {
+    if ctx.weaker(Precedence::PatCond) && self.eat(Token::If)? {
       let cond = self.parse_pratt(Precedence::PatCond)?;
       Ok(Ok(PatCond { pat: initial, cond }))
     } else {
@@ -161,7 +161,7 @@ impl<T, A: ParseAnyAll<Child = T>> ParsePratt<T, A> for Parser<'_>
 where
   Self: ParsePratt<T>,
 {
-  fn _parse_initial(&mut self, _: Precedence) -> Result<Option<A>, Diag> {
+  fn _parse_initial(&mut self, _: &mut PrecCtx) -> Result<Option<A>, Diag> {
     if let Some(token) = A::EMPTY
       && self.eat(token)?
     {
@@ -175,8 +175,8 @@ where
     }
   }
 
-  fn _parse_suffix(&mut self, left_prec: Precedence, initial: T) -> Result<Result<A, T>, Diag> {
-    if left_prec.weaker(A::PREC) && self.eat(A::INFIX)? {
+  fn _parse_suffix(&mut self, ctx: &mut PrecCtx, initial: T) -> Result<Result<A, T>, Diag> {
+    if ctx.weaker(A::PREC) && self.eat(A::INFIX)? {
       let mut children = self.parse_children(None, Some(A::INFIX), None)?;
       children.entries.insert(0, ChildrenEntry::from(initial));
       Ok(Ok(A::new(children)))
