@@ -1,9 +1,9 @@
 use super::*;
 
 #[derive_(Debug, Clone, Visit!)]
-pub struct ItemTrait {
+pub struct ItemTrait<I> {
   pub name: Spanned<Ident>,
   pub inherent: Vec<Spanned<Ident>>,
   pub generics: GenericParams,
-  pub items: Vec<ItemId>,
+  pub items: Vec<I>,
 }

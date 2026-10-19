@@ -73,6 +73,8 @@ pub enum Token {
   // Operators
   DotDot,
   DotDotEq,
+  BangDotDot,
+  BangDotDotEq,
   Plus,
   PlusEq,
   PlusPlus,
@@ -220,9 +222,21 @@ impl<'src> Lex<'src> for Lexer<'src> {
         },
         _ => Ok(Token::Question),
       },
+      Some('!') => match self.bump() {
+        Some('.') => {
+          let before_dot = self.offset();
+          match self.bump() {
+            Some('.') => self.bump_eq(Token::BangDotDot, Token::BangDotDotEq),
+            _ => {
+              self.teleport(before_dot);
+              Ok(Token::Bang)
+            }
+          }
+        }
+        _ => Ok(Token::Bang),
+      },
 
       Some('-') => self.bump_eq(Token::Minus, Token::MinusEq),
-      Some('!') => self.bump_eq(Token::Bang, Token::BangEq),
       Some('=') => self.bump_eq(Token::Eq, Token::EqEq),
       Some('|') => self.bump_eq(Token::Pipe, Token::PipeEq),
       Some('%') => self.bump_eq(Token::Percent, Token::PercentEq),
@@ -474,6 +488,8 @@ impl Token {
 
       Token::DotDot => TokenInfo::Operator(".."),
       Token::DotDotEq => TokenInfo::Operator("..="),
+      Token::BangDotDot => TokenInfo::Operator("!.."),
+      Token::BangDotDotEq => TokenInfo::Operator("!..="),
       Token::Plus => TokenInfo::Operator("+"),
       Token::PlusEq => TokenInfo::Operator("+="),
       Token::PlusPlus => TokenInfo::Operator("++"),

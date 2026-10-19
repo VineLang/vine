@@ -67,7 +67,7 @@ impl ParsePratt<Expr, ExprImplies> for Parser<'_> {
     ctx: &mut PrecCtx,
     initial: Expr,
   ) -> Result<Result<ExprImplies, Expr>, Diag> {
-    if let Some(prec) = ctx.prec(Prec::Comparison)
+    if let Some(prec) = ctx.prec(Prec::LogicalImplies)
       && self.eat(Token::Impl)?
     {
       let conclusion = self.parse_pratt(prec())?;

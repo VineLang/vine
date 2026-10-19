@@ -42,7 +42,7 @@ use crate::feature::{
   method::ExprMethod,
   object::Object,
   operator::{
-    ExprBinaryOp, ExprCast, ExprComparisonOp, ExprIndex, ExprRange, ExprUnaryOp, PatComparisonOp,
+    ExprBinaryOp, ExprCast, ExprComparisonOp, ExprIndex, ExprUnaryOp, PatComparisonOp, Range,
     StmtAssign,
   },
   path::{ExprPath, ImplPath, PatPath, TraitPath, TyPath},
@@ -54,8 +54,6 @@ use crate::feature::{
   unsafe_::Safe,
   unwrap::Unwrap,
 };
-
-use std::ops::Range;
 
 use vine_util::{
   trivial_visit,
@@ -90,6 +88,12 @@ pub struct FullSpan {
 }
 
 #[derive_(Debug, Clone, Copy)]
+pub struct FileSpan {
+  pub start: usize,
+  pub end: usize,
+}
+
+#[derive_(Debug, Clone, Copy)]
 pub struct Span {
   pub start: usize,
   pub end: usize,
@@ -108,24 +112,24 @@ impl From<Span> for Spanned<()> {
 }
 
 #[derive_(Debug, Clone, Visit!)]
-pub struct Item {
-  pub range: Range<usize>,
+pub struct Item<I> {
+  pub file_span: FileSpan,
   pub docs: Text,
   pub attrs: Vec<Attr>,
   pub vis: Vis,
   pub unsafe_: bool,
-  pub kind: Box<ItemKind>,
+  pub kind: Box<ItemKind<I>>,
 }
 
 #[derive_(Debug, Clone, Visit!)]
-pub enum ItemKind {
+pub enum ItemKind<I> {
   Use(ItemUse),
-  Mod(ItemMod),
+  Mod(ItemMod<I>),
   Fn(ItemFn),
   Const(ItemConst),
   Type(ItemType),
-  Trait(ItemTrait),
-  Impl(ItemImpl),
+  Trait(ItemTrait<I>),
+  Impl(ItemImpl<I>),
 }
 
 #[derive_(Debug, Clone, Visit!)]
@@ -228,7 +232,7 @@ pub enum ExprKind {
   UnaryOp(ExprUnaryOp),
   Cast(ExprCast),
   Index(ExprIndex),
-  Range(ExprRange),
+  Range(Range<Expr>),
 
   Literal(ExprLiteral),
   String(StringLiteral<Expr>),
@@ -297,6 +301,8 @@ pub enum TyKind {
   Unwrap(Unwrap<Ty>),
   Field(Field<Ty>),
   Borrow(Borrow<Ty>),
+
+  Range(Range<Ty>),
 }
 
 #[derive_(Debug, Clone, Visit!)]

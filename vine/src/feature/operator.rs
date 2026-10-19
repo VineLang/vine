@@ -54,9 +54,16 @@ pub struct ExprIndex {
 }
 
 #[derive_(Debug, Clone, Visit!)]
-pub enum ExprRange {
-  Exclusive(Option<Expr>, Option<Expr>),
-  Inclusive(Option<Expr>, Expr),
+pub struct Range<T> {
+  pub start: Bound<T>,
+  pub end: Bound<T>,
+}
+
+#[derive_(Debug, Clone, Visit!)]
+pub enum Bound<T> {
+  Unbounded,
+  Inclusive(T),
+  Exclusive(T),
 }
 
 #[derive_(Debug, Clone, Copy, Visit!)]
@@ -342,36 +349,53 @@ impl ParsePratt<Expr, ExprIndex> for Parser<'_> {
   }
 }
 
-impl ParsePratt<Expr, ExprRange> for Parser<'_> {
-  fn _parse_initial(&mut self, ctx: &mut PrecCtx) -> Result<Option<ExprRange>, Diag> {
-    if let Some(prec) = ctx.prec(Prec::Range) {
-      if self.eat(Token::DotDot)? {
-        Ok(Some(ExprRange::Exclusive(None, self.try_parse_pratt(prec())?)))
-      } else if self.eat(Token::DotDotEq)? {
-        Ok(Some(ExprRange::Inclusive(None, self.parse_pratt(prec())?)))
-      } else {
-        Ok(None)
-      }
+impl<T> ParsePratt<T, Range<T>> for Parser<'_>
+where
+  Self: ParsePratt<T>,
+{
+  fn _parse_initial(&mut self, ctx: &mut PrecCtx) -> Result<Option<Range<T>>, Diag> {
+    if let Some(prec) = ctx.prec(Prec::Range)
+      && let Some(end) = self.parse_range_end(Token::DotDot, Token::DotDotEq)?
+    {
+      _ = prec();
+      Ok(Some(Range { start: Bound::Unbounded, end }))
     } else {
       Ok(None)
     }
   }
 
-  fn _parse_suffix(
-    &mut self,
-    ctx: &mut PrecCtx,
-    initial: Expr,
-  ) -> Result<Result<ExprRange, Expr>, Diag> {
+  fn _parse_suffix(&mut self, ctx: &mut PrecCtx, initial: T) -> Result<Result<Range<T>, T>, Diag> {
     if let Some(prec) = ctx.prec(Prec::Range) {
-      if self.eat(Token::DotDot)? {
-        Ok(Ok(ExprRange::Exclusive(Some(initial), self.try_parse_pratt(prec())?)))
-      } else if self.eat(Token::DotDotEq)? {
-        Ok(Ok(ExprRange::Inclusive(Some(initial), self.parse_pratt(prec())?)))
+      if let Some(end) = self.parse_range_end(Token::DotDot, Token::DotDotEq)? {
+        _ = prec();
+        Ok(Ok(Range { start: Bound::Inclusive(initial), end }))
+      } else if let Some(end) = self.parse_range_end(Token::BangDotDot, Token::BangDotDotEq)? {
+        _ = prec();
+        Ok(Ok(Range { start: Bound::Exclusive(initial), end }))
       } else {
         Ok(Err(initial))
       }
     } else {
       Ok(Err(initial))
+    }
+  }
+}
+
+impl Parser<'_> {
+  fn parse_range_end<T>(&mut self, token: Token, token_eq: Token) -> Result<Option<Bound<T>>, Diag>
+  where
+    Self: ParsePratt<T>,
+  {
+    if self.eat(token)? {
+      if let Some(end) = self.try_parse_pratt(Prec::Range)? {
+        Ok(Some(Bound::Exclusive(end)))
+      } else {
+        Ok(Some(Bound::Unbounded))
+      }
+    } else if self.eat(token_eq)? {
+      Ok(Some(Bound::Inclusive(self.parse_pratt(Prec::Range)?)))
+    } else {
+      Ok(None)
     }
   }
 }

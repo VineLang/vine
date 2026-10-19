@@ -8,7 +8,21 @@ pub struct Field<T> {
   pub field: FieldKind,
 }
 
-impl ParsePratt<Expr, Field<Expr>> for Parser<'_> {} // todo
+impl ParsePratt<Expr, Field<Expr>> for Parser<'_> {
+  // `_parse_dot` handled by `ParsePratt<Expr, ExprKind>`
+
+  fn _parse_suffix(
+    &mut self,
+    _: &mut PrecCtx,
+    initial: Expr,
+  ) -> Result<Result<Field<Expr>, Expr>, Diag> {
+    if let Some(field) = self.try_parse()? {
+      Ok(Ok(Field { composite: initial, field: FieldKind::Tuple(field) }))
+    } else {
+      Ok(Err(initial))
+    }
+  }
+}
 
 impl ParsePratt<Ty, Field<Ty>> for Parser<'_> {
   fn _parse_dot(&mut self, initial: Ty) -> Result<Result<Field<Ty>, Ty>, Diag> {
@@ -34,8 +48,7 @@ pub enum FieldKind {
   Object(Spanned<Ident>),
 }
 
-#[derive_(Debug, Clone)]
-pub struct TupleField(usize);
+new_idx!(pub TupleField);
 
 trivial_visit!(TupleField);
 

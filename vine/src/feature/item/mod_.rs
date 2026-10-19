@@ -1,14 +1,14 @@
 use super::*;
 
 #[derive_(Debug, Clone, Visit!)]
-pub struct ItemMod {
+pub struct ItemMod<I> {
   pub name: Spanned<Ident>,
   pub generics: GenericParams,
-  pub kind: ItemModKind,
+  pub kind: ItemModKind<I>,
 }
 
 #[derive_(Debug, Clone, Visit!)]
-pub enum ItemModKind {
-  Local(Vec<ItemId>),
+pub enum ItemModKind<I> {
+  Local(Vec<I>),
   External,
 }

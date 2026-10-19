@@ -7,7 +7,13 @@ use vine_util::{
   parser::{Parse as ParserTrait, ParserState},
 };
 
-use crate::component::lexer::{Diag, Lexer, Token};
+use crate::{
+  component::lexer::{Diag, Lexer, Token},
+  feature::{
+    field::{Field, FieldKind},
+    method::ExprMethod,
+  },
+};
 
 pub struct Parser<'src> {
   state: ParserState<'src, Lexer<'src>>,
@@ -341,6 +347,27 @@ ParsePratt!(($) Expr ExprKind, Pat PatKind, Ty TyKind, Impl ImplKind, Trait Trai
 
 impl ParsePratt<Expr, ExprKind> for Parser<'_> {
   const ALLOW_DOT: bool = true;
+
+  fn _parse_dot(&mut self, initial: Expr) -> Result<Result<ExprKind, Expr>, Diag> {
+    if let Some(ident) = self.try_parse()? {
+      if self.check(Token::OpenBracket) || self.check(Token::OpenParen) {
+        let generics = self.parse()?;
+        let args = self.parse()?;
+        return Ok(Ok(ExprKind::Method(ExprMethod {
+          recv: initial,
+          method: ident,
+          generics,
+          args,
+        })));
+      } else {
+        return Ok(Ok(ExprKind::Field(Field {
+          composite: initial,
+          field: FieldKind::Object(ident),
+        })));
+      }
+    }
+    Ok(Err(initial))
+  }
 }
 
 impl ParsePratt<Pat, PatKind> for Parser<'_> {}

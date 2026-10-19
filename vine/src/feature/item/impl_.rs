@@ -1,18 +1,18 @@
 use super::*;
 
 #[derive_(Debug, Clone, Visit!)]
-pub struct ItemImpl {
+pub struct ItemImpl<I> {
   pub name: Spanned<Ident>,
   pub generics: GenericParams,
   pub trait_: Trait,
-  pub kind: ItemImplKind,
+  pub kind: ItemImplKind<I>,
 }
 
 #[derive_(Debug, Clone, Visit!)]
-pub enum ItemImplKind {
+pub enum ItemImplKind<I> {
   IndirectBasic,
   Indirect { impl_: Impl },
-  Direct { items: Vec<ItemId> },
+  Direct { items: Vec<I> },
 }
 
 #[derive_(Debug, Clone, Visit!)]

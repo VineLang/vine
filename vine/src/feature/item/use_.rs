@@ -4,14 +4,14 @@ use crate::feature::path::PathComponent;
 
 #[derive_(Debug, Clone, Visit!)]
 pub struct ItemUse {
-  pub imports: Vec<ImportTree>,
+  pub imports: Sequence<ImportTree>,
 }
 
 #[derive_(Debug, Clone, Visit!)]
 pub struct ImportTree {
   pub span: Span,
   pub component: PathComponent,
-  pub kinds: Vec<ImportKind>,
+  pub kinds: Sequence<ImportKind>,
 }
 
 #[derive_(Debug, Clone, Visit!)]
