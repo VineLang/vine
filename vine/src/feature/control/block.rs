@@ -10,7 +10,7 @@ use super::*;
 
 #[derive_(Debug, Clone, Visit!)]
 pub struct Block {
-  pub span: Span,
+  pub span: LocalSpan,
   pub pat: Option<Pat>,
   pub open_brace: Spanned<()>,
   pub stmts: Children<Stmt>,
@@ -79,7 +79,7 @@ impl Parse<StmtKind> for Parser<'_> {
         } else {
           LetKind::Uninit
         };
-        self.semi()?;
+        self.semi(true)?;
         return Ok(Some(StmtKind::Let(StmtLet { pat, kind })));
       }
     }
@@ -91,12 +91,12 @@ impl Parse<StmtKind> for Parser<'_> {
     if let Some(expr) = self.try_parse_pratt(Prec::Min)? {
       if let Some(op) = self.try_parse::<Spanned<AssignOp>>()? {
         let value = self.parse()?;
-        self.semi()?;
+        self.semi(true)?;
         return Ok(Some(StmtKind::Assign(StmtAssign { assignee: expr, op, value })));
       }
       let semi = self.check(Token::Semi) || !self.check(Token::CloseBrace);
       if semi {
-        self.semi()?;
+        self.semi(true)?;
       }
       return Ok(Some(StmtKind::Expr(StmtExpr { expr, semi })));
     }

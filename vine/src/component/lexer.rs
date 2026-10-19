@@ -93,16 +93,16 @@ pub enum Token {
   Pipe,
   PipeEq,
   At,
-  Question,
+  Quest,
   Slash,
   SlashEq,
   Percent,
   PercentEq,
   Bang,
-  Shl,
-  ShlEq,
-  Shr,
-  ShrEq,
+  LtLt,
+  LtLtEq,
+  GtGt,
+  GtGtEq,
   Tilde,
   TildeEq,
   Eq,
@@ -189,11 +189,11 @@ impl<'src> Lex<'src> for Lexer<'src> {
         _ => Ok(Token::Dot),
       },
       Some('<') => match self.bump() {
-        Some('<') => self.bump_eq(Token::Shl, Token::ShlEq),
+        Some('<') => self.bump_eq(Token::LtLt, Token::LtLtEq),
         _ => self.eq(Token::Lt, Token::LtEq),
       },
       Some('>') => match self.bump() {
-        Some('>') => self.bump_eq(Token::Shr, Token::ShrEq),
+        Some('>') => self.bump_eq(Token::GtGt, Token::GtGtEq),
         _ => self.eq(Token::Gt, Token::GtEq),
       },
       Some(':') => match self.bump() {
@@ -220,7 +220,7 @@ impl<'src> Lex<'src> for Lexer<'src> {
           }
           _ => Ok(Token::QuestQuest),
         },
-        _ => Ok(Token::Question),
+        _ => Ok(Token::Quest),
       },
       Some('!') => match self.bump() {
         Some('.') => {
@@ -233,7 +233,7 @@ impl<'src> Lex<'src> for Lexer<'src> {
             }
           }
         }
-        _ => Ok(Token::Bang),
+        _ => self.eq(Token::Bang, Token::BangEq),
       },
 
       Some('-') => self.bump_eq(Token::Minus, Token::MinusEq),
@@ -508,16 +508,16 @@ impl Token {
       Token::Pipe => TokenInfo::Operator("|"),
       Token::PipeEq => TokenInfo::Operator("|="),
       Token::At => TokenInfo::Operator("@"),
-      Token::Question => TokenInfo::Operator("?"),
+      Token::Quest => TokenInfo::Operator("?"),
       Token::Slash => TokenInfo::Operator("/"),
       Token::SlashEq => TokenInfo::Operator("/="),
       Token::Percent => TokenInfo::Operator("%"),
       Token::PercentEq => TokenInfo::Operator("%="),
       Token::Bang => TokenInfo::Operator("!"),
-      Token::Shl => TokenInfo::Operator("<<"),
-      Token::ShlEq => TokenInfo::Operator("<<="),
-      Token::Shr => TokenInfo::Operator(">>"),
-      Token::ShrEq => TokenInfo::Operator(">>="),
+      Token::LtLt => TokenInfo::Operator("<<"),
+      Token::LtLtEq => TokenInfo::Operator("<<="),
+      Token::GtGt => TokenInfo::Operator(">>"),
+      Token::GtGtEq => TokenInfo::Operator(">>="),
       Token::Tilde => TokenInfo::Operator("~"),
       Token::TildeEq => TokenInfo::Operator("~="),
       Token::Eq => TokenInfo::Operator("="),

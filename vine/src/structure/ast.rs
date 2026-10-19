@@ -70,71 +70,72 @@ pub struct Ident(pub String);
 new_idx!(pub FileId);
 new_idx!(pub ItemId);
 
-trivial_visit!(Span, Ident, ItemId);
+trivial_visit!(FileSpan, LocalSpan, Ident, ItemId);
 
-pub struct Ast {
-  pub files: IdxVec<FileId, File>,
-}
-
-pub struct File {
-  pub items: IdxVec<ItemId, Item>,
-}
-
+/// An absolute span.
 #[derive_(Debug, Clone, Copy)]
-pub struct FullSpan {
+pub struct AbsSpan {
   pub file: FileId,
   pub item: ItemId,
-  pub span: Span,
+  pub span: LocalSpan,
 }
 
+/// An file-relative span.
 #[derive_(Debug, Clone, Copy)]
 pub struct FileSpan {
   pub start: usize,
   pub end: usize,
 }
 
+/// An item-relative span.
 #[derive_(Debug, Clone, Copy)]
-pub struct Span {
+pub struct LocalSpan {
   pub start: usize,
   pub end: usize,
 }
 
 #[derive_(Debug, Clone, Copy, Visit!)]
 pub struct Spanned<T> {
-  pub span: Span,
+  pub span: LocalSpan,
   pub inner: T,
 }
 
-impl From<Span> for Spanned<()> {
-  fn from(span: Span) -> Self {
+impl From<LocalSpan> for Spanned<()> {
+  fn from(span: LocalSpan) -> Self {
     Spanned { span, inner: () }
   }
 }
 
 #[derive_(Debug, Clone, Visit!)]
-pub struct Item<I> {
+pub struct Item {
   pub file_span: FileSpan,
   pub docs: Text,
   pub attrs: Vec<Attr>,
   pub vis: Vis,
   pub unsafe_: bool,
-  pub kind: Box<ItemKind<I>>,
+  pub kind: Box<ItemKind>,
 }
 
 #[derive_(Debug, Clone, Visit!)]
-pub enum ItemKind<I> {
+pub enum ItemKind {
   Use(ItemUse),
-  Mod(ItemMod<I>),
+  Mod(ItemMod),
   Fn(ItemFn),
   Const(ItemConst),
   Type(ItemType),
-  Trait(ItemTrait<I>),
-  Impl(ItemImpl<I>),
+  Trait(ItemTrait),
+  Impl(ItemImpl),
+}
+
+#[derive_(Debug, Clone, Visit!)]
+pub enum Subitem {
+  Inline(Item),
+  Extracted(ItemId),
 }
 
 #[derive_(Debug, Clone, Visit!)]
 pub struct Attr {
-  pub span: Span,
+  pub span: LocalSpan,
   pub safe: bool,
   pub kind: AttrKind,
 }
@@ -161,7 +162,7 @@ pub enum Vis {
 
 #[derive_(Debug, Clone, Visit!)]
 pub struct Stmt {
-  pub span: Span,
+  pub span: LocalSpan,
   pub kind: Box<StmtKind>,
 }
 
@@ -179,7 +180,7 @@ pub enum StmtKind {
 
 #[derive_(Debug, Clone, Visit!)]
 pub struct Expr {
-  pub span: Span,
+  pub span: LocalSpan,
   pub kind: Box<ExprKind>,
   pub type_: Resolve<Type>,
 }
@@ -241,7 +242,7 @@ pub enum ExprKind {
 
 #[derive_(Debug, Clone, Visit!)]
 pub struct Pat {
-  pub span: Span,
+  pub span: LocalSpan,
   pub kind: Box<PatKind>,
   pub type_: Resolve<Type>,
 }
@@ -276,7 +277,7 @@ pub enum PatKind {
 
 #[derive_(Debug, Clone, Visit!)]
 pub struct Ty {
-  pub span: Span,
+  pub span: LocalSpan,
   pub kind: Box<TyKind>,
   pub type_: Resolve<Type>,
 }
@@ -307,7 +308,7 @@ pub enum TyKind {
 
 #[derive_(Debug, Clone, Visit!)]
 pub struct Impl {
-  pub span: Span,
+  pub span: LocalSpan,
   pub kind: Box<ImplKind>,
   pub type_: Resolve<ImplType>,
 }
@@ -323,7 +324,7 @@ pub enum ImplKind {
 
 #[derive_(Debug, Clone, Visit!)]
 pub struct Trait {
-  pub span: Span,
+  pub span: LocalSpan,
   pub kind: Box<TraitKind>,
   pub type_: Resolve<ImplType>,
 }
@@ -454,6 +455,10 @@ impl<T> ChildrenEntry<T> {
 }
 
 impl<T> Children<T> {
+  pub fn single(child: T) -> Self {
+    Children { entries: vec![ChildrenEntry::from(child)] }
+  }
+
   pub fn iter(&self) -> impl DoubleEndedIterator<Item = &T> {
     self.entries.iter().filter_map(ChildrenEntry::get)
   }
@@ -511,31 +516,31 @@ pub enum SequenceChild<T> {
 }
 
 impl Expr {
-  pub fn new(span: Span, kind: impl Into<ExprKind>) -> Self {
+  pub fn new(span: LocalSpan, kind: impl Into<ExprKind>) -> Self {
     Expr { span, kind: Box::new(kind.into()), type_: Unresolved }
   }
 }
 
 impl Pat {
-  pub fn new(span: Span, kind: impl Into<PatKind>) -> Self {
+  pub fn new(span: LocalSpan, kind: impl Into<PatKind>) -> Self {
     Pat { span, kind: Box::new(kind.into()), type_: Unresolved }
   }
 }
 
 impl Ty {
-  pub fn new(span: Span, kind: impl Into<TyKind>) -> Self {
+  pub fn new(span: LocalSpan, kind: impl Into<TyKind>) -> Self {
     Ty { span, kind: Box::new(kind.into()), type_: Unresolved }
   }
 }
 
 impl Impl {
-  pub fn new(span: Span, kind: impl Into<ImplKind>) -> Self {
+  pub fn new(span: LocalSpan, kind: impl Into<ImplKind>) -> Self {
     Impl { span, kind: Box::new(kind.into()), type_: Unresolved }
   }
 }
 
 impl Trait {
-  pub fn new(span: Span, kind: impl Into<TraitKind>) -> Self {
+  pub fn new(span: LocalSpan, kind: impl Into<TraitKind>) -> Self {
     Trait { span, kind: Box::new(kind.into()), type_: Unresolved }
   }
 }

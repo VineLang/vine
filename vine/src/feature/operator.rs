@@ -139,8 +139,8 @@ impl BinaryOp {
       BinaryOp::BitOr => (Token::Pipe, Token::PipeEq),
       BinaryOp::BitXor => (Token::Caret, Token::CaretEq),
       BinaryOp::BitAnd => (Token::Amp, Token::AmpEq),
-      BinaryOp::Shl => (Token::Shl, Token::ShlEq),
-      BinaryOp::Shr => (Token::Shr, Token::ShrEq),
+      BinaryOp::Shl => (Token::LtLt, Token::LtLtEq),
+      BinaryOp::Shr => (Token::GtGt, Token::GtGtEq),
       BinaryOp::Add => (Token::Plus, Token::PlusEq),
       BinaryOp::Sub => (Token::Minus, Token::MinusEq),
       BinaryOp::Mul => (Token::Star, Token::StarEq),
@@ -212,10 +212,9 @@ impl ParsePratt<Expr, ExprBinaryOp> for Parser<'_> {
     ctx: &mut PrecCtx,
     initial: Expr,
   ) -> Result<Result<ExprBinaryOp, Expr>, Diag> {
-    let span = self.token_span().span;
     for_enum!(Op in BinaryOp { $(
-      if let Some(prec) = ctx.prec(BinaryOp::$Op.precedence()) && self.eat(BinaryOp::$Op.token())? {
-        let op = Spanned { span, inner: BinaryOp::$Op };
+      if let Some(prec) = ctx.prec(BinaryOp::$Op.precedence()) && let Some(token) = self.eat_spanned(BinaryOp::$Op.token())? {
+        let op = Spanned { span: token.span, inner: BinaryOp::$Op };
         let rhs = self.parse_pratt(BinaryOp::$Op.precedence())?;
         return Ok(Ok(ExprBinaryOp { lhs: initial, op, rhs } ));
       }
@@ -226,10 +225,9 @@ impl ParsePratt<Expr, ExprBinaryOp> for Parser<'_> {
 
 impl ParsePratt<Expr, ExprUnaryOp> for Parser<'_> {
   fn _parse_initial(&mut self, _: &mut PrecCtx) -> Result<Option<ExprUnaryOp>, Diag> {
-    let span = self.token_span().span;
     for_enum!(Op in UnaryOp { $(
-      if self.eat(UnaryOp::$Op.token())? {
-        let op = Spanned { span, inner: UnaryOp::$Op };
+      if let Some(op) = self.eat_spanned(UnaryOp::$Op.token())? {
+        let op = Spanned { span: op.span, inner: UnaryOp::$Op };
         let child = self.parse_pratt(Prec::Prefix)?;
         return Ok(Some(ExprUnaryOp { op, child }));
       }
@@ -313,9 +311,8 @@ impl ParsePratt<Expr, ExprCast> for Parser<'_> {
     ctx: &mut PrecCtx,
     initial: Expr,
   ) -> Result<Result<ExprCast, Expr>, Diag> {
-    let op = self.token_span();
     if let Some(prec) = ctx.prec(Prec::Annotation)
-      && self.eat(Token::As)?
+      && let Some(op) = self.eat_spanned(Token::As)?
     {
       let ty = self.parse_pratt(prec())?;
       Ok(Ok(ExprCast { value: initial, op, ty }))
@@ -325,8 +322,7 @@ impl ParsePratt<Expr, ExprCast> for Parser<'_> {
   }
 
   fn _parse_dot(&mut self, initial: Expr) -> Result<Result<ExprCast, Expr>, Diag> {
-    let op = self.token_span();
-    if self.eat(Token::As)? {
+    if let Some(op) = self.eat_spanned(Token::As)? {
       self.expect(Token::OpenBracket)?;
       let ty = self.parse()?;
       self.expect(Token::OpenBracket)?;

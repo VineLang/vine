@@ -11,7 +11,7 @@ impl Parse<StmtAssert> for Parser<'_> {
     if self.eat(Token::Assert)? {
       let cond = self.parse_pratt(Prec::Min)?;
       let else_ = self.eat_then(Token::Else, Self::parse::<Block>)?;
-      self.semi()?;
+      self.semi(else_.is_none())?;
       Ok(Some(StmtAssert { cond, else_ }))
     } else {
       Ok(None)

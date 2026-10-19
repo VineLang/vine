@@ -8,7 +8,10 @@ pub struct ExprTry {
 
 impl ParsePratt<Expr, ExprTry> for Parser<'_> {
   fn _parse_dot(&mut self, initial: Expr) -> Result<Result<ExprTry, Expr>, Diag> {
-    let try_ = self.token_span();
-    if self.eat(Token::Try)? { Ok(Ok(ExprTry { result: initial, try_ })) } else { Ok(Err(initial)) }
+    if let Some(try_) = self.eat_spanned(Token::Try)? {
+      Ok(Ok(ExprTry { result: initial, try_ }))
+    } else {
+      Ok(Err(initial))
+    }
   }
 }

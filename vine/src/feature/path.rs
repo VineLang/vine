@@ -4,14 +4,14 @@ use crate::feature::generics::GenericArgs;
 
 #[derive_(Debug, Clone, Visit!)]
 pub struct PathComponent {
-  pub span: Span,
+  pub span: LocalSpan,
   pub stock: bool,
   pub ident: Ident,
 }
 
 #[derive_(Debug, Clone, Visit!)]
 pub struct Path {
-  pub span: Span,
+  pub span: LocalSpan,
   pub components: Vec<PathComponent>,
   pub generics: Option<GenericArgs>,
 }

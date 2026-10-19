@@ -16,7 +16,7 @@ impl Flex {
   pub fn token(self) -> Option<Token> {
     match self {
       Flex::None => None,
-      Flex::Drop => Some(Token::Question),
+      Flex::Drop => Some(Token::Quest),
       Flex::Fork => Some(Token::Plus),
       Flex::Copy => Some(Token::PlusPlus),
       Flex::ForkDrop => Some(Token::Star),

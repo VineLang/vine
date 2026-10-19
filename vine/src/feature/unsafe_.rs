@@ -11,8 +11,7 @@ where
   Self: ParsePratt<T>,
 {
   fn _parse_initial(&mut self, _: &mut PrecCtx) -> Result<Option<Safe<T>>, Diag> {
-    let safe_ = self.token_span();
-    if self.eat(Token::Safe)? {
+    if let Some(safe_) = self.eat_spanned(Token::Safe)? {
       let child = self.parse_pratt(Prec::Prefix)?;
       Ok(Some(Safe { safe_, child }))
     } else {

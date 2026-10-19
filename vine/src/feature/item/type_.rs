@@ -32,13 +32,13 @@ impl Parse<ItemType> for Parser<'_> {
       let name = self.parse()?;
       let generics = self.parse()?;
       let kind = if self.eat(Token::Colon)? {
-        ItemTypeKind::Wrapper(self.parse()?, self.parse()?);
+        ItemTypeKind::Wrapper(self.parse()?, self.parse()?)
       } else if self.eat(Token::Eq)? {
         ItemTypeKind::Alias(self.parse()?)
       } else {
         ItemTypeKind::Opaque
       };
-      self.semi();
+      self.semi(true)?;
       Ok(Some(ItemType { flex, name, generics, kind }))
     } else {
       Ok(None)

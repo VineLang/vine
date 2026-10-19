@@ -12,11 +12,13 @@ use crate::{
   feature::{
     field::{Field, FieldKind},
     method::ExprMethod,
+    string::StringLiteral,
   },
 };
 
 pub struct Parser<'src> {
   state: ParserState<'src, Lexer<'src>>,
+  span_base: usize,
 }
 
 impl<'src> ParserTrait<'src> for Parser<'src> {
@@ -40,20 +42,33 @@ impl<'src> ParserTrait<'src> for Parser<'src> {
 
 impl<'src> Parser<'src> {
   pub fn new(lexer: Lexer<'src>) -> Result<Self, Diag> {
-    Ok(Parser { state: ParserState::new(lexer)? })
+    Ok(Parser { state: ParserState::new(lexer)?, span_base: 0 })
+  }
+
+  pub fn anchor_spans<T>(&mut self, f: impl FnOnce(&mut Self) -> T) -> (FileSpan, T) {
+    let old_base = self.span_base;
+    self.span_base = self.state.lexer.offset();
+    let result = f(self);
+    let file_span = FileSpan { start: self.span_base, end: self.state.lexer.offset() };
+    self.span_base = old_base;
+    (file_span, result)
   }
 
   pub fn start_span(&self) -> usize {
-    todo!()
+    self.state.lexer.offset() - self.span_base
   }
 
-  pub fn end_span(&self, span: usize) -> Span {
-    _ = span;
-    todo!()
+  pub fn end_span(&self, span: usize) -> LocalSpan {
+    LocalSpan { start: span, end: self.state.last_token_end - self.span_base }
   }
 
   pub fn token_span(&self) -> Spanned<()> {
     todo!()
+  }
+
+  pub fn eat_spanned(&mut self, token: Token) -> Result<Option<Spanned<()>>, Diag> {
+    let span = self.token_span();
+    Ok(self.eat(token)?.then_some(span))
   }
 
   pub fn spanned<T>(
@@ -147,16 +162,16 @@ impl<'src> Parser<'src> {
     Ok(Children { entries })
   }
 
-  pub fn semi(&mut self) -> Result<(), Diag> {
-    todo!()
+  pub fn semi(&mut self, mandatory: bool) -> Result<(), Diag> {
+    todo!() // todo
   }
 }
 
 impl Parse<Ident> for Parser<'_> {
   fn _parse(&mut self) -> Result<Option<Ident>, Diag> {
     if self.eat(Token::Backslash)? {
-      if self.check(Token::OpenString) {
-        todo!()
+      if let Some(string) = self.try_parse::<StringLiteral>()? {
+        Ok(Some(Ident(string.value())))
       } else {
         self.state.expected.add(Token::GroupKeyword);
         if !self.state.token.is_keyword() {
@@ -241,18 +256,17 @@ pub trait Parse<T> {
   fn _parse(&mut self) -> Result<Option<T>, Diag>;
 }
 
+#[allow(unused_variables)]
 pub trait ParsePratt<T, K = T> {
   fn _parse_full(&mut self) -> Result<Option<K>, Diag> {
     Ok(None)
   }
 
   fn _parse_initial(&mut self, ctx: &mut PrecCtx) -> Result<Option<K>, Diag> {
-    _ = ctx;
     Ok(None)
   }
 
   fn _parse_suffix(&mut self, ctx: &mut PrecCtx, initial: T) -> Result<Result<K, T>, Diag> {
-    _ = ctx;
     Ok(Err(initial))
   }
 

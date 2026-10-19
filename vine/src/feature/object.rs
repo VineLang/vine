@@ -21,7 +21,7 @@ pub enum ObjectChild<T> {
 
 pub trait ParseObject: Sized {
   const ALLOW_SHORTHAND: bool;
-  fn from_shorthand(span: Span, ident: Spanned<Ident>, annotation: Option<Ty>) -> Self;
+  fn from_shorthand(span: LocalSpan, ident: Spanned<Ident>, annotation: Option<Ty>) -> Self;
 }
 
 impl<T: ParseObject> Parse<Object<T>> for Parser<'_>
@@ -86,7 +86,7 @@ where
 
 impl ParseObject for Expr {
   const ALLOW_SHORTHAND: bool = true;
-  fn from_shorthand(span: Span, ident: Spanned<Ident>, annotation: Option<Ty>) -> Self {
+  fn from_shorthand(span: LocalSpan, ident: Spanned<Ident>, annotation: Option<Ty>) -> Self {
     let expr = Expr::new(ident.span, ExprPath { path: Path::from(ident), args: None });
     match annotation {
       Some(ty) => Expr::new(span, Annotation { child: expr, ty }),
@@ -97,7 +97,7 @@ impl ParseObject for Expr {
 
 impl ParseObject for Pat {
   const ALLOW_SHORTHAND: bool = true;
-  fn from_shorthand(span: Span, ident: Spanned<Ident>, annotation: Option<Ty>) -> Self {
+  fn from_shorthand(span: LocalSpan, ident: Spanned<Ident>, annotation: Option<Ty>) -> Self {
     let pat = Pat::new(ident.span, PatPath { path: Path::from(ident), args: None });
     match annotation {
       Some(ty) => Pat::new(span, Annotation { child: pat, ty }),
@@ -108,7 +108,7 @@ impl ParseObject for Pat {
 
 impl ParseObject for Ty {
   const ALLOW_SHORTHAND: bool = false;
-  fn from_shorthand(_: Span, _: Spanned<Ident>, _: Option<Ty>) -> Self {
+  fn from_shorthand(_: LocalSpan, _: Spanned<Ident>, _: Option<Ty>) -> Self {
     unreachable!()
   }
 }

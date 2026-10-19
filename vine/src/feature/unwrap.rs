@@ -11,7 +11,10 @@ where
   Self: ParsePratt<T>,
 {
   fn _parse_suffix(&mut self, _: &mut PrecCtx, initial: T) -> Result<Result<Unwrap<T>, T>, Diag> {
-    let bang = self.token_span();
-    if self.eat(Token::Bang)? { Ok(Ok(Unwrap { child: initial, bang })) } else { Ok(Err(initial)) }
+    if let Some(bang) = self.eat_spanned(Token::Bang)? {
+      Ok(Ok(Unwrap { child: initial, bang }))
+    } else {
+      Ok(Err(initial))
+    }
   }
 }

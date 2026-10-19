@@ -106,6 +106,8 @@ pub enum StrToken {
   Eof,
 }
 
+"a{b{c}d}e"
+
 #[derive(Debug, Clone, Copy)]
 pub struct StrLexer<'src> {
   file: FileId,

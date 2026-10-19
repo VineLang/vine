@@ -30,9 +30,7 @@ impl Parse<ItemFn> for Parser<'_> {
       let args = self.parse()?;
       let return_ty = self.eat_then(Token::Colon, Self::parse)?;
       let body = self.try_parse()?;
-      if body.is_none() {
-        self.semi();
-      }
+      self.semi(body.is_none())?;
       Ok(Some(ItemFn { method, name, generics, args, return_ty, body }))
     } else {
       Ok(None)
