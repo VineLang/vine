@@ -68,7 +68,6 @@ pub enum Token {
   Dollar,
   Backslash,
   QuestQuest,
-  QuestQuestQuest,
 
   // Operators
   DotDot,
@@ -213,13 +212,7 @@ impl<'src> Lex<'src> for Lexer<'src> {
         _ => self.eq(Token::Star, Token::StarEq),
       },
       Some('?') => match self.bump() {
-        Some('?') => match self.bump() {
-          Some('?') => {
-            self.bump_while(|x| x != '\n');
-            Ok(Token::QuestQuestQuest)
-          }
-          _ => Ok(Token::QuestQuest),
-        },
+        Some('?') => self.bump_ok(Token::QuestQuest),
         _ => Ok(Token::Quest),
       },
       Some('!') => match self.bump() {
@@ -484,7 +477,6 @@ impl Token {
       Token::Dollar => TokenInfo::Punctuation("$"),
       Token::Backslash => TokenInfo::Punctuation("\\"),
       Token::QuestQuest => TokenInfo::Punctuation("??"),
-      Token::QuestQuestQuest => TokenInfo::Punctuation("???"),
 
       Token::DotDot => TokenInfo::Operator(".."),
       Token::DotDotEq => TokenInfo::Operator("..="),

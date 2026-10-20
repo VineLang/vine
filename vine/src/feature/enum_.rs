@@ -1,6 +1,6 @@
 use super::*;
 
-use crate::component::parser::ParseSequence;
+use crate::feature::{children::ChildrenEntry, sequence::ParseSequence};
 
 #[derive_(Debug, Clone, Visit!)]
 pub struct TyEnum {

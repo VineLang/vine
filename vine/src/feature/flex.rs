@@ -25,6 +25,16 @@ impl Flex {
   }
 }
 
+impl GrammarRule for Flex {
+  fn rule(grammar: &mut Grammar) -> grammar::Rule {
+    use grammar::*;
+    grammar.named(
+      "flex",
+      choice((Token::Quest, Token::Plus, Token::PlusPlus, Token::Star, Token::StarStar)).optional(),
+    )
+  }
+}
+
 impl Parse<Flex> for Parser<'_> {
   fn _parse(&mut self) -> Result<Option<Flex>, Diag> {
     for_enum!(Flex in Flex {

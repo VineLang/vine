@@ -5,14 +5,15 @@ use crate::feature::flex::Flex;
 #[derive_(Default, Debug, Clone, Visit!)]
 pub struct GenericParams {
   pub inherit: bool,
-  pub types: Sequence<TypeParam>,
-  pub impls: Sequence<ImplParam>,
+  pub types: Children<TypeParam>,
+  pub impls: Children<ImplParam>,
 }
 
 #[derive_(Debug, Clone, Visit!)]
 pub struct TypeParam {
   pub name: Spanned<Ident>,
   pub flex: Flex,
+  pub default: Option<Ty>,
 }
 
 #[derive_(Debug, Clone, Visit!)]
@@ -23,8 +24,8 @@ pub struct ImplParam {
 
 #[derive_(Default, Debug, Clone, Visit!)]
 pub struct GenericArgs {
-  pub types: Sequence<TypeArg>,
-  pub impls: Sequence<ImplArg>,
+  pub types: Children<TypeArg>,
+  pub impls: Children<ImplArg>,
 }
 
 impl GenericArgs {
@@ -42,6 +43,20 @@ pub struct TypeArg {
 #[derive_(Debug, Clone, Visit!)]
 pub struct ImplArg {
   pub impl_: Impl,
+}
+
+impl GrammarRule for GenericParams {
+  fn rule(grammar: &mut Grammar) -> grammar::Rule {
+    use grammar::*;
+    todo!()
+  }
+}
+
+impl GrammarRule for GenericArgs {
+  fn rule(grammar: &mut Grammar) -> grammar::Rule {
+    use grammar::*;
+    todo!()
+  }
 }
 
 impl Parse<GenericParams> for Parser<'_> {

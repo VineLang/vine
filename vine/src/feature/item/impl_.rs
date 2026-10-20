@@ -24,7 +24,7 @@ pub struct AttrManual;
 
 #[derive_(Debug, Clone, Visit!)]
 pub struct AttrBecome {
-  pub path: Path,
+  pub path: Path<!>,
 }
 
 impl Parse<ItemImpl> for Parser<'_> {
@@ -44,6 +44,31 @@ impl Parse<ItemImpl> for Parser<'_> {
       };
       self.semi(!matches!(kind, ItemImplKind::Direct { .. }))?;
       Ok(Some(ItemImpl { name, generics, safe, trait_, kind }))
+    } else {
+      Ok(None)
+    }
+  }
+}
+
+impl ParseAttr<AttrBasic> for Parser<'_> {
+  fn _parse_attr(&mut self, name: &str) -> Result<Option<AttrBasic>, Diag> {
+    if name == "basic" { Ok(Some(AttrBasic)) } else { Ok(None) }
+  }
+}
+
+impl ParseAttr<AttrManual> for Parser<'_> {
+  fn _parse_attr(&mut self, name: &str) -> Result<Option<AttrManual>, Diag> {
+    if name == "manual" { Ok(Some(AttrManual)) } else { Ok(None) }
+  }
+}
+
+impl ParseAttr<AttrBecome> for Parser<'_> {
+  fn _parse_attr(&mut self, name: &str) -> Result<Option<AttrBecome>, Diag> {
+    if name == "become" {
+      self.expect(Token::OpenParen)?;
+      let path = self.parse()?;
+      self.expect(Token::CloseParen)?;
+      Ok(Some(AttrBecome { path }))
     } else {
       Ok(None)
     }

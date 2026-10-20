@@ -1,6 +1,6 @@
 use super::*;
 
-use crate::component::parser::ParseSequence;
+use crate::feature::sequence::{ParseSequence, SequenceChild};
 
 #[derive_(Debug, Clone, Visit!)]
 pub struct List<T> {

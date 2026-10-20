@@ -1,6 +1,8 @@
 use super::*;
 
-pub use crate::feature::{control::block::Block, path::Path};
+pub use crate::feature::{
+  children::Children, control::block::Block, path::Path, sequence::Sequence,
+};
 
 use crate::feature::{
   annotation::Annotation,
@@ -45,7 +47,7 @@ use crate::feature::{
     ExprBinaryOp, ExprCast, ExprComparisonOp, ExprIndex, ExprUnaryOp, PatComparisonOp, Range,
     StmtAssign,
   },
-  path::{ExprPath, ImplPath, PatPath, TraitPath, TyPath},
+  path::{ExprPathCall, ImplPath, PatPathCall, TraitPath, TyPath},
   placement::Placement,
   read::Read,
   string::StringLiteral,
@@ -109,10 +111,9 @@ impl From<LocalSpan> for Spanned<()> {
 #[derive_(Debug, Clone, Visit!)]
 pub struct Item {
   pub file_span: FileSpan,
-  pub docs: Text,
   pub attrs: Vec<Attr>,
   pub vis: Vis,
-  pub unsafe_: bool,
+  pub unsafe_: Option<Spanned<()>>,
   pub kind: Box<ItemKind>,
 }
 
@@ -175,7 +176,6 @@ pub enum StmtKind {
   Break(StmtBreak),
   Continue(StmtContinue),
   Expr(StmtExpr),
-  Hole(Hole),
 }
 
 #[derive_(Debug, Clone, Visit!)]
@@ -190,7 +190,7 @@ pub enum ExprKind {
   Hole(Hole),
   Underscore(Underscore),
 
-  Path(ExprPath),
+  PathCall(ExprPathCall),
   Unwrap(Unwrap<Expr>),
   Field(Field<Expr>),
   Method(ExprMethod),
@@ -252,7 +252,7 @@ pub enum PatKind {
   Hole(Hole),
   Underscore(Underscore),
 
-  Path(PatPath),
+  PathCall(PatPathCall),
   Safe(Safe<Pat>),
   Annotation(Annotation<Pat>),
 
@@ -379,140 +379,6 @@ impl<T: Debug + 'static> Visit for Resolve<T> {
   fn visit_children<'a>(&'a self, _: &mut impl Visitor<'a>) {}
 
   fn visit_children_mut<'a>(&'a mut self, _: &mut impl VisitorMut<'a>) {}
-}
-
-/// A textual comment, possibly spanning multiple lines.
-#[derive_(Default, Debug, Clone, Visit!)]
-pub struct Text {
-  pub lines: Vec<String>,
-}
-
-/// A list of child nodes, potentially interspersed with blank lines and
-/// comments.
-#[derive_(Debug, Clone)]
-pub struct Children<T> {
-  /// These entries should be normalized such that:
-  /// - there are no two adjacent `Blank` entries
-  /// - `entries` does not begin or end with a `Blank` entry
-  /// - there are no two adjacent `Text` entries
-  /// - no `Text` entry immediately precedes a `Child` entry (as it would be
-  ///   incorporated into the `docs`)
-  ///
-  /// Note that a `Text` entry can immediately succeed a `Child` entry, as the
-  /// `trailing` is only textual comments starting on the same line, not
-  /// including subsequent lines.
-  pub entries: Vec<ChildrenEntry<T>>,
-}
-
-#[derive_(Debug, Clone)]
-pub enum ChildrenEntry<T> {
-  Child {
-    /// Textual comments on lines immediately preceding the child; these may be
-    /// interpreted as documentation for the child.
-    docs: Text,
-    child: T,
-    /// Textual comments following the child, on the same line.
-    trailing: Text,
-  },
-  Blank,
-  Text(Text),
-  Exclude {
-    block: bool,
-    /// Should be non-empty. If `block` is true, should have exactly one
-    /// element.
-    lines: Vec<String>,
-  },
-}
-
-impl<T> ChildrenEntry<T> {
-  pub fn get(&self) -> Option<&T> {
-    match self {
-      ChildrenEntry::Child { child, .. } => Some(child),
-      _ => None,
-    }
-  }
-
-  pub fn get_mut(&mut self) -> Option<&mut T> {
-    match self {
-      ChildrenEntry::Child { child, .. } => Some(child),
-      _ => None,
-    }
-  }
-
-  pub fn with_docs(&self) -> Option<(&Text, &T)> {
-    match self {
-      ChildrenEntry::Child { docs, child, .. } => Some((docs, child)),
-      _ => None,
-    }
-  }
-
-  pub fn with_docs_mut(&mut self) -> Option<(&Text, &mut T)> {
-    match self {
-      ChildrenEntry::Child { docs, child, .. } => Some((docs, child)),
-      _ => None,
-    }
-  }
-}
-
-impl<T> Children<T> {
-  pub fn single(child: T) -> Self {
-    Children { entries: vec![ChildrenEntry::from(child)] }
-  }
-
-  pub fn iter(&self) -> impl DoubleEndedIterator<Item = &T> {
-    self.entries.iter().filter_map(ChildrenEntry::get)
-  }
-
-  pub fn iter_mut(&mut self) -> impl DoubleEndedIterator<Item = &mut T> {
-    self.entries.iter_mut().filter_map(ChildrenEntry::get_mut)
-  }
-
-  pub fn with_docs(&self) -> impl DoubleEndedIterator<Item = (&Text, &T)> {
-    self.entries.iter().filter_map(ChildrenEntry::with_docs)
-  }
-
-  pub fn with_docs_mut(&mut self) -> impl DoubleEndedIterator<Item = (&Text, &mut T)> {
-    self.entries.iter_mut().filter_map(ChildrenEntry::with_docs_mut)
-  }
-}
-
-impl<T> From<T> for ChildrenEntry<T> {
-  fn from(child: T) -> Self {
-    ChildrenEntry::Child { docs: Text::default(), child, trailing: Text::default() }
-  }
-}
-
-impl<T: Visit> Visit for Children<T> {
-  fn visit_children<'a>(&'a self, visitor: &mut impl Visitor<'a>) {
-    for child in self.iter() {
-      visitor.visit(child);
-    }
-  }
-
-  fn visit_children_mut<'a>(&'a mut self, visitor: &mut impl VisitorMut<'a>) {
-    for child in self.iter_mut() {
-      visitor.visit(child);
-    }
-  }
-}
-
-impl<T> Default for Children<T> {
-  fn default() -> Self {
-    Self { entries: Default::default() }
-  }
-}
-
-/// A tuple-like collection of children, with regular entries and spreads.
-pub type Sequence<T> = Children<SequenceChild<T>>;
-
-#[derive_(Debug, Clone, Visit!)]
-pub enum SequenceChild<T> {
-  Entry {
-    /// Can be present in tuple types; serves solely as documentation.
-    label: Option<Spanned<Ident>>,
-    child: T,
-  },
-  Spread(Option<T>),
 }
 
 impl Expr {

@@ -12,7 +12,7 @@ pub struct ItemFn {
 
 #[derive_(Debug, Clone, Visit!)]
 pub struct TyFnPath {
-  pub path: Path,
+  pub path: Path<!>,
 }
 
 #[derive_(Debug, Clone, Visit!)]
@@ -41,5 +41,17 @@ impl Parse<ItemFn> for Parser<'_> {
 impl ParsePratt<Ty, TyFnPath> for Parser<'_> {
   fn _parse_initial(&mut self, _: &mut PrecCtx) -> Result<Option<TyFnPath>, Diag> {
     if self.eat(Token::Fn)? { Ok(Some(TyFnPath { path: self.parse()? })) } else { Ok(None) }
+  }
+}
+
+impl ParseAttr<AttrTest> for Parser<'_> {
+  fn _parse_attr(&mut self, name: &str) -> Result<Option<AttrTest>, Diag> {
+    if name == "test" { Ok(Some(AttrTest)) } else { Ok(None) }
+  }
+}
+
+impl ParseAttr<AttrFrameless> for Parser<'_> {
+  fn _parse_attr(&mut self, name: &str) -> Result<Option<AttrFrameless>, Diag> {
+    if name == "frameless" { Ok(Some(AttrFrameless)) } else { Ok(None) }
   }
 }

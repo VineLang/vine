@@ -1,5 +1,7 @@
 use super::*;
 
+use crate::feature::children::ChildrenEntry;
+
 #[derive_(Debug, Clone, Visit!)]
 pub struct ExprIs {
   pub expr: Expr,

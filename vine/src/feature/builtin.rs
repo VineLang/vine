@@ -2,7 +2,18 @@ use super::*;
 
 #[derive_(Debug, Clone, Visit!)]
 pub struct AttrBuiltin {
-  pub builtin: Ident,
+  pub builtin: Spanned<Ident>,
+}
+
+impl ParseAttr<AttrBuiltin> for Parser<'_> {
+  fn _parse_attr(&mut self, name: &str) -> Result<Option<AttrBuiltin>, Diag> {
+    if name == "builtin" {
+      let builtin = self.parse()?;
+      Ok(Some(AttrBuiltin { builtin }))
+    } else {
+      Ok(None)
+    }
+  }
 }
 
 #[derive_(Debug, Clone, for_field!)]

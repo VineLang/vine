@@ -10,13 +10,13 @@ pub struct ExprIf {
 
 #[derive_(Debug, Clone, Visit!)]
 pub enum IfCond {
-  Const(Path),
+  Const(Path<!>),
   Expr(Expr),
 }
 
 #[derive_(Debug, Clone, Visit!)]
 pub struct TyIfConst {
-  pub cond: Path,
+  pub cond: Path<!>,
   pub then: Ty,
   pub else_: Option<Ty>,
 }

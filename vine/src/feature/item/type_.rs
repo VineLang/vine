@@ -22,7 +22,7 @@ pub struct AttrSelfDual;
 
 #[derive_(Debug, Clone, Visit!)]
 pub struct AttrImpl {
-  pub traits: Sequence<Path>,
+  pub traits: Children<Path<!>>,
 }
 
 impl Parse<ItemType> for Parser<'_> {
@@ -40,6 +40,24 @@ impl Parse<ItemType> for Parser<'_> {
       };
       self.semi(true)?;
       Ok(Some(ItemType { flex, name, generics, kind }))
+    } else {
+      Ok(None)
+    }
+  }
+}
+
+impl ParseAttr<AttrSelfDual> for Parser<'_> {
+  fn _parse_attr(&mut self, name: &str) -> Result<Option<AttrSelfDual>, Diag> {
+    if name == "self_dual" { Ok(Some(AttrSelfDual)) } else { Ok(None) }
+  }
+}
+
+impl ParseAttr<AttrImpl> for Parser<'_> {
+  fn _parse_attr(&mut self, name: &str) -> Result<Option<AttrImpl>, Diag> {
+    if name == "impl" {
+      let traits =
+        self.parse_children(Some(Token::OpenParen), Some(Token::Comma), Some(Token::CloseParen))?;
+      Ok(Some(AttrImpl { traits }))
     } else {
       Ok(None)
     }

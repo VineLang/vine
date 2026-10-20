@@ -1,7 +1,4 @@
-use crate::feature::{
-  annotation::Annotation,
-  path::{ExprPath, PatPath},
-};
+use crate::feature::{annotation::Annotation, path::PathCall};
 
 use super::*;
 
@@ -87,7 +84,7 @@ where
 impl ParseObject for Expr {
   const ALLOW_SHORTHAND: bool = true;
   fn from_shorthand(span: LocalSpan, ident: Spanned<Ident>, annotation: Option<Ty>) -> Self {
-    let expr = Expr::new(ident.span, ExprPath { path: Path::from(ident), args: None });
+    let expr = Expr::new(ident.span, PathCall { path: Path::from(ident), args: None });
     match annotation {
       Some(ty) => Expr::new(span, Annotation { child: expr, ty }),
       None => expr,
@@ -98,7 +95,7 @@ impl ParseObject for Expr {
 impl ParseObject for Pat {
   const ALLOW_SHORTHAND: bool = true;
   fn from_shorthand(span: LocalSpan, ident: Spanned<Ident>, annotation: Option<Ty>) -> Self {
-    let pat = Pat::new(ident.span, PatPath { path: Path::from(ident), args: None });
+    let pat = Pat::new(ident.span, PathCall { path: Path::from(ident), args: None });
     match annotation {
       Some(ty) => Pat::new(span, Annotation { child: pat, ty }),
       None => pat,

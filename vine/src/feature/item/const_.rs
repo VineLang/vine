@@ -1,5 +1,3 @@
-use vine_util::lexer::Lex;
-
 use super::*;
 
 #[derive_(Debug, Clone, Visit!)]
@@ -24,5 +22,11 @@ impl Parse<ItemConst> for Parser<'_> {
     } else {
       Ok(None)
     }
+  }
+}
+
+impl ParseAttr<AttrConfigurable> for Parser<'_> {
+  fn _parse_attr(&mut self, name: &str) -> Result<Option<AttrConfigurable>, Diag> {
+    if name == "configurable" { Ok(Some(AttrConfigurable)) } else { Ok(None) }
   }
 }

@@ -12,7 +12,7 @@ pub struct ExprInlineIvy {
   pub net: Net<Interpolation>,
 }
 
-impl ParsePratt<Expr, ExprInlineIvy> for Parser<'_> {} // ugh
+impl ParsePratt<Expr, ExprInlineIvy> for Parser<'_> {} // todo
 
 impl Visit for ExprInlineIvy {
   fn visit_children<'a>(&'a self, visitor: &mut impl Visitor<'a>) {

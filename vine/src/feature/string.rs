@@ -49,6 +49,6 @@ impl Parse<StringLiteral> for Parser<'_> {
   fn _parse(&mut self) -> Result<Option<StringLiteral>, Diag> {
     todo!()
   }
-} // ugh
-impl ParsePratt<Expr, StringLiteral<Expr>> for Parser<'_> {} // ugh
-impl ParsePratt<Pat, StringLiteral<Pat>> for Parser<'_> {} // ugh
+} // todo
+impl ParsePratt<Expr, StringLiteral<Expr>> for Parser<'_> {} // todo
+impl ParsePratt<Pat, StringLiteral<Pat>> for Parser<'_> {} // todo

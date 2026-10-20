@@ -1,46 +1,55 @@
 use super::*;
 
-use crate::feature::generics::GenericArgs;
+use crate::feature::{generics::GenericArgs, sequence::ParseSequence};
 
 #[derive_(Debug, Clone, Visit!)]
 pub struct PathComponent {
   pub span: LocalSpan,
   pub stock: bool,
   pub ident: Ident,
+  pub resolved: Resolve<!>,
 }
 
 #[derive_(Debug, Clone, Visit!)]
-pub struct Path {
+pub struct Path<R> {
   pub span: LocalSpan,
   pub components: Vec<PathComponent>,
   pub generics: Option<GenericArgs>,
+  pub resolved: Resolve<R>,
 }
 
 #[derive_(Debug, Clone, Visit!)]
-pub struct ExprPath {
-  pub path: Path,
-  pub args: Option<Sequence<Expr>>,
+pub struct PathCall<R, T> {
+  pub path: Path<R>,
+  pub args: Option<Sequence<T>>,
 }
 
-#[derive_(Debug, Clone, Visit!)]
-pub struct PatPath {
-  pub path: Path,
-  pub args: Option<Sequence<Expr>>,
+pub type ExprPathCall = PathCall<!, Expr>;
+pub type PatPathCall = PathCall<!, Pat>;
+pub type TyPath = Path<!>;
+pub type TraitPath = Path<!>;
+pub type ImplPath = Path<!>;
+
+impl GrammarRule for PathComponent {
+  fn rule(grammar: &mut Grammar) -> grammar::Rule {
+    use grammar::*;
+    grammar.named("path_component", (Token::Hash.optional(), rule::<Ident>()))
+  }
 }
 
-#[derive_(Debug, Clone, Visit!)]
-pub struct TyPath {
-  pub path: Path,
-}
-
-#[derive_(Debug, Clone, Visit!)]
-pub struct TraitPath {
-  pub path: Path,
-}
-
-#[derive_(Debug, Clone, Visit!)]
-pub struct ImplPath {
-  pub path: Path,
+impl GrammarRule for Path<!> {
+  fn rule(grammar: &mut Grammar) -> grammar::Rule {
+    use grammar::*;
+    // todo
+    grammar.named(
+      "path_generics",
+      (
+        (rule::<PathComponent>(), (Token::ColonColon, rule::<PathComponent>()).repeat())
+          .named("path"),
+        rule::<GenericArgs>().field("generics"),
+      ),
+    )
+  }
 }
 
 impl Parse<PathComponent> for Parser<'_> {
@@ -49,7 +58,7 @@ impl Parse<PathComponent> for Parser<'_> {
     let stock = self.eat(Token::Hash)?;
     if let Some(ident) = self.try_parse()? {
       let span = self.end_span(span);
-      Ok(Some(PathComponent { span, stock, ident }))
+      Ok(Some(PathComponent { span, stock, ident, resolved: Unresolved }))
     } else if stock {
       self.unexpected()
     } else {
@@ -58,8 +67,8 @@ impl Parse<PathComponent> for Parser<'_> {
   }
 }
 
-impl Parse<Path> for Parser<'_> {
-  fn _parse(&mut self) -> Result<Option<Path>, Diag> {
+impl<R> Parse<Path<R>> for Parser<'_> {
+  fn _parse(&mut self) -> Result<Option<Path<R>>, Diag> {
     let span = self.start_span();
     if let Some(component) = self.try_parse()? {
       let mut components = vec![component];
@@ -68,27 +77,66 @@ impl Parse<Path> for Parser<'_> {
       }
       let generics = self.check_then(Token::OpenBracket, Self::parse)?;
       let span = self.end_span(span);
-      Ok(Some(Path { span, components, generics }))
+      Ok(Some(Path { span, components, generics, resolved: Unresolved }))
     } else {
       Ok(None)
     }
   }
 }
 
-impl ParsePratt<Expr, ExprPath> for Parser<'_> {} // todo
-impl ParsePratt<Pat, PatPath> for Parser<'_> {} // todo
-impl ParsePratt<Ty, TyPath> for Parser<'_> {} // todo
-impl ParsePratt<Trait, TraitPath> for Parser<'_> {} // todo
-impl ParsePratt<Impl, ImplPath> for Parser<'_> {} // todo
-
-impl From<Spanned<Ident>> for PathComponent {
-  fn from(value: Spanned<Ident>) -> Self {
-    PathComponent { span: value.span, stock: false, ident: value.inner }
+impl<R, T: ParseSequence> ParsePratt<T, PathCall<R, T>> for Parser<'_>
+where
+  Self: ParsePratt<T>,
+{
+  fn _parse_initial(&mut self, _: &mut PrecCtx) -> Result<Option<PathCall<R, T>>, Diag> {
+    if let Some(path) = self.try_parse::<Path<R>>()? {
+      let args = self.try_parse::<Sequence<T>>()?;
+      Ok(Some(PathCall { path, args }))
+    } else {
+      Ok(None)
+    }
   }
 }
 
-impl From<Spanned<Ident>> for Path {
+impl ParsePratt<Ty, TyPath> for Parser<'_> {
+  fn _parse_initial(&mut self, _: &mut PrecCtx) -> Result<Option<TyPath>, Diag> {
+    self.try_parse()
+  }
+}
+
+impl ParsePratt<Trait, TraitPath> for Parser<'_> {
+  fn _parse_initial(&mut self, _: &mut PrecCtx) -> Result<Option<TraitPath>, Diag> {
+    self.try_parse()
+  }
+}
+
+impl ParsePratt<Impl, ImplPath> for Parser<'_> {
+  fn _parse_initial(&mut self, _: &mut PrecCtx) -> Result<Option<ImplPath>, Diag> {
+    self.try_parse()
+  }
+}
+
+impl From<Spanned<Ident>> for PathComponent {
   fn from(value: Spanned<Ident>) -> Self {
-    Path { span: value.span, components: vec![value.into()], generics: Default::default() }
+    PathComponent { span: value.span, stock: false, ident: value.inner, resolved: Unresolved }
+  }
+}
+
+impl<R> From<Spanned<Ident>> for Path<R> {
+  fn from(value: Spanned<Ident>) -> Self {
+    Path { span: value.span, components: vec![value.into()], generics: None, resolved: Unresolved }
+  }
+}
+
+impl<R> Path<R> {
+  pub fn as_ident(&self) -> Option<Spanned<Ident>> {
+    if self.generics.is_none()
+      && let [component] = &*self.components
+      && !component.stock
+    {
+      Some(Spanned { span: component.span, inner: component.ident.clone() })
+    } else {
+      None
+    }
   }
 }

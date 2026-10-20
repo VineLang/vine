@@ -127,41 +127,6 @@ impl<'src> Parser<'src> {
     }
   }
 
-  pub fn parse_children<T>(
-    &mut self,
-    open: Option<Token>,
-    separator: Option<Token>,
-    close: Option<Token>,
-  ) -> Result<Children<T>, Diag>
-  where
-    Self: Parse<T>,
-  {
-    assert!(separator.is_some() || close.is_some());
-    if let Some(open) = open {
-      self.expect(open)?;
-    }
-    let mut entries = Vec::new();
-    loop {
-      if let Some(close) = close
-        && self.check(close)
-      {
-        break;
-      }
-      let docs = Text { lines: vec![] }; // todo
-      let trailing = Text { lines: vec![] };
-      entries.push(ChildrenEntry::Child { child: self.parse()?, docs, trailing });
-      if let Some(separator) = separator
-        && !self.eat(separator)?
-      {
-        break;
-      }
-    }
-    if let Some(close) = close {
-      self.expect(close)?;
-    }
-    Ok(Children { entries })
-  }
-
   pub fn semi(&mut self, mandatory: bool) -> Result<(), Diag> {
     todo!() // todo
   }
@@ -186,54 +151,6 @@ impl Parse<Ident> for Parser<'_> {
     } else {
       Ok(None)
     }
-  }
-}
-
-pub trait ParseSequence: Sized {
-  fn as_label(&self) -> Option<&Spanned<Ident>> {
-    None
-  }
-}
-
-impl<T: ParseSequence> Parse<Sequence<T>> for Parser<'_>
-where
-  Self: Parse<T>,
-{
-  fn _parse(&mut self) -> Result<Option<Sequence<T>>, Diag> {
-    self.eat_then(Token::OpenParen, |self_| {
-      self_.parse_children::<SequenceChild<T>>(None, None, Some(Token::CloseParen))
-    })
-  }
-}
-
-impl<T: ParseSequence> Parse<SequenceChild<T>> for Parser<'_>
-where
-  Self: Parse<T>,
-{
-  fn _parse(&mut self) -> Result<Option<SequenceChild<T>>, Diag> {
-    if let Some(child) = self.try_parse()? {
-      if let Some(label) = child.as_label()
-        && self.eat(Token::Colon)?
-      {
-        let child = self.parse()?;
-        Ok(Some(SequenceChild::Entry { label: Some(label.clone()), child }))
-      } else {
-        Ok(Some(SequenceChild::Entry { label: None, child }))
-      }
-    } else if self.eat(Token::DotDotDot)? {
-      let spread = self.try_parse()?;
-      Ok(Some(SequenceChild::Spread(spread)))
-    } else {
-      Ok(None)
-    }
-  }
-}
-
-impl ParseSequence for Expr {}
-impl ParseSequence for Pat {}
-impl ParseSequence for Ty {
-  fn as_label(&self) -> Option<&Spanned<Ident>> {
-    todo!()
   }
 }
 
@@ -393,6 +310,10 @@ impl ParsePratt<Ty, TyKind> for Parser<'_> {
 impl ParsePratt<Impl, ImplKind> for Parser<'_> {}
 
 impl ParsePratt<Trait, TraitKind> for Parser<'_> {}
+
+pub trait ParseAttr<T> {
+  fn _parse_attr(&mut self, name: &str) -> Result<Option<T>, Diag>;
+}
 
 pub struct PrecCtx {
   outer: Prec,
