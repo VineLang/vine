@@ -29,7 +29,7 @@ impl Parse<WhenArm> for Parser<'_> {
     if self.eat(Token::Underscore)? {
       let body = self.parse()?;
       Ok(Some(WhenArm { cond: None, body }))
-    } else if let Some(cond) = self.try_parse_pratt(Prec::Min)? {
+    } else if let Some(cond) = self.try_parse_pratt(Prec::Cond)? {
       let body = self.parse()?;
       self.eat(Token::Comma)?;
       Ok(Some(WhenArm { cond: Some(cond), body }))

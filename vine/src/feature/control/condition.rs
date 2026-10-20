@@ -143,7 +143,7 @@ impl ParsePratt<Pat, PatCond> for Parser<'_> {
     ctx: &mut PrecCtx,
     initial: Pat,
   ) -> Result<Result<PatCond, Pat>, Diag> {
-    if let Some(prec) = ctx.prec(Prec::PatCond)
+    if let Some(prec) = ctx.prec(Prec::Cond)
       && self.eat(Token::If)?
     {
       let cond = self.parse_pratt(prec())?;

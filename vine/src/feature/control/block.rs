@@ -88,7 +88,7 @@ impl Parse<StmtKind> for Parser<'_> {
       return Ok(Some(StmtKind::Expr(StmtExpr { expr, semi: false })));
     }
 
-    if let Some(expr) = self.try_parse_pratt(Prec::Min)? {
+    if let Some(expr) = self.try_parse_pratt(Prec::Cond)? {
       if let Some(op) = self.try_parse::<Spanned<AssignOp>>()? {
         let value = self.parse()?;
         self.semi(true)?;

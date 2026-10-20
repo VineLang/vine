@@ -539,6 +539,16 @@ impl Token {
     }
   }
 
+  pub fn value(self) -> Option<&'static str> {
+    match self.info() {
+      TokenInfo::Underscore => Some("_"),
+      TokenInfo::Keyword(value) => Some(value),
+      TokenInfo::Punctuation(value) => Some(value),
+      TokenInfo::Operator(value) => Some(value),
+      TokenInfo::Other(_) => None,
+    }
+  }
+
   pub fn is_keyword(self) -> bool {
     matches!(self.info(), TokenInfo::Underscore | TokenInfo::Keyword(_))
   }

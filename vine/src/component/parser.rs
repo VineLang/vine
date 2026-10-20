@@ -338,7 +338,7 @@ impl PrecCtx {
 #[derive_(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Prec {
   Min,
-  PatCond,
+  Cond,
   LogicalImplies,
   LogicalOr,
   LogicalAnd,
@@ -353,6 +353,7 @@ pub enum Prec {
   Exponential,
   Annotation,
   Prefix,
+  Postfix,
   Max,
 }
 
@@ -378,7 +379,7 @@ impl Prec {
     use Assoc::*;
     match self {
       Prec::Min => None,
-      Prec::PatCond => None,
+      Prec::Cond => Right,
       Prec::LogicalImplies => Right,
       Prec::LogicalOr => None,
       Prec::LogicalAnd => None,
@@ -392,7 +393,8 @@ impl Prec {
       Prec::Multiplicative => Left,
       Prec::Exponential => Right,
       Prec::Annotation => None,
-      Prec::Prefix => None,
+      Prec::Prefix => Right,
+      Prec::Postfix => Left,
       Prec::Max => None,
     }
   }

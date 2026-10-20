@@ -28,7 +28,7 @@ impl ParsePratt<Expr, ExprIf> for Parser<'_> {
       let cond = if self.eat(Token::Const)? {
         IfCond::Const(self.parse()?)
       } else {
-        IfCond::Expr(self.parse_pratt(Prec::Min)?)
+        IfCond::Expr(self.parse_pratt(Prec::Cond)?)
       };
       let then = self.parse()?;
       let else_ = self.eat_then(Token::Else, Self::parse)?;
