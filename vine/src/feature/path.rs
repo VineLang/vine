@@ -33,7 +33,7 @@ pub type ImplPath = Path<!>;
 impl GrammarRule for PathComponent {
   fn rule(grammar: &mut Grammar) -> grammar::Rule {
     use grammar::*;
-    grammar.named("path_component", (Token::Hash.optional(), rule::<Ident>()))
+    grammar.named("PathComponent", (Token::Hash.optional(), rule::<Ident>()))
   }
 }
 
@@ -42,13 +42,26 @@ impl GrammarRule for Path<!> {
     use grammar::*;
     // todo
     grammar.named(
-      "path_generics",
+      "Path",
       (
-        (rule::<PathComponent>(), (Token::ColonColon, rule::<PathComponent>()).repeat())
-          .named("path"),
+        (rule::<PathComponent>(), (Token::ColonColon, rule::<PathComponent>()).repeat()),
         rule::<GenericArgs>().field("generics"),
       ),
     )
+  }
+}
+
+impl<R, T: ParseSequence> GrammarPratt for PathCall<R, T> {
+  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
+    use grammar::*;
+    vec![] // todo
+  }
+}
+
+impl<T> GrammarPratt for Path<T> {
+  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
+    use grammar::*;
+    vec![(Prec::Max, grammar.named("Path", rule::<Path<!>>()))] // todo
   }
 }
 

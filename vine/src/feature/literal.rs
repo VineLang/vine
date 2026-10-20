@@ -89,4 +89,12 @@ impl Exponent {
   }
 }
 
+
+impl GrammarPratt for ExprLiteral {
+  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
+    use grammar::*;
+    vec![] // todo
+  }
+}
+
 impl ParsePratt<Expr, ExprLiteral> for Parser<'_> {} // todo

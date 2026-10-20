@@ -8,6 +8,14 @@ pub struct ExprWhile {
   pub else_: Option<Block>,
 }
 
+
+impl GrammarPratt for ExprWhile {
+  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
+    use grammar::*;
+    vec![] // todo
+  }
+}
+
 impl ParsePratt<Expr, ExprWhile> for Parser<'_> {
   fn _parse_full(&mut self) -> Result<Option<ExprWhile>, Diag> {
     if self.eat(Token::While)? {

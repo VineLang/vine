@@ -5,6 +5,19 @@ pub struct Inverse<T> {
   pub child: T,
 }
 
+impl<T: GrammarRule> GrammarPratt for Inverse<T> {
+  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
+    use grammar::*;
+    vec![
+      (Prec::Prefix, grammar.named("Inverse", (Token::Tilde, right::<T>(Prec::Prefix)))),
+      (
+        Prec::Postfix,
+        grammar.named("DotInverse", (left::<T>(Prec::Postfix), Token::Dot, Token::Tilde)),
+      ),
+    ]
+  }
+}
+
 impl<T> ParsePratt<T, Inverse<T>> for Parser<'_>
 where
   Self: ParsePratt<T>,

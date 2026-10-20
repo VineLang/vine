@@ -9,6 +9,14 @@ pub struct ExprFor {
   pub else_: Option<Block>,
 }
 
+
+impl GrammarPratt for ExprFor {
+  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
+    use grammar::*;
+    vec![] // todo
+  }
+}
+
 impl ParsePratt<Expr, ExprFor> for Parser<'_> {
   fn _parse_full(&mut self) -> Result<Option<ExprFor>, Diag> {
     if self.eat(Token::For)? {

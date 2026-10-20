@@ -12,6 +12,14 @@ pub struct WhenArm {
   pub body: Block,
 }
 
+
+impl GrammarPratt for ExprWhen {
+  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
+    use grammar::*;
+    vec![] // todo
+  }
+}
+
 impl ParsePratt<Expr, ExprWhen> for Parser<'_> {
   fn _parse_full(&mut self) -> Result<Option<ExprWhen>, Diag> {
     if self.eat(Token::When)? {

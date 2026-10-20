@@ -3,6 +3,14 @@ use super::*;
 #[derive_(Debug, Clone, Visit!)]
 pub struct Hole;
 
+impl GrammarPratt for Hole {
+  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
+    // todo
+    // vec![(Prec::Max, grammar.named("Hole", Token::QuestQuest))]
+    vec![]
+  }
+}
+
 impl<T> ParsePratt<T, Hole> for Parser<'_>
 where
   Self: ParsePratt<T>,

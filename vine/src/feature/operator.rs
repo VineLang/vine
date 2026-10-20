@@ -183,6 +183,100 @@ impl ComparisonOp {
   }
 }
 
+impl GrammarPratt for ExprBinaryOp {
+  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
+    use grammar::*;
+    for_enum!(Op in BinaryOp { vec![$({
+      let op = BinaryOp::$Op;
+      let prec = op.precedence();
+      (prec, grammar.named(format!("BinaryOp_{}", stringify!($Op)), (left::<Expr>(prec), op.token(), right::<Expr>(prec))))
+    },)*] })
+  }
+}
+
+impl GrammarPratt for ExprUnaryOp {
+  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
+    use grammar::*;
+    for_enum!(Op in UnaryOp { vec![$({
+      (Prec::Prefix, grammar.named(format!("UnaryOp_{}", stringify!($Op)), (UnaryOp::$Op.token(), right::<Expr>(Prec::Prefix))))
+    },)*] })
+  }
+}
+
+impl GrammarPratt for ExprComparisonOp {
+  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
+    use grammar::*;
+    let op = for_enum!(Op in ComparisonOp { choice(( $(ComparisonOp::$Op.token(),)* ))});
+    vec![(
+      Prec::Comparison,
+      grammar.named(
+        "ComparisonOp",
+        (both::<Expr>(Prec::Comparison), (op, both::<Expr>(Prec::Comparison)).repeat1()),
+      ),
+    )]
+  }
+}
+
+impl GrammarPratt for PatComparisonOp {
+  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
+    use grammar::*;
+    let op = for_enum!(Op in ComparisonOp { choice(( $(ComparisonOp::$Op.token(),)* ))});
+    vec![(
+      Prec::Comparison,
+      grammar.named(
+        "ComparisonOp",
+        (both::<Pat>(Prec::Comparison).optional(), op, both::<Expr>(Prec::Comparison)),
+      ),
+    )]
+  }
+}
+
+impl GrammarPratt for ExprCast {
+  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
+    use grammar::*;
+    vec![
+      (
+        Prec::Annotation,
+        grammar
+          .named("As", (left::<Expr>(Prec::Annotation), Token::As, right::<Ty>(Prec::Annotation))),
+      ),
+      (
+        Prec::Postfix,
+        grammar.named(
+          "DotAs",
+          (
+            left::<Expr>(Prec::Postfix),
+            Token::Dot,
+            Token::As,
+            Token::OpenBracket,
+            rule::<Ty>(),
+            Token::CloseBracket,
+          ),
+        ),
+      ),
+    ]
+  }
+}
+
+impl GrammarPratt for ExprIndex {
+  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
+    use grammar::*;
+    vec![(
+      Prec::Postfix,
+      grammar.named(
+        "Index",
+        (
+          left::<Expr>(Prec::Postfix),
+          Token::Dot,
+          Token::OpenBracket,
+          rule::<Expr>(),
+          Token::CloseBracket,
+        ),
+      ),
+    )]
+  }
+}
+
 // Handled directly by `Parse<StmtKind>`
 impl Parse<StmtAssign> for Parser<'_> {
   fn _parse(&mut self) -> Result<Option<StmtAssign>, Diag> {
@@ -342,6 +436,13 @@ impl ParsePratt<Expr, ExprIndex> for Parser<'_> {
     } else {
       Ok(Err(initial))
     }
+  }
+}
+
+impl<T> GrammarPratt for Range<T> {
+  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
+    use grammar::*;
+    vec![] // todo
   }
 }
 

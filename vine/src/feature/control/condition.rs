@@ -46,6 +46,14 @@ pub struct PatCond {
   pub cond: Expr,
 }
 
+
+impl GrammarPratt for ExprIs {
+  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
+    use grammar::*;
+    vec![] // todo
+  }
+}
+
 impl ParsePratt<Expr, ExprIs> for Parser<'_> {
   fn _parse_suffix(
     &mut self,
@@ -60,6 +68,14 @@ impl ParsePratt<Expr, ExprIs> for Parser<'_> {
     } else {
       Ok(Err(initial))
     }
+  }
+}
+
+
+impl GrammarPratt for ExprImplies {
+  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
+    use grammar::*;
+    vec![] // todo
   }
 }
 
@@ -102,6 +118,14 @@ impl ParseAnyAll for ExprAll {
   }
 }
 
+
+impl GrammarPratt for ExprNot {
+  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
+    use grammar::*;
+    vec![] // todo
+  }
+}
+
 impl ParsePratt<Expr, ExprNot> for Parser<'_> {
   fn _parse_initial(&mut self, _: &mut PrecCtx) -> Result<Option<ExprNot>, Diag> {
     if self.eat(Token::Bang)? {
@@ -110,6 +134,14 @@ impl ParsePratt<Expr, ExprNot> for Parser<'_> {
     } else {
       Ok(None)
     }
+  }
+}
+
+
+impl GrammarPratt for PatIs {
+  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
+    use grammar::*;
+    vec![] // todo
   }
 }
 
@@ -137,6 +169,14 @@ impl ParseAnyAll for PatAny {
   }
 }
 
+
+impl GrammarPratt for PatCond {
+  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
+    use grammar::*;
+    vec![] // todo
+  }
+}
+
 impl ParsePratt<Pat, PatCond> for Parser<'_> {
   fn _parse_suffix(
     &mut self,
@@ -161,6 +201,14 @@ trait ParseAnyAll: Sized {
   const PREC: Prec;
   const EMPTY: Option<Token>;
   fn new(children: Children<Self::Child>) -> Self;
+}
+
+
+impl<T, A: ParseAnyAll<Child = T>> GrammarPratt for A {
+  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
+    use grammar::*;
+    vec![] // todo
+  }
 }
 
 impl<T, A: ParseAnyAll<Child = T>> ParsePratt<T, A> for Parser<'_>

@@ -6,6 +6,14 @@ pub struct Safe<T> {
   pub child: T,
 }
 
+
+impl<T> GrammarPratt for Safe<T> {
+  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
+    use grammar::*;
+    vec![] // todo
+  }
+}
+
 impl<T> ParsePratt<T, Safe<T>> for Parser<'_>
 where
   Self: ParsePratt<T>,

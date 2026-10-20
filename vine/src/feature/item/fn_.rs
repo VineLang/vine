@@ -38,6 +38,14 @@ impl Parse<ItemFn> for Parser<'_> {
   }
 }
 
+
+impl GrammarPratt for TyFnPath {
+  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
+    use grammar::*;
+    vec![] // todo
+  }
+}
+
 impl ParsePratt<Ty, TyFnPath> for Parser<'_> {
   fn _parse_initial(&mut self, _: &mut PrecCtx) -> Result<Option<TyFnPath>, Diag> {
     if self.eat(Token::Fn)? { Ok(Some(TyFnPath { path: self.parse()? })) } else { Ok(None) }

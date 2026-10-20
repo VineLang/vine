@@ -6,6 +6,14 @@ pub struct Annotation<T> {
   pub ty: Ty,
 }
 
+
+impl<T> GrammarPratt for Annotation<T> {
+  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
+    use grammar::*;
+    vec![] // todo
+  }
+}
+
 impl<T> ParsePratt<T, Annotation<T>> for Parser<'_> {
   fn _parse_suffix(
     &mut self,

@@ -14,6 +14,14 @@ pub struct Variant<T> {
   pub content: Sequence<T>,
 }
 
+
+impl GrammarPratt for TyEnum {
+  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
+    use grammar::*;
+    vec![] // todo
+  }
+}
+
 impl ParsePratt<Ty, TyEnum> for Parser<'_> {
   fn _parse_initial(&mut self, _: &mut PrecCtx) -> Result<Option<TyEnum>, Diag> {
     let unsafe_ = self.eat(Token::Unsafe)?;
@@ -32,6 +40,14 @@ impl ParsePratt<Ty, TyEnum> for Parser<'_> {
     } else {
       Ok(None)
     }
+  }
+}
+
+
+impl<T: ParseSequence> GrammarPratt for Variant<T> {
+  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
+    use grammar::*;
+    vec![] // todo
   }
 }
 

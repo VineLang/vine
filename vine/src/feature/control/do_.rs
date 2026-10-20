@@ -6,6 +6,14 @@ pub struct ExprDo {
   pub body: Block,
 }
 
+
+impl GrammarPratt for ExprDo {
+  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
+    use grammar::*;
+    vec![] // todo
+  }
+}
+
 impl ParsePratt<Expr, ExprDo> for Parser<'_> {
   fn _parse_full(&mut self) -> Result<Option<ExprDo>, Diag> {
     if self.eat(Token::Do)? {

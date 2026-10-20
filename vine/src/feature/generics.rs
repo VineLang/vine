@@ -48,14 +48,14 @@ pub struct ImplArg {
 impl GrammarRule for GenericParams {
   fn rule(grammar: &mut Grammar) -> grammar::Rule {
     use grammar::*;
-    todo!()
+    grammar.named("GenericParams", empty()) // todo
   }
 }
 
 impl GrammarRule for GenericArgs {
   fn rule(grammar: &mut Grammar) -> grammar::Rule {
     use grammar::*;
-    todo!()
+    grammar.named("GenericArgs", empty()) // todo
   }
 }
 

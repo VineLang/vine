@@ -21,6 +21,14 @@ pub struct TyIfConst {
   pub else_: Option<Ty>,
 }
 
+
+impl GrammarPratt for ExprIf {
+  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
+    use grammar::*;
+    vec![] // todo
+  }
+}
+
 impl ParsePratt<Expr, ExprIf> for Parser<'_> {
   fn _parse_full(&mut self) -> Result<Option<ExprIf>, Diag> {
     if self.eat(Token::If)? {
@@ -36,6 +44,14 @@ impl ParsePratt<Expr, ExprIf> for Parser<'_> {
     } else {
       Ok(None)
     }
+  }
+}
+
+
+impl GrammarPratt for TyIfConst {
+  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
+    use grammar::*;
+    vec![] // todo
   }
 }
 

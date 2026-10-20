@@ -8,6 +8,22 @@ pub struct Field<T> {
   pub field: FieldKind,
 }
 
+impl<T: GrammarRule> GrammarPratt for Field<T> {
+  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
+    use grammar::*;
+    vec![(
+      Prec::Postfix,
+      grammar.named(
+        "Field",
+        (
+          left::<T>(Prec::Postfix),
+          choice(((Token::Dot, rule::<Ident>()), Token::TupleField)).named("Field"),
+        ),
+      ),
+    )]
+  }
+}
+
 impl ParsePratt<Expr, Field<Expr>> for Parser<'_> {
   // `_parse_dot` handled by `ParsePratt<Expr, ExprKind>`
 

@@ -19,6 +19,28 @@ pub struct Borrow<T> {
   pub child: T,
 }
 
+impl<T: GrammarRule> GrammarPratt for Loan<T> {
+  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
+    use grammar::*;
+    let op = choice((Token::Amp, Token::AmpAmp));
+    vec![
+      (Prec::Prefix, grammar.named("Loan", (op.clone(), right::<T>(Prec::Prefix)))),
+      (Prec::Postfix, grammar.named("DotLoan", (left::<T>(Prec::Postfix), Token::Dot, op))),
+    ]
+  }
+}
+
+impl<T: GrammarRule> GrammarPratt for Borrow<T> {
+  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
+    use grammar::*;
+    let op = choice((Token::Star, Token::StarStar));
+    vec![
+      (Prec::Prefix, grammar.named("Borrow", (op.clone(), right::<T>(Prec::Prefix)))),
+      (Prec::Postfix, grammar.named("DotBorrow", (left::<T>(Prec::Postfix), Token::Dot, op))),
+    ]
+  }
+}
+
 impl Parser<'_> {
   fn parse_loan_kind(&mut self) -> Result<Option<Mutable>, Diag> {
     if self.eat(Token::Amp)? {

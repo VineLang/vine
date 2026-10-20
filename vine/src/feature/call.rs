@@ -13,6 +13,14 @@ pub struct TraitFn {
   pub return_: Option<Ty>,
 }
 
+
+impl GrammarPratt for ExprCall {
+  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
+    use grammar::*;
+    vec![] // todo
+  }
+}
+
 impl ParsePratt<Expr, ExprCall> for Parser<'_> {
   fn _parse_suffix(
     &mut self,
@@ -24,6 +32,14 @@ impl ParsePratt<Expr, ExprCall> for Parser<'_> {
     } else {
       Ok(Err(initial))
     }
+  }
+}
+
+
+impl GrammarPratt for TraitFn {
+  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
+    use grammar::*;
+    vec![] // todo
   }
 }
 

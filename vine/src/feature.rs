@@ -1,7 +1,7 @@
 use super::*;
 
 use crate::component::{
-  grammar::{self, Grammar, GrammarRule},
+  grammar::{self, Grammar, GrammarPratt, GrammarRule},
   lexer::{Diag, Token},
   parser::{Parse, ParseAttr, ParsePratt, Parser, Prec, PrecCtx},
 };

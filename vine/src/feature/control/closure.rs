@@ -16,6 +16,14 @@ pub struct StmtClosure {
   pub closure: ExprClosure,
 }
 
+
+impl GrammarPratt for ExprClosure {
+  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
+    use grammar::*;
+    vec![] // todo
+  }
+}
+
 impl ParsePratt<Expr, ExprClosure> for Parser<'_> {
   fn _parse_full(&mut self) -> Result<Option<ExprClosure>, Diag> {
     if self.eat(Token::Fn)? {

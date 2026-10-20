@@ -12,6 +12,14 @@ pub struct ExprInlineIvy {
   pub net: Net<Interpolation>,
 }
 
+
+impl GrammarPratt for ExprInlineIvy {
+  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
+    use grammar::*;
+    vec![] // todo
+  }
+}
+
 impl ParsePratt<Expr, ExprInlineIvy> for Parser<'_> {} // todo
 
 impl Visit for ExprInlineIvy {
