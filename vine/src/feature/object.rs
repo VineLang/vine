@@ -73,7 +73,7 @@ where
 }
 
 
-impl<T: ParseObject> GrammarPratt for Object<T> {
+impl<T: ParseObject> GrammarPrattPart for Object<T> {
   fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
     use grammar::*;
     vec![] // todo

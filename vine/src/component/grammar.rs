@@ -4,7 +4,7 @@ use super::*;
 
 use std::{
   any::{Any, TypeId},
-  collections::{BTreeMap, HashMap},
+  collections::HashMap,
   marker::PhantomData,
 };
 
@@ -16,49 +16,31 @@ use crate::component::{
 #[derive_(Debug, Clone, Default)]
 pub struct Grammar {
   types: HashMap<TypeId, RuleId>,
+  pratt: HashMap<(TypeId, Prec), RuleId>,
   rules: IdxVec<RuleId, Option<Rule>>,
 }
 
 impl Grammar {
-  pub fn pratt(
-    &mut self,
-    label: impl Into<String>,
-    options: impl IntoIterator<Item = (Prec, Rule)>,
-  ) -> Rule {
-    let label = label.into();
-    Rule {
-      label: label.clone(),
-      hidden: true,
-      kind: RuleKind::Pratt(
-        options
-          .into_iter()
-          .map(|(prec, mut rule)| {
-            rule.label = format!("{}{}", label, rule.label);
-            (prec, self.rules.push(Some(rule)))
-          })
-          .collect(),
-      ),
-    }
-  }
-
   pub fn named(&mut self, label: impl Into<String>, node: impl IntoNode) -> Rule {
-    Rule { label: label.into(), hidden: false, kind: RuleKind::Node(node.into_node(self)) }
+    Rule { label: label.into(), hidden: false, node: node.into_node(self) }
   }
 
   pub fn hidden(&mut self, label: impl Into<String>, node: impl IntoNode) -> Rule {
-    Rule { label: label.into(), hidden: true, kind: RuleKind::Node(node.into_node(self)) }
+    Rule { label: label.into(), hidden: true, node: node.into_node(self) }
   }
 
   pub fn define_rule<T: GrammarRule>(&mut self) -> RuleId {
     let next = self.rules.next_index();
     let id = *self.types.entry(TypeId::of::<T>()).or_insert(next);
     if id == next {
-      self.rules.push_to(id, None);
-      let rule = T::rule(self);
+      self.rules.push_to(id, Rule { label: String::new(), hidden: true, node: Node::Rule(id) });
+      let rule = T::_rule(self);
       self.rules[id] = Some(rule);
     }
     id
   }
+
+  pub fn define_pratt<T: GrammarPratt>(&mut self, prec: Prec) -> RuleId {}
 }
 
 new_idx!(pub RuleId);
@@ -68,33 +50,104 @@ new_idx!(pub PrattId);
 pub struct Rule {
   label: String,
   hidden: bool,
-  kind: RuleKind,
-}
-
-#[derive_(Debug, Clone)]
-pub enum RuleKind {
-  Node(Node),
-  Pratt(Vec<(Prec, RuleId)>),
+  node: Node,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Node {
-  Rule(RuleId, Option<(Prec, Assoc)>),
+  Rule(RuleId),
   Token(Token),
   Seq(Vec<Node>),
   Choice(Vec<Node>),
-  Repeat(Box<Node>),
-  Repeat1(Box<Node>),
+  Repeat(Box<Node>, /* mandatory */ bool),
   Optional(Box<Node>),
   Field(String, Box<Node>),
 }
 
 pub trait GrammarRule: Any {
-  fn rule(grammar: &mut Grammar) -> Rule;
+  fn _rule(grammar: &mut Grammar) -> Rule;
+
+  fn rule(grammar: &mut Grammar) -> RuleId {
+    let next = grammar.rules.next_index();
+    let id = *grammar.types.entry(TypeId::of::<Self>()).or_insert(next);
+    if id == next {
+      grammar.rules.push_to(id, None);
+      let rule = Self::_rule(grammar);
+      grammar.rules[id] = Some(rule);
+    }
+    id
+  }
 }
 
-pub trait GrammarPratt {
-  fn rules(grammar: &mut Grammar) -> Vec<(Prec, Rule)>;
+impl<T: GrammarPratt> GrammarRule for T {
+  fn _rule(grammar: &mut Grammar) -> Rule {
+    unimplemented!()
+  }
+
+  fn rule(grammar: &mut Grammar) -> RuleId {
+    Self::pratt_rule(grammar, Prec::Min)
+  }
+}
+
+pub trait GrammarPratt: Any + GrammarPrattKind {
+  const NAME: &str;
+  const ALLOW_DOT: bool = false;
+
+  fn pratt_rule(grammar: &mut Grammar, prec: Prec) -> RuleId {
+    let key = (TypeId::of::<Self>(), prec);
+    if let Some(id) = grammar.pratt.get(key) {
+      return id;
+    }
+    let next = prec.next().map(|next| grammar.define_pratt::<Self>(next));
+    let id = grammar.rules.push(Rule {
+      label: String::new(),
+      hidden: true,
+      node: Node::Choice(Vec::new()),
+    });
+    grammar.pratt.insert(key, id);
+    let mut rules = Vec::new();
+    Self::_rules(grammar, prec, &mut rules);
+    if rules.is_empty() {
+      assert_eq!(id.0, grammar.rules.len() - 1);
+      grammar.rules.pop();
+      grammar.pratt.insert(key, next);
+      return next.unwrap();
+    }
+    let node = Node::Choice(
+      next
+        .into_iter()
+        .chain(rules.into_iter().map(|mut rule| {
+          rule.label = format!("{}{}", Self::NAME, rule.label);
+          grammar.rules.push(rule)
+        }))
+        .map(Node::Rule)
+        .collect::<Vec<_>>(),
+    );
+    grammar.rules[id] = Rule {
+      label: if prec == Prec::Min {
+        Self::NAME.into()
+      } else {
+        format!("{}_{:?}", Self::NAME, prec)
+      },
+      hidden: prec != Prec::Min,
+      node,
+    };
+    id
+  }
+}
+
+pub trait GrammarPrattKind {
+  fn _rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<Rule>);
+
+  fn rules(self, grammar: &mut Grammar, prec: Prec, rules: &mut Vec<Rule>) {
+    Self::_rules(grammar, prec, rules)
+  }
+}
+
+impl<T: GrammarPrattKind, U> GrammarPrattKind for fn(T) -> U {
+  fn _rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<Rule>) {
+    T::_rules(grammar, prec, rules)
+  }
 }
 
 pub trait IntoNode: Sized + Clone {
@@ -106,14 +159,7 @@ pub trait IntoNode: Sized + Clone {
     impl<T: IntoNode> IntoNode for Named<T> {
       fn into_node(self, grammar: &mut Grammar) -> Node {
         let node = self.1.into_node(grammar);
-        Node::Rule(
-          grammar.rules.push(Some(Rule {
-            label: self.0,
-            hidden: false,
-            kind: RuleKind::Node(node),
-          })),
-          None,
-        )
+        Node::Rule(grammar.rules.push(Rule { label: self.0, hidden: false, node }))
       }
     }
     Named(label.into(), self)
@@ -141,15 +187,15 @@ pub trait IntoNode: Sized + Clone {
     Optional(self)
   }
 
-  fn repeat(self) -> impl IntoNode {
+  fn repeat(self, mandatory: bool) -> impl IntoNode {
     #[derive(Clone)]
-    struct Repeat<T>(T);
+    struct Repeat<T>(T, bool);
     impl<T: IntoNode> IntoNode for Repeat<T> {
       fn into_node(self, grammar: &mut Grammar) -> Node {
-        Node::Repeat(Box::new(self.0.into_node(grammar)))
+        Node::Repeat(Box::new(self.0.into_node(grammar)), self.1)
       }
     }
-    Repeat(self)
+    Repeat(self, mandatory)
   }
 
   fn repeat1(self) -> impl IntoNode {
@@ -245,14 +291,14 @@ fn _rule<T: GrammarRule>(prec: Option<(Prec, Assoc)>) -> impl IntoNode {
   }
   impl<T: GrammarRule + 'static> IntoNode for DefineRule<T> {
     fn into_node(self, grammar: &mut Grammar) -> Node {
-      Node::Rule(grammar.define_rule::<T>(), self.1)
+      Node::Rule(grammar.define_rule::<T>())
     }
   }
   DefineRule::<T>(PhantomData, prec)
 }
 
 impl GrammarRule for Ident {
-  fn rule(grammar: &mut Grammar) -> Rule {
+  fn _rule(grammar: &mut Grammar) -> Rule {
     grammar.named("Ident", Token::BareIdent) // todo
   }
 }
@@ -272,81 +318,80 @@ fn math() {
 }
 
 impl Grammar {
-  pub fn eliminate_pratt(&mut self) {
-    let mut replacements = HashMap::new();
+  // pub fn eliminate_pratt(&mut self) {
+  //   let mut replacements = HashMap::new();
 
-    for id in self.rules.keys() {
-      let mut rule = self.rules[id].take().unwrap();
-      if let RuleKind::Pratt(options) = rule.kind {
-        let mut levels = BTreeMap::<Prec, Vec<RuleId>>::new();
-        for (prec, rule) in options {
-          levels.entry(prec).or_default().push(rule);
-        }
-        let mut last_id = None;
-        let levels = levels
-          .into_iter()
-          .rev()
-          .map(|(prec, rules)| {
-            let id = self.rules.push(Some(Rule {
-              label: format!("{}_{:?}", rule.label, prec),
-              hidden: true,
-              kind: RuleKind::Node(Node::Choice(
-                last_id.into_iter().chain(rules).map(|id| Node::Rule(id, None)).collect(),
-              )),
-            }));
-            last_id = Some(id);
-            (prec, id)
-          })
-          .collect::<Vec<_>>();
-        replacements.insert(id, levels);
-        rule.kind = RuleKind::Node(Node::Rule(last_id.unwrap(), None));
-      }
-      self.rules[id] = Some(rule);
-    }
+  //   for id in self.rules.keys() {
+  //     let mut rule = self.rules[id].take().unwrap();
+  //     if let RuleKind::Pratt(options) = rule.kind {
+  //       let mut levels = BTreeMap::<Prec, Vec<RuleId>>::new();
+  //       for (prec, rule) in options {
+  //         levels.entry(prec).or_default().push(rule);
+  //       }
+  //       let mut last_id = None;
+  //       let levels = levels
+  //         .into_iter()
+  //         .rev()
+  //         .map(|(prec, rules)| {
+  //           let id = self.rules.push(Some(Rule {
+  //             label: format!("{}_{:?}", rule.label, prec),
+  //             hidden: true,
+  //             kind: RuleKind::Node(Node::Choice(
+  //               last_id.into_iter().chain(rules).map(|id| Node::Rule(id,
+  // None)).collect(),             )),
+  //           }));
+  //           last_id = Some(id);
+  //           (prec, id)
+  //         })
+  //         .collect::<Vec<_>>();
+  //       replacements.insert(id, levels);
+  //       rule.kind = RuleKind::Node(Node::Rule(last_id.unwrap(), None));
+  //     }
+  //     self.rules[id] = Some(rule);
+  //   }
 
-    for rule in self.rules.values_mut() {
-      if let RuleKind::Node(node) = &mut rule.as_mut().unwrap().kind {
-        replace(node, &replacements);
-      }
-    }
+  //   for rule in self.rules.values_mut() {
+  //     if let RuleKind::Node(node) = &mut rule.as_mut().unwrap().kind {
+  //       replace(node, &replacements);
+  //     }
+  //   }
 
-    fn replace(node: &mut Node, replacements: &HashMap<RuleId, Vec<(Prec, RuleId)>>) {
-      match node {
-        Node::Rule(id, prec) => {
-          if let Some((prec, assoc)) = prec.take() {
-            *id = replacements[id]
-              .iter()
-              .rev()
-              .find(|&&(other, _)| {
-                prec < other || prec == other && assoc != Assoc::None && prec.assoc() == assoc
-              })
-              .unwrap()
-              .1;
-          }
-        }
-        Node::Token(_) => {}
-        Node::Seq(nodes) | Node::Choice(nodes) => {
-          for node in nodes {
-            replace(node, replacements)
-          }
-        }
-        Node::Repeat(node) | Node::Repeat1(node) | Node::Optional(node) | Node::Field(_, node) => {
-          replace(node, replacements)
-        }
-      }
-    }
-  }
+  //   fn replace(node: &mut Node, replacements: &HashMap<RuleId, Vec<(Prec,
+  // RuleId)>>) {     match node {
+  //       Node::Rule(id, prec) => {
+  //         if let Some((prec, assoc)) = prec.take() {
+  //           *id = replacements[id]
+  //             .iter()
+  //             .rev()
+  //             .find(|&&(other, _)| {
+  //               prec < other || prec == other && assoc != Assoc::None &&
+  // prec.assoc() == assoc             })
+  //             .unwrap()
+  //             .1;
+  //         }
+  //       }
+  //       Node::Token(_) => {}
+  //       Node::Seq(nodes) | Node::Choice(nodes) => {
+  //         for node in nodes {
+  //           replace(node, replacements)
+  //         }
+  //       }
+  //       Node::Repeat(node) | Node::Repeat1(node) | Node::Optional(node) |
+  // Node::Field(_, node) => {         replace(node, replacements)
+  //       }
+  //     }
+  //   }
+  // }
 
   fn to_treesitter(&self) -> String {
     let mut str = String::new();
     for rule in self.rules.values() {
       let rule = rule.as_ref().unwrap();
-      let RuleKind::Node(node) = &rule.kind else { unreachable!() };
       str += &format!(
         "{}{}: $ => {},\n",
         if rule.hidden { "_" } else { "" },
         rule.label,
-        self.to_treesitter_node(node)
+        self.to_treesitter_node(rule.node)
       );
     }
     str
@@ -354,7 +399,7 @@ impl Grammar {
 
   fn to_treesitter_node(&self, node: &Node) -> String {
     match node {
-      Node::Rule(rule_id, _) => {
+      Node::Rule(rule_id) => {
         let rule = self.rules[*rule_id].as_ref().unwrap();
         format!("$.{}{}", if rule.hidden { "_" } else { "" }, rule.label)
       }
@@ -370,61 +415,49 @@ impl Grammar {
         "choice({})",
         nodes.iter().map(|n| self.to_treesitter_node(n)).collect::<Vec<_>>().join(", ")
       ),
-      Node::Repeat(node) => format!("repeat({})", self.to_treesitter_node(node)),
-      Node::Repeat1(node) => format!("repeat1({})", self.to_treesitter_node(node)),
+      Node::Repeat(node, mandatory) => {
+        format!("repeat{}({})", if mandatory { "1" } else { "" }, self.to_treesitter_node(node))
+      }
       Node::Optional(node) => format!("optional({})", self.to_treesitter_node(node)),
       Node::Field(name, node) => format!("field({:?}, {})", name, self.to_treesitter_node(node)),
     }
   }
 }
 
-fn pratt_variant<T: GrammarPratt, U>(grammar: &mut Grammar, _: fn(T) -> U) -> Vec<(Prec, Rule)> {
-  T::rules(grammar)
+macro_rules! GrammarPrattKind {
+  (($_:tt) $($Term:ident $TermKind:ident),*) => {
+    $(impl GrammarPrattKind for $Term {
+      fn _rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<Rule>) {
+        for_enum!(Kind in $TermKind {
+          $_($TermKind::$Kind.rules(grammar, prec, rules);)*
+        });
+      }
+    })*
+  };
 }
 
-impl GrammarRule for Expr {
-  fn rule(grammar: &mut Grammar) -> Rule {
-    let variants = for_enum!(Kind in ExprKind {
-      [$(pratt_variant(grammar, ExprKind::$Kind)),*]
-    });
-    grammar.pratt("Expr", variants.into_iter().flatten())
-  }
+GrammarPrattKind!(($) Expr ExprKind, Pat PatKind, Ty TyKind, Impl ImplKind, Trait TraitKind);
+
+impl GrammarPratt for Expr {
+  const NAME: &str = "Expr";
+  const ALLOW_DOT: bool = true;
 }
 
-impl GrammarRule for Ty {
-  fn rule(grammar: &mut Grammar) -> Rule {
-    let variants = for_enum!(Kind in TyKind {
-      [$(pratt_variant(grammar, TyKind::$Kind)),*]
-    });
-    grammar.pratt("Ty", variants.into_iter().flatten())
-  }
+impl GrammarPratt for Pat {
+  const NAME: &str = "Pat";
 }
 
-impl GrammarRule for Pat {
-  fn rule(grammar: &mut Grammar) -> Rule {
-    let variants = for_enum!(Kind in PatKind {
-      [$(pratt_variant(grammar, PatKind::$Kind)),*]
-    });
-    grammar.pratt("Pat", variants.into_iter().flatten())
-  }
+impl GrammarPratt for Ty {
+  const NAME: &str = "Ty";
+  const ALLOW_DOT: bool = true;
 }
 
-impl GrammarRule for Impl {
-  fn rule(grammar: &mut Grammar) -> Rule {
-    let variants = for_enum!(Kind in ImplKind {
-      [$(pratt_variant(grammar, ImplKind::$Kind)),*]
-    });
-    grammar.pratt("Impl", variants.into_iter().flatten())
-  }
+impl GrammarPratt for Impl {
+  const NAME: &str = "Impl";
 }
 
-impl GrammarRule for Trait {
-  fn rule(grammar: &mut Grammar) -> Rule {
-    let variants = for_enum!(Kind in TraitKind {
-      [$(pratt_variant(grammar, TraitKind::$Kind)),*]
-    });
-    grammar.pratt("Trait", variants.into_iter().flatten())
-  }
+impl GrammarPratt for Trait {
+  const NAME: &str = "Trait";
 }
 
 #[derive(Default, Debug)]
@@ -457,87 +490,87 @@ impl Choices {
   }
 }
 
-#[test]
-fn sampler() {
-  let mut grammar = Grammar::default();
-  let rule = grammar.define_rule::<Expr>();
-  grammar.eliminate_pratt();
-  println!("{}", grammar.to_treesitter());
-  let mut choices = Choices::default();
-  let mut tokens = Vec::new();
-  let mut str = String::new();
-  loop {
-    // dbg!(&choices);
-    if let Some(()) = grammar.sample_rule(rule, 3, &mut choices, &mut tokens) {
-      for token in &tokens {
-        match token.value() {
-          Some(value) => str += value,
-          None => match token {
-            Token::BareIdent => str += "x",
-            Token::TupleField => str += ".0",
-            t => unreachable!("{t:?}"),
-          },
-        }
-        str += " ";
-      }
-      println!("{}", str);
-    }
-    str.clear();
-    tokens.clear();
-    if !choices.advance() {
-      break;
-    }
-  }
-}
+// #[test]
+// fn sampler() {
+//   let mut grammar = Grammar::default();
+//   let rule = grammar.define_rule::<Expr>();
+//   grammar.eliminate_pratt();
+//   println!("{}", grammar.to_treesitter());
+//   let mut choices = Choices::default();
+//   let mut tokens = Vec::new();
+//   let mut str = String::new();
+//   loop {
+//     // dbg!(&choices);
+//     if let Some(()) = grammar.sample_rule(rule, 3, &mut choices, &mut tokens)
+// {       for token in &tokens {
+//         match token.value() {
+//           Some(value) => str += value,
+//           None => match token {
+//             Token::BareIdent => str += "x",
+//             Token::TupleField => str += ".0",
+//             t => unreachable!("{t:?}"),
+//           },
+//         }
+//         str += " ";
+//       }
+//       println!("{}", str);
+//     }
+//     str.clear();
+//     tokens.clear();
+//     if !choices.advance() {
+//       break;
+//     }
+//   }
+// }
 
-impl Grammar {
-  fn sample_rule(
-    &self,
-    rule: RuleId,
-    depth: usize,
-    choices: &mut Choices,
-    tokens: &mut Vec<Token>,
-  ) -> Option<()> {
-    let rule = self.rules[rule].as_ref().unwrap();
-    let RuleKind::Node(node) = &rule.kind else { unreachable!() };
-    self.sample_node(node, depth.checked_sub(!rule.hidden as usize)?, choices, tokens)
-  }
+// impl Grammar {
+//   fn sample_rule(
+//     &self,
+//     rule: RuleId,
+//     depth: usize,
+//     choices: &mut Choices,
+//     tokens: &mut Vec<Token>,
+//   ) -> Option<()> {
+//     let rule = self.rules[rule].as_ref().unwrap();
+//     let RuleKind::Node(node) = &rule.kind else { unreachable!() };
+//     self.sample_node(node, depth.checked_sub(!rule.hidden as usize)?,
+// choices, tokens)   }
 
-  fn sample_node(
-    &self,
-    node: &Node,
-    depth: usize,
-    choices: &mut Choices,
-    tokens: &mut Vec<Token>,
-  ) -> Option<()> {
-    match node {
-      Node::Rule(rule, _) => self.sample_rule(*rule, depth, choices, tokens)?,
-      Node::Token(token) => tokens.push(*token),
-      Node::Seq(nodes) => {
-        for node in nodes {
-          self.sample_node(node, depth, choices, tokens)?;
-        }
-      }
-      Node::Choice(nodes) => {
-        self.sample_node(&nodes[choices.choose(nodes.len())], depth, choices, tokens)?;
-      }
-      Node::Repeat(node) => {
-        for _ in 0..choices.choose(1) {
-          self.sample_node(node, depth, choices, tokens)?;
-        }
-      }
-      Node::Repeat1(node) => {
-        for _ in 0..=choices.choose(1) {
-          self.sample_node(node, depth, choices, tokens)?;
-        }
-      }
-      Node::Optional(node) => {
-        if choices.choose(2) == 1 {
-          self.sample_node(node, depth, choices, tokens)?;
-        }
-      }
-      Node::Field(_, node) => self.sample_node(node, depth, choices, tokens)?,
-    }
-    Some(())
-  }
-}
+//   fn sample_node(
+//     &self,
+//     node: &Node,
+//     depth: usize,
+//     choices: &mut Choices,
+//     tokens: &mut Vec<Token>,
+//   ) -> Option<()> {
+//     match node {
+//       Node::Rule(rule, _) => self.sample_rule(*rule, depth, choices,
+// tokens)?,       Node::Token(token) => tokens.push(*token),
+//       Node::Seq(nodes) => {
+//         for node in nodes {
+//           self.sample_node(node, depth, choices, tokens)?;
+//         }
+//       }
+//       Node::Choice(nodes) => {
+//         self.sample_node(&nodes[choices.choose(nodes.len())], depth, choices,
+// tokens)?;       }
+//       Node::Repeat(node) => {
+//         for _ in 0..choices.choose(1) {
+//           self.sample_node(node, depth, choices, tokens)?;
+//         }
+//       }
+//       Node::Repeat1(node) => {
+//         for _ in 0..=choices.choose(1) {
+//           self.sample_node(node, depth, choices, tokens)?;
+//         }
+//       }
+//       Node::Optional(node) => {
+//         if choices.choose(2) == 1 {
+//           self.sample_node(node, depth, choices, tokens)?;
+//         }
+//       }
+//       Node::Field(_, node) => self.sample_node(node, depth, choices,
+// tokens)?,     }
+//     Some(())
+//   }
+// }

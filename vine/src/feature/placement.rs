@@ -6,7 +6,7 @@ pub struct Placement<T> {
   pub space: T,
 }
 
-impl<T: GrammarRule> GrammarPratt for Placement<T> {
+impl<T: GrammarRule> GrammarPrattPart for Placement<T> {
   fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
     use grammar::*;
     vec![(

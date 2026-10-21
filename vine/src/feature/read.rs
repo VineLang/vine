@@ -5,7 +5,7 @@ pub struct Read<T> {
   pub child: T,
 }
 
-impl<T: GrammarRule> GrammarPratt for Read<T> {
+impl<T: GrammarRule> GrammarPrattPart for Read<T> {
   fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
     use grammar::*;
     vec![(Prec::Prefix, grammar.named("Read", (Token::At, right::<T>(Prec::Prefix))))]

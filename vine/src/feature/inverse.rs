@@ -5,7 +5,7 @@ pub struct Inverse<T> {
   pub child: T,
 }
 
-impl<T: GrammarRule> GrammarPratt for Inverse<T> {
+impl<T: GrammarRule> GrammarPrattPart for Inverse<T> {
   fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
     use grammar::*;
     vec![

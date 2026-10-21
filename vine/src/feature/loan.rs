@@ -19,7 +19,7 @@ pub struct Borrow<T> {
   pub child: T,
 }
 
-impl<T: GrammarRule> GrammarPratt for Loan<T> {
+impl<T: GrammarRule> GrammarPrattPart for Loan<T> {
   fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
     use grammar::*;
     let op = choice((Token::Amp, Token::AmpAmp));
@@ -30,7 +30,7 @@ impl<T: GrammarRule> GrammarPratt for Loan<T> {
   }
 }
 
-impl<T: GrammarRule> GrammarPratt for Borrow<T> {
+impl<T: GrammarRule> GrammarPrattPart for Borrow<T> {
   fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
     use grammar::*;
     let op = choice((Token::Star, Token::StarStar));

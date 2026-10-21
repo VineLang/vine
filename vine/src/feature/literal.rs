@@ -90,7 +90,7 @@ impl Exponent {
 }
 
 
-impl GrammarPratt for ExprLiteral {
+impl GrammarPrattPart for ExprLiteral {
   fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
     use grammar::*;
     vec![] // todo

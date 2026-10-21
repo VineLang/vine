@@ -3,7 +3,7 @@ use super::*;
 #[derive_(Debug, Clone, Visit!)]
 pub struct Hole;
 
-impl GrammarPratt for Hole {
+impl GrammarPrattPart for Hole {
   fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
     // todo
     // vec![(Prec::Max, grammar.named("Hole", Token::QuestQuest))]

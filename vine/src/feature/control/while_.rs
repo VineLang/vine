@@ -9,7 +9,7 @@ pub struct ExprWhile {
 }
 
 
-impl GrammarPratt for ExprWhile {
+impl GrammarPrattPart for ExprWhile {
   fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
     use grammar::*;
     vec![] // todo

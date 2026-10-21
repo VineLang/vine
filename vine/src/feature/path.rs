@@ -31,14 +31,14 @@ pub type TraitPath = Path<!>;
 pub type ImplPath = Path<!>;
 
 impl GrammarRule for PathComponent {
-  fn rule(grammar: &mut Grammar) -> grammar::Rule {
+  fn _rule(grammar: &mut Grammar) -> grammar::Rule {
     use grammar::*;
     grammar.named("PathComponent", (Token::Hash.optional(), rule::<Ident>()))
   }
 }
 
 impl GrammarRule for Path<!> {
-  fn rule(grammar: &mut Grammar) -> grammar::Rule {
+  fn _rule(grammar: &mut Grammar) -> grammar::Rule {
     use grammar::*;
     // todo
     grammar.named(
@@ -51,14 +51,14 @@ impl GrammarRule for Path<!> {
   }
 }
 
-impl<R, T: ParseSequence> GrammarPratt for PathCall<R, T> {
+impl<R, T: ParseSequence> GrammarPrattPart for PathCall<R, T> {
   fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
     use grammar::*;
     vec![] // todo
   }
 }
 
-impl<T> GrammarPratt for Path<T> {
+impl<T> GrammarPrattPart for Path<T> {
   fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
     use grammar::*;
     vec![(Prec::Max, grammar.named("Path", rule::<Path<!>>()))] // todo

@@ -7,7 +7,7 @@ pub struct Safe<T> {
 }
 
 
-impl<T> GrammarPratt for Safe<T> {
+impl<T> GrammarPrattPart for Safe<T> {
   fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
     use grammar::*;
     vec![] // todo

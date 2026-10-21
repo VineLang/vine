@@ -17,7 +17,7 @@ pub struct StmtClosure {
 }
 
 
-impl GrammarPratt for ExprClosure {
+impl GrammarPrattPart for ExprClosure {
   fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
     use grammar::*;
     vec![] // todo

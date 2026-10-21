@@ -6,7 +6,7 @@ pub struct ExprTry {
   pub try_: Spanned<()>,
 }
 
-impl GrammarPratt for ExprTry {
+impl GrammarPrattPart for ExprTry {
   fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
     use grammar::*;
     vec![(

@@ -22,7 +22,7 @@ pub struct TyIfConst {
 }
 
 
-impl GrammarPratt for ExprIf {
+impl GrammarPrattPart for ExprIf {
   fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
     use grammar::*;
     vec![] // todo
@@ -48,7 +48,7 @@ impl ParsePratt<Expr, ExprIf> for Parser<'_> {
 }
 
 
-impl GrammarPratt for TyIfConst {
+impl GrammarPrattPart for TyIfConst {
   fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
     use grammar::*;
     vec![] // todo

@@ -26,7 +26,7 @@ impl Flex {
 }
 
 impl GrammarRule for Flex {
-  fn rule(grammar: &mut Grammar) -> grammar::Rule {
+  fn _rule(grammar: &mut Grammar) -> grammar::Rule {
     use grammar::*;
     grammar.named(
       "flex",

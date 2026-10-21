@@ -14,7 +14,7 @@ pub struct MatchArm {
 }
 
 
-impl GrammarPratt for ExprMatch {
+impl GrammarPrattPart for ExprMatch {
   fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
     use grammar::*;
     vec![] // todo

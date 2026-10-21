@@ -1,4 +1,4 @@
-use std::cmp::Ordering;
+use std::{cmp::Ordering, mem::transmute};
 
 use super::*;
 
@@ -335,7 +335,8 @@ impl PrecCtx {
   }
 }
 
-#[derive_(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[derive_(Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[repr(u8)]
 pub enum Prec {
   Min,
   Cond,
@@ -397,5 +398,13 @@ impl Prec {
       Prec::Postfix => Left,
       Prec::Max => None,
     }
+  }
+
+  pub fn next(self) -> Option<Prec> {
+    if self == Prec::Max { None } else { Some(unsafe { transmute(self as u8 + 1) }) }
+  }
+
+  pub fn prev(self) -> Option<Prec> {
+    if self == Prec::Min { None } else { Some(unsafe { transmute(self as u8 - 1) }) }
   }
 }

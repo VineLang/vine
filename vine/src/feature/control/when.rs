@@ -13,7 +13,7 @@ pub struct WhenArm {
 }
 
 
-impl GrammarPratt for ExprWhen {
+impl GrammarPrattPart for ExprWhen {
   fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
     use grammar::*;
     vec![] // todo

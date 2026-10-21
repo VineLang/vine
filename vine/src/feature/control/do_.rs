@@ -7,7 +7,7 @@ pub struct ExprDo {
 }
 
 
-impl GrammarPratt for ExprDo {
+impl GrammarPrattPart for ExprDo {
   fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
     use grammar::*;
     vec![] // todo

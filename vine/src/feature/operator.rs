@@ -183,7 +183,7 @@ impl ComparisonOp {
   }
 }
 
-impl GrammarPratt for ExprBinaryOp {
+impl GrammarPrattPart for ExprBinaryOp {
   fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
     use grammar::*;
     for_enum!(Op in BinaryOp { vec![$({
@@ -194,7 +194,7 @@ impl GrammarPratt for ExprBinaryOp {
   }
 }
 
-impl GrammarPratt for ExprUnaryOp {
+impl GrammarPrattPart for ExprUnaryOp {
   fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
     use grammar::*;
     for_enum!(Op in UnaryOp { vec![$({
@@ -203,7 +203,7 @@ impl GrammarPratt for ExprUnaryOp {
   }
 }
 
-impl GrammarPratt for ExprComparisonOp {
+impl GrammarPrattPart for ExprComparisonOp {
   fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
     use grammar::*;
     let op = for_enum!(Op in ComparisonOp { choice(( $(ComparisonOp::$Op.token(),)* ))});
@@ -217,7 +217,7 @@ impl GrammarPratt for ExprComparisonOp {
   }
 }
 
-impl GrammarPratt for PatComparisonOp {
+impl GrammarPrattPart for PatComparisonOp {
   fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
     use grammar::*;
     let op = for_enum!(Op in ComparisonOp { choice(( $(ComparisonOp::$Op.token(),)* ))});
@@ -231,7 +231,7 @@ impl GrammarPratt for PatComparisonOp {
   }
 }
 
-impl GrammarPratt for ExprCast {
+impl GrammarPrattPart for ExprCast {
   fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
     use grammar::*;
     vec![
@@ -258,7 +258,7 @@ impl GrammarPratt for ExprCast {
   }
 }
 
-impl GrammarPratt for ExprIndex {
+impl GrammarPrattPart for ExprIndex {
   fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
     use grammar::*;
     vec![(
@@ -439,7 +439,7 @@ impl ParsePratt<Expr, ExprIndex> for Parser<'_> {
   }
 }
 
-impl<T> GrammarPratt for Range<T> {
+impl<T> GrammarPrattPart for Range<T> {
   fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
     use grammar::*;
     vec![] // todo

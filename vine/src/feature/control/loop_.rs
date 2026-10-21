@@ -7,7 +7,7 @@ pub struct ExprLoop {
 }
 
 
-impl GrammarPratt for ExprLoop {
+impl GrammarPrattPart for ExprLoop {
   fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
     use grammar::*;
     vec![] // todo

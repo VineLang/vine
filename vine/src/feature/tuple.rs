@@ -8,7 +8,7 @@ pub struct Tuple<T> {
 }
 
 
-impl GrammarPratt for Tuple<Expr> {
+impl GrammarPrattPart for Tuple<Expr> {
   fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
     use grammar::*;
     vec![] // todo
@@ -17,7 +17,7 @@ impl GrammarPratt for Tuple<Expr> {
 
 impl ParsePratt<Expr, Tuple<Expr>> for Parser<'_> {} // todo
 
-impl GrammarPratt for Tuple<Pat> {
+impl GrammarPrattPart for Tuple<Pat> {
   fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
     use grammar::*;
     vec![] // todo
@@ -26,7 +26,7 @@ impl GrammarPratt for Tuple<Pat> {
 
 impl ParsePratt<Pat, Tuple<Pat>> for Parser<'_> {} // todo
 
-impl GrammarPratt for Tuple<Ty> {
+impl GrammarPrattPart for Tuple<Ty> {
   fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
     use grammar::*;
     vec![] // todo

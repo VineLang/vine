@@ -47,7 +47,7 @@ pub struct PatCond {
 }
 
 
-impl GrammarPratt for ExprIs {
+impl GrammarPrattPart for ExprIs {
   fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
     use grammar::*;
     vec![] // todo
@@ -72,7 +72,7 @@ impl ParsePratt<Expr, ExprIs> for Parser<'_> {
 }
 
 
-impl GrammarPratt for ExprImplies {
+impl GrammarPrattPart for ExprImplies {
   fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
     use grammar::*;
     vec![] // todo
@@ -119,7 +119,7 @@ impl ParseAnyAll for ExprAll {
 }
 
 
-impl GrammarPratt for ExprNot {
+impl GrammarPrattPart for ExprNot {
   fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
     use grammar::*;
     vec![] // todo
@@ -138,7 +138,7 @@ impl ParsePratt<Expr, ExprNot> for Parser<'_> {
 }
 
 
-impl GrammarPratt for PatIs {
+impl GrammarPrattPart for PatIs {
   fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
     use grammar::*;
     vec![] // todo
@@ -170,7 +170,7 @@ impl ParseAnyAll for PatAny {
 }
 
 
-impl GrammarPratt for PatCond {
+impl GrammarPrattPart for PatCond {
   fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
     use grammar::*;
     vec![] // todo
@@ -204,7 +204,7 @@ trait ParseAnyAll: Sized {
 }
 
 
-impl<T, A: ParseAnyAll<Child = T>> GrammarPratt for A {
+impl<T, A: ParseAnyAll<Child = T>> GrammarPrattPart for A {
   fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
     use grammar::*;
     vec![] // todo

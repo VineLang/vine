@@ -8,7 +8,7 @@ pub struct Field<T> {
   pub field: FieldKind,
 }
 
-impl<T: GrammarRule> GrammarPratt for Field<T> {
+impl<T: GrammarRule> GrammarPrattPart for Field<T> {
   fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
     use grammar::*;
     vec![(

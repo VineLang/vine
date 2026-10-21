@@ -10,7 +10,7 @@ pub struct ExprMethod {
   pub args: Sequence<Expr>,
 }
 
-impl GrammarPratt for ExprMethod {
+impl GrammarPrattPart for ExprMethod {
   fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
     use grammar::*;
     vec![(

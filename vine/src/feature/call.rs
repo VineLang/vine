@@ -14,7 +14,7 @@ pub struct TraitFn {
 }
 
 
-impl GrammarPratt for ExprCall {
+impl GrammarPrattPart for ExprCall {
   fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
     use grammar::*;
     vec![] // todo
@@ -36,7 +36,7 @@ impl ParsePratt<Expr, ExprCall> for Parser<'_> {
 }
 
 
-impl GrammarPratt for TraitFn {
+impl GrammarPrattPart for TraitFn {
   fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
     use grammar::*;
     vec![] // todo
