@@ -39,10 +39,9 @@ impl Parse<ItemFn> for Parser<'_> {
 }
 
 
-impl GrammarPrattPart for TyFnPath {
-  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
-    use grammar::*;
-    vec![] // todo
+impl GrammarPrattKind for TyFnPath {
+  fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
+    use grammar::*; // todo
   }
 }
 

@@ -6,15 +6,19 @@ pub struct Underscore;
 #[derive_(Debug, Clone, Visit!)]
 pub struct ImplAuto;
 
-impl GrammarPrattPart for Underscore {
-  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
-    vec![(Prec::Max, grammar.named("Underscore", Token::Underscore))]
+impl GrammarPrattKind for Underscore {
+  fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
+    if prec == Prec::Max {
+      rules.push(grammar.named("Underscore", Token::Underscore));
+    }
   }
 }
 
-impl GrammarPrattPart for ImplAuto {
-  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
-    vec![(Prec::Max, grammar.named("Auto", Token::At))]
+impl GrammarPrattKind for ImplAuto {
+  fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
+    if prec == Prec::Max {
+      rules.push(grammar.named("Auto", Token::At));
+    }
   }
 }
 

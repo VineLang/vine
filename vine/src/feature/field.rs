@@ -8,19 +8,19 @@ pub struct Field<T> {
   pub field: FieldKind,
 }
 
-impl<T: GrammarRule> GrammarPrattPart for Field<T> {
-  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
+impl<T: GrammarPratt> GrammarPrattKind for Field<T> {
+  fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
     use grammar::*;
-    vec![(
-      Prec::Postfix,
-      grammar.named(
-        "Field",
-        (
-          left::<T>(Prec::Postfix),
-          choice(((Token::Dot, rule::<Ident>()), Token::TupleField)).named("Field"),
-        ),
-      ),
-    )]
+    if prec == Prec::Postfix {
+      rules.push(grammar.named("Field", (left::<T>(prec), rule::<FieldKind>())));
+    }
+  }
+}
+
+impl GrammarRule for FieldKind {
+  fn _rule(grammar: &mut Grammar) -> grammar::Rule {
+    use grammar::*;
+    grammar.named("Field", choice(((Token::Dot, rule::<Ident>()), Token::TupleField)))
   }
 }
 

@@ -7,10 +7,9 @@ pub struct Annotation<T> {
 }
 
 
-impl<T> GrammarPrattPart for Annotation<T> {
-  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
-    use grammar::*;
-    vec![] // todo
+impl<T> GrammarPrattKind for Annotation<T> {
+  fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
+    use grammar::*; // todo
   }
 }
 

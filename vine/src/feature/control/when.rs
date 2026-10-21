@@ -12,11 +12,9 @@ pub struct WhenArm {
   pub body: Block,
 }
 
-
-impl GrammarPrattPart for ExprWhen {
-  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
-    use grammar::*;
-    vec![] // todo
+impl GrammarPrattKind for ExprWhen {
+  fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
+    use grammar::*; // todo
   }
 }
 

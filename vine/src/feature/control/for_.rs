@@ -10,10 +10,9 @@ pub struct ExprFor {
 }
 
 
-impl GrammarPrattPart for ExprFor {
-  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
-    use grammar::*;
-    vec![] // todo
+impl GrammarPrattKind for ExprFor {
+  fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
+    use grammar::*; // todo
   }
 }
 

@@ -7,10 +7,9 @@ pub struct Safe<T> {
 }
 
 
-impl<T> GrammarPrattPart for Safe<T> {
-  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
-    use grammar::*;
-    vec![] // todo
+impl<T> GrammarPrattKind for Safe<T> {
+  fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
+    use grammar::*; // todo
   }
 }
 

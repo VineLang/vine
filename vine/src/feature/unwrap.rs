@@ -6,10 +6,12 @@ pub struct Unwrap<T> {
   pub bang: Spanned<()>,
 }
 
-impl<T: GrammarRule> GrammarPrattPart for Unwrap<T> {
-  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
+impl<T: GrammarPratt> GrammarPrattKind for Unwrap<T> {
+  fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
     use grammar::*;
-    vec![(Prec::Postfix, grammar.named("Unwrap", (left::<T>(Prec::Postfix), Token::Bang)))]
+    if prec == Prec::Postfix {
+      rules.push(grammar.named("Unwrap", (left::<T>(Prec::Postfix), Token::Bang)));
+    }
   }
 }
 

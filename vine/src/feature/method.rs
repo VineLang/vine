@@ -10,26 +10,27 @@ pub struct ExprMethod {
   pub args: Sequence<Expr>,
 }
 
-impl GrammarPrattPart for ExprMethod {
-  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
+impl GrammarPrattKind for ExprMethod {
+  fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
     use grammar::*;
-    vec![(
-      Prec::Postfix,
-      grammar.named(
-        "Method",
-        (
-          left::<Expr>(Prec::Postfix),
+    if prec == Prec::Postfix {
+      rules.push(
+        grammar.named(
+          "Method",
           (
-            Token::Dot,
-            rule::<Ident>(),
-            rule::<GenericParams>().field("generics"),
-            Token::OpenParen,
-            // todo
-          )
-            .named("Method"),
+            left::<Expr>(prec),
+            (
+              Token::Dot,
+              rule::<Ident>(),
+              rule::<GenericParams>().field("generics"),
+              Token::OpenParen,
+              // todo
+            )
+              .named("Method"),
+          ),
         ),
-      ),
-    )]
+      );
+    }
   }
 }
 

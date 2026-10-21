@@ -8,10 +8,9 @@ pub struct List<T> {
 }
 
 
-impl<T: ParseSequence> GrammarPrattPart for List<T> {
-  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
-    use grammar::*;
-    vec![] // todo
+impl<T: ParseSequence> GrammarPrattKind for List<T> {
+  fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
+    use grammar::*; // todo
   }
 }
 

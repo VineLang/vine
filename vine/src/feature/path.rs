@@ -44,24 +44,26 @@ impl GrammarRule for Path<!> {
     grammar.named(
       "Path",
       (
-        (rule::<PathComponent>(), (Token::ColonColon, rule::<PathComponent>()).repeat()),
+        (rule::<PathComponent>(), (Token::ColonColon, rule::<PathComponent>()).repeat(false)),
         rule::<GenericArgs>().field("generics"),
       ),
     )
   }
 }
 
-impl<R, T: ParseSequence> GrammarPrattPart for PathCall<R, T> {
-  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
-    use grammar::*;
-    vec![] // todo
+impl<R, T: ParseSequence> GrammarPrattKind for PathCall<R, T> {
+  fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
+    use grammar::*; // todo
   }
 }
 
-impl<T> GrammarPrattPart for Path<T> {
-  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
+impl<T> GrammarPrattKind for Path<T> {
+  fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
     use grammar::*;
-    vec![(Prec::Max, grammar.named("Path", rule::<Path<!>>()))] // todo
+    // todo
+    if prec == Prec::Max {
+      rules.push(grammar.named("Path", rule::<Path<!>>()))
+    }
   }
 }
 

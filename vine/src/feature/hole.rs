@@ -3,11 +3,11 @@ use super::*;
 #[derive_(Debug, Clone, Visit!)]
 pub struct Hole;
 
-impl GrammarPrattPart for Hole {
-  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
-    // todo
-    // vec![(Prec::Max, grammar.named("Hole", Token::QuestQuest))]
-    vec![]
+impl GrammarPrattKind for Hole {
+  fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
+    if prec == Prec::Max {
+      rules.push(grammar.named("Hole", Token::QuestQuest));
+    }
   }
 }
 

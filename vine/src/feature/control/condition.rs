@@ -46,11 +46,9 @@ pub struct PatCond {
   pub cond: Expr,
 }
 
-
-impl GrammarPrattPart for ExprIs {
-  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
-    use grammar::*;
-    vec![] // todo
+impl GrammarPrattKind for ExprIs {
+  fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
+    use grammar::*; // todo
   }
 }
 
@@ -71,11 +69,9 @@ impl ParsePratt<Expr, ExprIs> for Parser<'_> {
   }
 }
 
-
-impl GrammarPrattPart for ExprImplies {
-  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
-    use grammar::*;
-    vec![] // todo
+impl GrammarPrattKind for ExprImplies {
+  fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
+    use grammar::*; // todo
   }
 }
 
@@ -118,11 +114,9 @@ impl ParseAnyAll for ExprAll {
   }
 }
 
-
-impl GrammarPrattPart for ExprNot {
-  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
-    use grammar::*;
-    vec![] // todo
+impl GrammarPrattKind for ExprNot {
+  fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
+    use grammar::*; // todo
   }
 }
 
@@ -137,11 +131,9 @@ impl ParsePratt<Expr, ExprNot> for Parser<'_> {
   }
 }
 
-
-impl GrammarPrattPart for PatIs {
-  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
-    use grammar::*;
-    vec![] // todo
+impl GrammarPrattKind for PatIs {
+  fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
+    use grammar::*; // todo
   }
 }
 
@@ -169,11 +161,9 @@ impl ParseAnyAll for PatAny {
   }
 }
 
-
-impl GrammarPrattPart for PatCond {
-  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
-    use grammar::*;
-    vec![] // todo
+impl GrammarPrattKind for PatCond {
+  fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
+    use grammar::*; // todo
   }
 }
 
@@ -203,11 +193,9 @@ trait ParseAnyAll: Sized {
   fn new(children: Children<Self::Child>) -> Self;
 }
 
-
-impl<T, A: ParseAnyAll<Child = T>> GrammarPrattPart for A {
-  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
-    use grammar::*;
-    vec![] // todo
+impl<T, A: ParseAnyAll<Child = T>> GrammarPrattKind for A {
+  fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
+    use grammar::*; // todo
   }
 }
 

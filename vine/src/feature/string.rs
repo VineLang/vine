@@ -51,19 +51,17 @@ impl Parse<StringLiteral> for Parser<'_> {
   }
 } // todo
 
-impl GrammarPrattPart for StringLiteral<Expr> {
-  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
-    use grammar::*;
-    vec![] // todo
+impl GrammarPrattKind for StringLiteral<Expr> {
+  fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
+    use grammar::*; // todo
   }
 }
 
 impl ParsePratt<Expr, StringLiteral<Expr>> for Parser<'_> {} // todo
 
-impl GrammarPrattPart for StringLiteral<Pat> {
-  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
-    use grammar::*;
-    vec![] // todo
+impl GrammarPrattKind for StringLiteral<Pat> {
+  fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
+    use grammar::*; // todo
   }
 }
 

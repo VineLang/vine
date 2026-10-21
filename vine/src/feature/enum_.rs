@@ -15,10 +15,9 @@ pub struct Variant<T> {
 }
 
 
-impl GrammarPrattPart for TyEnum {
-  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
-    use grammar::*;
-    vec![] // todo
+impl GrammarPrattKind for TyEnum {
+  fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
+    use grammar::*; // todo
   }
 }
 
@@ -44,10 +43,9 @@ impl ParsePratt<Ty, TyEnum> for Parser<'_> {
 }
 
 
-impl<T: ParseSequence> GrammarPrattPart for Variant<T> {
-  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
-    use grammar::*;
-    vec![] // todo
+impl<T: ParseSequence> GrammarPrattKind for Variant<T> {
+  fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
+    use grammar::*; // todo
   }
 }
 

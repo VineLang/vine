@@ -5,16 +5,15 @@ pub struct Inverse<T> {
   pub child: T,
 }
 
-impl<T: GrammarRule> GrammarPrattPart for Inverse<T> {
-  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
+impl<T: GrammarPratt> GrammarPrattKind for Inverse<T> {
+  fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
     use grammar::*;
-    vec![
-      (Prec::Prefix, grammar.named("Inverse", (Token::Tilde, right::<T>(Prec::Prefix)))),
-      (
-        Prec::Postfix,
-        grammar.named("DotInverse", (left::<T>(Prec::Postfix), Token::Dot, Token::Tilde)),
-      ),
-    ]
+    if prec == Prec::Prefix {
+      rules.push(grammar.named("Inverse", (Token::Tilde, right::<T>(prec))));
+    }
+    if prec == Prec::Postfix && T::ALLOW_DOT {
+      rules.push(grammar.named("DotInverse", (left::<T>(prec), Token::Dot, Token::Tilde)));
+    }
   }
 }
 

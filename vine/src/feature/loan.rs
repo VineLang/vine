@@ -19,25 +19,27 @@ pub struct Borrow<T> {
   pub child: T,
 }
 
-impl<T: GrammarRule> GrammarPrattPart for Loan<T> {
-  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
+impl<T: GrammarPratt> GrammarPrattKind for Loan<T> {
+  fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
     use grammar::*;
     let op = choice((Token::Amp, Token::AmpAmp));
-    vec![
-      (Prec::Prefix, grammar.named("Loan", (op.clone(), right::<T>(Prec::Prefix)))),
-      (Prec::Postfix, grammar.named("DotLoan", (left::<T>(Prec::Postfix), Token::Dot, op))),
-    ]
+    if prec == Prec::Prefix {
+      rules.push(grammar.named("Loan", (op, right::<T>(prec))));
+    } else if prec == Prec::Postfix && T::ALLOW_DOT {
+      rules.push(grammar.named("DotLoan", (left::<T>(prec), Token::Dot, op)));
+    }
   }
 }
 
-impl<T: GrammarRule> GrammarPrattPart for Borrow<T> {
-  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
+impl<T: GrammarPratt> GrammarPrattKind for Borrow<T> {
+  fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
     use grammar::*;
     let op = choice((Token::Star, Token::StarStar));
-    vec![
-      (Prec::Prefix, grammar.named("Borrow", (op.clone(), right::<T>(Prec::Prefix)))),
-      (Prec::Postfix, grammar.named("DotBorrow", (left::<T>(Prec::Postfix), Token::Dot, op))),
-    ]
+    if prec == Prec::Prefix {
+      rules.push(grammar.named("Borrow", (op, right::<T>(prec))));
+    } else if prec == Prec::Postfix && T::ALLOW_DOT {
+      rules.push(grammar.named("DotBorrow", (left::<T>(prec), Token::Dot, op)));
+    }
   }
 }
 

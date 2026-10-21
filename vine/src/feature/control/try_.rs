@@ -6,13 +6,12 @@ pub struct ExprTry {
   pub try_: Spanned<()>,
 }
 
-impl GrammarPrattPart for ExprTry {
-  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
+impl GrammarPrattKind for ExprTry {
+  fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
     use grammar::*;
-    vec![(
-      Prec::Postfix,
-      grammar.named("Try", (left::<Expr>(Prec::Postfix), Token::Dot, Token::Try)),
-    )]
+    if prec == Prec::Postfix {
+      rules.push(grammar.named("Try", (left::<Expr>(prec), Token::Dot, Token::Try)));
+    }
   }
 }
 

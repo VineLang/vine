@@ -6,11 +6,9 @@ pub struct ExprDo {
   pub body: Block,
 }
 
-
-impl GrammarPrattPart for ExprDo {
-  fn rules(grammar: &mut Grammar) -> Vec<(Prec, grammar::Rule)> {
-    use grammar::*;
-    vec![] // todo
+impl GrammarPrattKind for ExprDo {
+  fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
+    use grammar::*; // todo
   }
 }
 
