@@ -201,7 +201,7 @@ pub enum ExprKind {
   Tuple(Tuple<Expr>),
   Object(Object<Expr>),
   List(List<Expr>),
-  Annotation(Annotation<Expr>),
+  Annotation(Annotation<Expr, Ty>),
 
   Loan(Loan<Expr>),
   Borrow(Borrow<Expr>),
@@ -254,7 +254,7 @@ pub enum PatKind {
 
   PathCall(PatPathCall),
   Safe(Safe<Pat>),
-  Annotation(Annotation<Pat>),
+  Annotation(Annotation<Pat, Ty>),
 
   Is(PatIs),
   Any(PatAny),
@@ -319,7 +319,7 @@ pub enum ImplKind {
   Underscore(Underscore),
   Path(ImplPath),
   Auto(ImplAuto),
-  Annotation(Annotation<Impl>),
+  Annotation(Annotation<Impl, Trait>),
 }
 
 #[derive_(Debug, Clone, Visit!)]

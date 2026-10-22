@@ -1,6 +1,6 @@
 use super::*;
 
-use crate::feature::{generics::GenericArgs, sequence::ParseSequence};
+use crate::feature::{generics::GenericArgs, sequence::SequenceKind};
 
 #[derive_(Debug, Clone, Visit!)]
 pub struct PathComponent {
@@ -51,16 +51,21 @@ impl GrammarRule for Path<!> {
   }
 }
 
-impl<R, T: ParseSequence> GrammarPrattKind for PathCall<R, T> {
+impl<R, T: SequenceKind + GrammarPratt> GrammarPrattKind for PathCall<R, T> {
   fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
-    use grammar::*; // todo
+    use grammar::*;
+    if prec == Prec::Max {
+      rules.push(
+        grammar
+          .named("PathCall", (rule::<Path<!>>(), rule::<Sequence<T>>().field("args").optional())),
+      )
+    }
   }
 }
 
 impl<T> GrammarPrattKind for Path<T> {
   fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
     use grammar::*;
-    // todo
     if prec == Prec::Max {
       rules.push(grammar.named("Path", rule::<Path<!>>()))
     }
@@ -99,7 +104,7 @@ impl<R> Parse<Path<R>> for Parser<'_> {
   }
 }
 
-impl<R, T: ParseSequence> ParsePratt<T, PathCall<R, T>> for Parser<'_>
+impl<R, T: SequenceKind> ParsePratt<T, PathCall<R, T>> for Parser<'_>
 where
   Self: ParsePratt<T>,
 {

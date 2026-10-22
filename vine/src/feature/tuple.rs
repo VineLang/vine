@@ -1,4 +1,7 @@
-use crate::feature::placement::Placement;
+use crate::feature::{
+  placement::Placement,
+  sequence::{SequenceChild, SequenceKind},
+};
 
 use super::*;
 
@@ -7,29 +10,32 @@ pub struct Tuple<T> {
   pub children: Sequence<T>,
 }
 
-
-impl GrammarPrattKind for Tuple<Expr> {
+impl<T: SequenceKind + GrammarPratt> GrammarPrattKind for Tuple<T> {
   fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
-    use grammar::*; // todo
+    use grammar::*;
+    if prec == Prec::Max {
+      rules.push(
+        grammar.named(
+          "Tuple",
+          (
+            Token::OpenParen,
+            (
+              rule::<SequenceChild<T>>(),
+              Token::Comma,
+              (rule::<SequenceChild<T>>(), Token::Comma).repeat(false),
+              rule::<SequenceChild<T>>().optional(),
+            )
+              .optional(),
+            Token::CloseParen,
+          ),
+        ),
+      )
+    }
   }
 }
 
 impl ParsePratt<Expr, Tuple<Expr>> for Parser<'_> {} // todo
-
-impl GrammarPrattKind for Tuple<Pat> {
-  fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
-    use grammar::*; // todo
-  }
-}
-
 impl ParsePratt<Pat, Tuple<Pat>> for Parser<'_> {} // todo
-
-impl GrammarPrattKind for Tuple<Ty> {
-  fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
-    use grammar::*; // todo
-  }
-}
-
 impl ParsePratt<Ty, Tuple<Ty>> for Parser<'_> {} // todo
 
 trait ParseParens<T, K> {

@@ -8,15 +8,20 @@ use std::{
   marker::PhantomData,
 };
 
-use crate::component::{
-  lexer::Token,
-  parser::{Assoc, Prec},
+use crate::{
+  component::{
+    lexer::Token,
+    parser::{Assoc, Prec},
+  },
+  feature::control::{
+    closure::ExprClosure, do_::ExprDo, for_::ExprFor, loop_::ExprLoop, when::ExprWhen,
+  },
 };
 
 #[derive_(Debug, Clone, Default)]
 pub struct Grammar {
   types: HashMap<TypeId, RuleId>,
-  pratt: HashMap<(TypeId, Prec), RuleId>,
+  pratt: HashMap<(TypeId, Option<Prec>), RuleId>,
   rules: IdxVec<RuleId, Rule>,
 }
 
@@ -87,8 +92,24 @@ fn from_fn(f: impl Clone + FnOnce(&mut Grammar) -> Node) -> impl ToNode {
   With(f)
 }
 
+pub trait ToOptionNode: Sized + Clone {
+  fn to_option_node(self, grammar: &mut Grammar) -> Option<Node>;
+}
+
+impl<T: ToNode> ToOptionNode for T {
+  fn to_option_node(self, grammar: &mut Grammar) -> Option<Node> {
+    Some(self.to_node(grammar))
+  }
+}
+
+impl<T: ToNode> ToOptionNode for Option<T> {
+  fn to_option_node(self, grammar: &mut Grammar) -> Option<Node> {
+    Some(self?.to_node(grammar))
+  }
+}
+
 pub trait ToNodes: Sized + Clone {
-  fn to_nodes(self, grammar: &mut Grammar) -> impl IntoIterator<Item = Node>;
+  fn to_nodes(self, grammar: &mut Grammar) -> impl Iterator<Item = Node>;
 }
 
 macro_rules! impl_tuple {
@@ -99,10 +120,10 @@ macro_rules! impl_tuple {
 
   ($($T:ident)* |) => {
     #[allow(nonstandard_style, unused)]
-    impl<$($T: ToNode,)*> ToNodes for ($($T,)*) {
-      fn to_nodes(self, grammar: &mut Grammar) -> impl IntoIterator<Item = Node> {
+    impl<$($T: ToOptionNode,)*> ToNodes for ($($T,)*) {
+      fn to_nodes(self, grammar: &mut Grammar) -> impl Iterator<Item = Node> {
         let ($($T,)*) = self;
-        [$($T.to_node(grammar),)*]
+        [$($T.to_option_node(grammar),)*].into_iter().flatten()
       }
     }
   }
@@ -124,7 +145,7 @@ impl ToNode for Token {
 
 impl<T: ToNodes> ToNode for T {
   fn to_node(self, grammar: &mut Grammar) -> Node {
-    Node::Seq(self.to_nodes(grammar).into_iter().collect())
+    Node::Seq(self.to_nodes(grammar).collect())
   }
 }
 
@@ -133,7 +154,11 @@ pub fn empty() -> Node {
 }
 
 pub fn choice<T: ToNodes>(nodes: T) -> impl ToNode {
-  from_fn(|grammar| Node::Choice(nodes.to_nodes(grammar).into_iter().collect()))
+  from_fn(|grammar| Node::Choice(nodes.to_nodes(grammar).collect()))
+}
+
+pub fn delimited<T: GrammarRule>(open: Token, sep: Token, close: Token) -> impl ToNode {
+  (open, (rule::<T>(), (sep, rule::<T>()).repeat(false), sep.optional()).optional(), close)
 }
 
 pub trait GrammarRule: Any {
@@ -155,8 +180,11 @@ pub trait GrammarPratt: Any + GrammarPrattKind {
   const NAME: &str;
   const ALLOW_DOT: bool = false;
 
+  #[allow(unused_variables)]
+  fn extra_rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<Rule>) {}
+
   fn pratt_rule(grammar: &mut Grammar, prec: Prec) -> RuleId {
-    let key = (TypeId::of::<Self>(), prec);
+    let key = (TypeId::of::<Self>(), Some(prec));
     if let Some(&id) = grammar.pratt.get(&key) {
       return id;
     }
@@ -172,6 +200,7 @@ pub trait GrammarPratt: Any + GrammarPrattKind {
     grammar.pratt.insert(key, id);
     let mut rules = Vec::new();
     Self::rules(grammar, prec, &mut rules);
+    Self::extra_rules(grammar, prec, &mut rules);
     if rules.is_empty()
       && let Some(next) = next
     {
@@ -195,6 +224,7 @@ pub trait GrammarPratt: Any + GrammarPrattKind {
   }
 }
 
+#[allow(unused_variables)]
 pub trait GrammarPrattKind {
   fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<Rule>);
 }
@@ -240,9 +270,12 @@ fn pratt_variant<T: GrammarPrattKind, U>(
 }
 
 macro_rules! GrammarPrattKind {
-  (($_:tt) $($Term:ident $TermKind:ident),*) => {
+  (($_:tt) $($Term:ident $TermKind:ident $(+ $Extra:ty)?),*) => {
     $(impl GrammarPrattKind for $Term {
       fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<Rule>) {
+        if prec == Prec::Max {
+          rules.push(grammar.named("Paren", (Token::OpenParen, rule::<$Term>(), Token::CloseParen)));
+        }
         for_enum!(Kind in $TermKind {
           $_(pratt_variant($TermKind::$Kind, grammar, prec, rules);)*
         });
@@ -256,6 +289,26 @@ GrammarPrattKind!(($) Expr ExprKind, Pat PatKind, Ty TyKind, Impl ImplKind, Trai
 impl GrammarPratt for Expr {
   const NAME: &str = "Expr";
   const ALLOW_DOT: bool = true;
+  fn extra_rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<Rule>) {}
+}
+
+pub struct ExprFull;
+
+impl GrammarRule for ExprFull {
+  fn _rule(grammar: &mut Grammar) -> Rule {
+    grammar.hidden(
+      "ExprFull",
+      choice(
+        rule::<ExprDo>(),
+        rule::<ExprWhen>(),
+        rule::<ExprFor>(),
+        rule::<ExprClosure>(),
+        rule::<ExprLoop>(),
+        rule::<ExprDo>(),
+      ),
+    );
+    todo!()
+  }
 }
 
 impl GrammarPratt for Pat {

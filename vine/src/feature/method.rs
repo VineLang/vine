@@ -21,10 +21,9 @@ impl GrammarPrattKind for ExprMethod {
             left::<Expr>(prec),
             (
               Token::Dot,
-              rule::<Ident>(),
+              rule::<Ident>().field("name"),
               rule::<GenericParams>().field("generics"),
-              Token::OpenParen,
-              // todo
+              rule::<Sequence<Expr>>().field("args"),
             )
               .named("Method"),
           ),

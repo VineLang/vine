@@ -1,6 +1,6 @@
 use super::*;
 
-use crate::feature::{children::ChildrenEntry, sequence::ParseSequence};
+use crate::feature::{children::ChildrenEntry, sequence::SequenceKind};
 
 #[derive_(Debug, Clone, Visit!)]
 pub struct TyEnum {
@@ -14,10 +14,44 @@ pub struct Variant<T> {
   pub content: Sequence<T>,
 }
 
-
 impl GrammarPrattKind for TyEnum {
   fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
-    use grammar::*; // todo
+    use grammar::*;
+    if prec == Prec::Max {
+      rules.push(grammar.hidden("Variant", rule::<Variant<Ty>>()));
+      rules.push(grammar.named(
+        "Enum",
+        (
+          Token::Unsafe.optional(),
+          Token::Enum,
+          Token::OpenBrace,
+          delimited::<Variant<Ty>>(Token::OpenBrace, Token::Comma, Token::CloseBrace),
+        ),
+      ));
+    }
+  }
+}
+
+impl<T: SequenceKind + GrammarPratt> GrammarPrattKind for Variant<T> {
+  fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
+    use grammar::*;
+    if prec == Prec::Max {
+      rules.push(grammar.hidden("Variant", rule::<Variant<T>>()));
+    }
+  }
+}
+
+impl<T: SequenceKind + GrammarPratt> GrammarRule for Variant<T> {
+  fn _rule(grammar: &mut Grammar) -> grammar::Rule {
+    use grammar::*;
+    grammar.named(
+      format!("{}Variant", T::NAME),
+      (
+        Token::Dot,
+        rule::<Ident>().field("variant"),
+        rule::<Sequence<T>>().field("content").optional(),
+      ),
+    )
   }
 }
 
@@ -42,14 +76,7 @@ impl ParsePratt<Ty, TyEnum> for Parser<'_> {
   }
 }
 
-
-impl<T: ParseSequence> GrammarPrattKind for Variant<T> {
-  fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
-    use grammar::*; // todo
-  }
-}
-
-impl<T: ParseSequence> ParsePratt<T, Variant<T>> for Parser<'_>
+impl<T: SequenceKind> ParsePratt<T, Variant<T>> for Parser<'_>
 where
   Self: Parse<T>,
 {
@@ -58,7 +85,7 @@ where
   }
 }
 
-impl<T: ParseSequence> Parse<Variant<T>> for Parser<'_>
+impl<T: SequenceKind> Parse<Variant<T>> for Parser<'_>
 where
   Self: Parse<T>,
 {

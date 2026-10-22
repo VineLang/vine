@@ -1,20 +1,25 @@
 use super::*;
 
-use crate::feature::sequence::{ParseSequence, SequenceChild};
+use crate::feature::sequence::{SequenceChild, SequenceKind};
 
 #[derive_(Debug, Clone, Visit!)]
 pub struct List<T> {
   pub children: Sequence<T>,
 }
 
-
-impl<T: ParseSequence> GrammarPrattKind for List<T> {
+impl<T: SequenceKind + GrammarPratt> GrammarPrattKind for List<T> {
   fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
-    use grammar::*; // todo
+    use grammar::*;
+    if prec == Prec::Max {
+      rules.push(grammar.named(
+        "List",
+        delimited::<SequenceChild<T>>(Token::OpenBracket, Token::Comma, Token::CloseBracket),
+      ))
+    }
   }
 }
 
-impl<T: ParseSequence> ParsePratt<T, List<T>> for Parser<'_>
+impl<T: SequenceKind> ParsePratt<T, List<T>> for Parser<'_>
 where
   Self: Parse<T>,
 {

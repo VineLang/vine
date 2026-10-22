@@ -46,9 +46,69 @@ pub struct PatCond {
   pub cond: Expr,
 }
 
+impl<T: GrammarPratt, A: ParseAnyAll<Child = T>> GrammarPrattKind for A {
+  fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
+    use grammar::*;
+    if prec == Prec::Max {
+      if let Some(token) = A::EMPTY {
+        rules.push(grammar.named(format!("{:?}", token), token));
+      }
+      rules.push(grammar.named(
+        format!("{:?}", A::GROUP),
+        (A::GROUP, delimited::<T>(Token::OpenBrace, Token::Comma, Token::CloseBrace)),
+      ));
+    }
+    if prec == A::PREC {
+      rules.push(grammar.named(
+        format!("{:?}", A::INFIX),
+        (both::<T>(prec), (A::INFIX, both::<T>(prec)).repeat(true)),
+      ));
+    }
+  }
+}
+
 impl GrammarPrattKind for ExprIs {
   fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
-    use grammar::*; // todo
+    use grammar::*;
+    if prec == Prec::Comparison {
+      rules.push(grammar.named("Is", (left::<Expr>(prec), Token::Is, right::<Pat>(prec))));
+    }
+  }
+}
+
+impl GrammarPrattKind for ExprImplies {
+  fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
+    use grammar::*;
+    if prec == Prec::LogicalImplies {
+      rules.push(grammar.named("Implies", (left::<Expr>(prec), Token::Impl, right::<Pat>(prec))));
+    }
+  }
+}
+
+impl GrammarPrattKind for ExprNot {
+  fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
+    use grammar::*;
+    if prec == Prec::Prefix {
+      rules.push(grammar.named("Not", (Token::Bang, right::<Expr>(prec))));
+    }
+  }
+}
+
+impl GrammarPrattKind for PatIs {
+  fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
+    use grammar::*;
+    if prec == Prec::Comparison {
+      rules.push(grammar.named("Is", (left::<Pat>(prec), Token::Is, right::<Pat>(prec))));
+    }
+  }
+}
+
+impl GrammarPrattKind for PatCond {
+  fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
+    use grammar::*;
+    if prec == Prec::Cond {
+      rules.push(grammar.named("Is", (left::<Pat>(prec), Token::If, right::<Expr>(prec))));
+    }
   }
 }
 
@@ -66,12 +126,6 @@ impl ParsePratt<Expr, ExprIs> for Parser<'_> {
     } else {
       Ok(Err(initial))
     }
-  }
-}
-
-impl GrammarPrattKind for ExprImplies {
-  fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
-    use grammar::*; // todo
   }
 }
 
@@ -114,12 +168,6 @@ impl ParseAnyAll for ExprAll {
   }
 }
 
-impl GrammarPrattKind for ExprNot {
-  fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
-    use grammar::*; // todo
-  }
-}
-
 impl ParsePratt<Expr, ExprNot> for Parser<'_> {
   fn _parse_initial(&mut self, _: &mut PrecCtx) -> Result<Option<ExprNot>, Diag> {
     if self.eat(Token::Bang)? {
@@ -128,12 +176,6 @@ impl ParsePratt<Expr, ExprNot> for Parser<'_> {
     } else {
       Ok(None)
     }
-  }
-}
-
-impl GrammarPrattKind for PatIs {
-  fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
-    use grammar::*; // todo
   }
 }
 
@@ -158,12 +200,6 @@ impl ParseAnyAll for PatAny {
   const EMPTY: Option<Token> = None;
   fn new(children: Children<Self::Child>) -> Self {
     PatAny { children }
-  }
-}
-
-impl GrammarPrattKind for PatCond {
-  fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
-    use grammar::*; // todo
   }
 }
 
@@ -193,12 +229,6 @@ trait ParseAnyAll: Sized {
   fn new(children: Children<Self::Child>) -> Self;
 }
 
-impl<T, A: ParseAnyAll<Child = T>> GrammarPrattKind for A {
-  fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
-    use grammar::*; // todo
-  }
-}
-
 impl<T, A: ParseAnyAll<Child = T>> ParsePratt<T, A> for Parser<'_>
 where
   Self: ParsePratt<T>,
@@ -222,8 +252,11 @@ where
       && self.eat(A::INFIX)?
     {
       _ = prec();
-      let mut children = self.parse_children(None, Some(A::INFIX), None)?;
-      children.entries.insert(0, ChildrenEntry::from(initial));
+      let mut children = Children::default();
+      children.entries.push(ChildrenEntry::from(initial));
+      while self.eat(A::INFIX)? {
+        children.entries.push(ChildrenEntry::from(self.parse_pratt(A::PREC)?));
+      }
       Ok(Ok(A::new(children)))
     } else {
       Ok(Err(initial))

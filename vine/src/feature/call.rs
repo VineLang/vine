@@ -13,10 +13,15 @@ pub struct TraitFn {
   pub return_: Option<Ty>,
 }
 
-
 impl GrammarPrattKind for ExprCall {
   fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
-    use grammar::*; // todo
+    use grammar::*;
+    if prec == Prec::Postfix {
+      rules.push(grammar.named(
+        "Call",
+        (left::<Expr>(prec).field("callee"), Token::Dot, rule::<Sequence<Expr>>().field("args")),
+      ))
+    }
   }
 }
 
@@ -34,10 +39,20 @@ impl ParsePratt<Expr, ExprCall> for Parser<'_> {
   }
 }
 
-
 impl GrammarPrattKind for TraitFn {
   fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
-    use grammar::*; // todo
+    use grammar::*;
+    if prec == Prec::Max {
+      rules.push(grammar.named(
+        "Fn",
+        (
+          Token::Fn,
+          rule::<Ty>().field("callee"),
+          rule::<Sequence<Ty>>().field("args"),
+          (Token::Colon, rule::<Ty>()).field("return").optional(),
+        ),
+      ))
+    }
   }
 }
 

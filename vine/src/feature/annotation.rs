@@ -1,24 +1,29 @@
 use super::*;
 
 #[derive_(Debug, Clone, Visit!)]
-pub struct Annotation<T> {
-  pub child: T,
-  pub ty: Ty,
+pub struct Annotation<C, T> {
+  pub child: C,
+  pub ty: T,
 }
 
-
-impl<T> GrammarPrattKind for Annotation<T> {
+impl<C: GrammarPratt, T: GrammarPratt> GrammarPrattKind for Annotation<C, T> {
   fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
-    use grammar::*; // todo
+    use grammar::*;
+    if prec == Prec::Annotation {
+      rules.push(grammar.named("Annotation", (left::<C>(prec), Token::Colon, right::<T>(prec))))
+    }
   }
 }
 
-impl<T> ParsePratt<T, Annotation<T>> for Parser<'_> {
+impl<C, T> ParsePratt<C, Annotation<C, T>> for Parser<'_>
+where
+  Self: ParsePratt<T>,
+{
   fn _parse_suffix(
     &mut self,
     ctx: &mut PrecCtx,
-    initial: T,
-  ) -> Result<Result<Annotation<T>, T>, Diag> {
+    initial: C,
+  ) -> Result<Result<Annotation<C, T>, C>, Diag> {
     if let Some(prec) = ctx.prec(Prec::Annotation)
       && self.eat(Token::Colon)?
     {

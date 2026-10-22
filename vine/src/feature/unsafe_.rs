@@ -6,10 +6,12 @@ pub struct Safe<T> {
   pub child: T,
 }
 
-
-impl<T> GrammarPrattKind for Safe<T> {
+impl<T: GrammarPratt> GrammarPrattKind for Safe<T> {
   fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
-    use grammar::*; // todo
+    use grammar::*;
+    if prec == Prec::Prefix {
+      rules.push(grammar.named("Safe", (Token::Safe, right::<T>(prec))))
+    }
   }
 }
 

@@ -189,8 +189,8 @@ impl GrammarPrattKind for ExprBinaryOp {
     for_enum!(Op in BinaryOp { $(
       if prec == BinaryOp::$Op.precedence() {
         rules.push(grammar.named(
-          format!("BinaryOp_{}", stringify!($Op)),
-          (left::<Expr>(prec), BinaryOp::$Op.token(), right::<Expr>(prec)),
+          format!("BinaryOp{}", stringify!($Op)),
+          (left::<Expr>(prec), BinaryOp::$Op.token().field("op"), right::<Expr>(prec)),
         ));
       }
     )* })
@@ -203,8 +203,8 @@ impl GrammarPrattKind for ExprUnaryOp {
     for_enum!(Op in UnaryOp { $(
       if prec == Prec::Prefix {
         rules.push(grammar.named(
-          format!("UnaryOp_{}", stringify!($Op)),
-          (UnaryOp::$Op.token(), right::<Expr>(prec)),
+          format!("UnaryOp{}", stringify!($Op)),
+          (UnaryOp::$Op.token().field("op"), right::<Expr>(prec)),
         ));
       }
     )* })
@@ -215,10 +215,13 @@ impl GrammarPrattKind for ExprComparisonOp {
   fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
     use grammar::*;
     if prec == Prec::Comparison {
-      let op = for_enum!(Op in ComparisonOp { choice(( $(ComparisonOp::$Op.token(),)* ))});
+      let op = for_enum!(Op in ComparisonOp { choice(( $(ComparisonOp::$Op.token(),)* )) });
       rules.push(grammar.named(
         "ComparisonOp",
-        (both::<Expr>(Prec::Comparison), (op, both::<Expr>(Prec::Comparison)).repeat(true)),
+        (
+          both::<Expr>(Prec::Comparison),
+          (op.field("op"), both::<Expr>(Prec::Comparison)).repeat(true),
+        ),
       ));
     }
   }
@@ -273,6 +276,23 @@ impl GrammarPrattKind for ExprIndex {
           Token::CloseBracket,
         ),
       ));
+    }
+  }
+}
+
+impl<T: GrammarPratt> GrammarPrattKind for Range<T> {
+  fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
+    use grammar::*;
+    if prec == Prec::Range {
+      let op = choice((Token::DotDot, Token::DotDotEq, Token::BangDotDot, Token::BangDotDotEq));
+      rules.push(grammar.named(
+        "Range",
+        (
+          left::<T>(prec).field("left").optional(),
+          op.field("op"),
+          right::<T>(prec).field("right").optional(),
+        ),
+      ))
     }
   }
 }
@@ -436,12 +456,6 @@ impl ParsePratt<Expr, ExprIndex> for Parser<'_> {
     } else {
       Ok(Err(initial))
     }
-  }
-}
-
-impl<T> GrammarPrattKind for Range<T> {
-  fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
-    use grammar::*; // todo
   }
 }
 

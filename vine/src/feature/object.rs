@@ -16,16 +16,84 @@ pub enum ObjectChild<T> {
   Spread(Option<T>),
 }
 
-pub trait ParseObject: Sized {
+pub trait ObjectKind: Sized {
   const ALLOW_SHORTHAND: bool;
   fn from_shorthand(span: LocalSpan, ident: Spanned<Ident>, annotation: Option<Ty>) -> Self;
 }
 
-impl<T: ParseObject> Parse<Object<T>> for Parser<'_>
+impl ObjectKind for Expr {
+  const ALLOW_SHORTHAND: bool = true;
+  fn from_shorthand(span: LocalSpan, ident: Spanned<Ident>, annotation: Option<Ty>) -> Self {
+    let expr = Expr::new(ident.span, PathCall { path: Path::from(ident), args: None });
+    match annotation {
+      Some(ty) => Expr::new(span, Annotation { child: expr, ty }),
+      None => expr,
+    }
+  }
+}
+
+impl ObjectKind for Pat {
+  const ALLOW_SHORTHAND: bool = true;
+  fn from_shorthand(span: LocalSpan, ident: Spanned<Ident>, annotation: Option<Ty>) -> Self {
+    let pat = Pat::new(ident.span, PathCall { path: Path::from(ident), args: None });
+    match annotation {
+      Some(ty) => Pat::new(span, Annotation { child: pat, ty }),
+      None => pat,
+    }
+  }
+}
+
+impl ObjectKind for Ty {
+  const ALLOW_SHORTHAND: bool = false;
+  fn from_shorthand(_: LocalSpan, _: Spanned<Ident>, _: Option<Ty>) -> Self {
+    unreachable!()
+  }
+}
+
+impl<T: ObjectKind + GrammarPratt> GrammarPrattKind for Object<T> {
+  fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
+    use grammar::*;
+    if prec == Prec::Max {
+      rules.push(grammar.named(
+        "Object",
+        choice((
+          delimited::<ObjectChild<T>>(Token::OpenBrace, Token::Comma, Token::CloseBrace),
+          (
+            Token::OpenBrace,
+            delimited::<ObjectChild<T>>(Token::OpenBrace, Token::Comma, Token::CloseBrace),
+            Token::CloseBrace,
+          ),
+        )),
+      ));
+    }
+  }
+}
+
+impl<T: ObjectKind + GrammarPratt> GrammarRule for ObjectChild<T> {
+  fn _rule(grammar: &mut Grammar) -> grammar::Rule {
+    use grammar::*;
+    grammar.named(
+      format!("ObjectEntry{}", T::NAME),
+      choice(((
+        rule::<Ident>().field("key"),
+        choice((
+          (Token::Colon, rule::<T>().field("value")),
+          (
+            choice((Token::ColonColon, (Token::Colon, Token::Colon))),
+            rule::<T>().field("annotation"),
+          ),
+        ))
+        .optional(),
+      ),)),
+    )
+  }
+}
+
+impl<T: ObjectKind> ParsePratt<T, Object<T>> for Parser<'_>
 where
   Self: Parse<T>,
 {
-  fn _parse(&mut self) -> Result<Option<Object<T>>, Diag> {
+  fn _parse_initial(&mut self, _: &mut PrecCtx) -> Result<Option<Object<T>>, Diag> {
     if self.eat(Token::OpenBrace)? {
       let ordered = self.eat(Token::OpenBrace)?;
       let children =
@@ -40,7 +108,7 @@ where
   }
 }
 
-impl<T: ParseObject> Parse<ObjectChild<T>> for Parser<'_>
+impl<T: ObjectKind> Parse<ObjectChild<T>> for Parser<'_>
 where
   Self: Parse<T>,
 {
@@ -69,50 +137,5 @@ where
     } else {
       Ok(None)
     }
-  }
-}
-
-
-impl<T: ParseObject> GrammarPrattKind for Object<T> {
-  fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
-    use grammar::*; // todo
-  }
-}
-
-impl<T: ParseObject> ParsePratt<T, Object<T>> for Parser<'_>
-where
-  Self: Parse<T>,
-{
-  fn _parse_initial(&mut self, _: &mut PrecCtx) -> Result<Option<Object<T>>, Diag> {
-    self.try_parse::<Object<T>>()
-  }
-}
-
-impl ParseObject for Expr {
-  const ALLOW_SHORTHAND: bool = true;
-  fn from_shorthand(span: LocalSpan, ident: Spanned<Ident>, annotation: Option<Ty>) -> Self {
-    let expr = Expr::new(ident.span, PathCall { path: Path::from(ident), args: None });
-    match annotation {
-      Some(ty) => Expr::new(span, Annotation { child: expr, ty }),
-      None => expr,
-    }
-  }
-}
-
-impl ParseObject for Pat {
-  const ALLOW_SHORTHAND: bool = true;
-  fn from_shorthand(span: LocalSpan, ident: Spanned<Ident>, annotation: Option<Ty>) -> Self {
-    let pat = Pat::new(ident.span, PathCall { path: Path::from(ident), args: None });
-    match annotation {
-      Some(ty) => Pat::new(span, Annotation { child: pat, ty }),
-      None => pat,
-    }
-  }
-}
-
-impl ParseObject for Ty {
-  const ALLOW_SHORTHAND: bool = false;
-  fn from_shorthand(_: LocalSpan, _: Spanned<Ident>, _: Option<Ty>) -> Self {
-    unreachable!()
   }
 }
