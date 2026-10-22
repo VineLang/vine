@@ -240,7 +240,7 @@ impl GrammarPrattKind for PatComparisonOp {
 impl GrammarPrattKind for ExprCast {
   fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
     use grammar::*;
-    if prec == Prec::Annotation {
+    if prec == Prec::Cast {
       rules.push(grammar.named("As", (left::<Expr>(prec), Token::As, right::<Ty>(prec))));
     }
     if prec == Prec::Postfix {
@@ -405,7 +405,7 @@ impl ParsePratt<Expr, ExprCast> for Parser<'_> {
     ctx: &mut PrecCtx,
     initial: Expr,
   ) -> Result<Result<ExprCast, Expr>, Diag> {
-    if let Some(prec) = ctx.prec(Prec::Annotation)
+    if let Some(prec) = ctx.prec(Prec::Cast)
       && let Some(op) = self.eat_spanned(Token::As)?
     {
       let ty = self.parse_pratt(prec())?;

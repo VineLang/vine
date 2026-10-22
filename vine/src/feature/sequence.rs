@@ -13,6 +13,54 @@ pub enum SequenceChild<T> {
   Spread(Option<T>),
 }
 
+pub trait GrammarSequence {
+  const ALLOW_LABEL: bool = false;
+  const NAME: &str;
+}
+
+impl<T: GrammarRule + GrammarSequence> GrammarRule for Sequence<T> {
+  fn _rule(grammar: &mut Grammar) -> grammar::Rule {
+    use grammar::*;
+    grammar.named(
+      format!("{}Sequence", T::NAME),
+      (
+        Token::OpenParen,
+        (rule::<T>(), (Token::Comma, rule::<T>()).repeat(false), Token::Comma.optional())
+          .optional(),
+        Token::CloseParen,
+      ),
+    )
+  }
+}
+
+impl<T: GrammarRule + GrammarSequence> GrammarRule for SequenceChild<T> {
+  fn _rule(grammar: &mut Grammar) -> grammar::Rule {
+    use grammar::*;
+    let label = if T::ALLOW_LABEL {
+      (rule::<Ident>(), Token::Colon).optional().to_node(grammar)
+    } else {
+      empty().to_node(grammar)
+    };
+    grammar.named(
+      format!("{}SequenceChild", T::NAME),
+      choice(((label, rule::<T>()), (Token::DotDotDot, rule::<T>().optional()))),
+    )
+  }
+}
+
+impl GrammarSequence for Expr {
+  const NAME: &str = "Expr";
+}
+
+impl GrammarSequence for Pat {
+  const NAME: &str = "Pat";
+}
+
+impl GrammarSequence for Ty {
+  const NAME: &str = "Ty";
+  const ALLOW_LABEL: bool = true;
+}
+
 pub trait ParseSequence: Sized {
   fn as_label(&self) -> Option<Spanned<Ident>> {
     None
