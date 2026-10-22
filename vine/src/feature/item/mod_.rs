@@ -13,6 +13,28 @@ pub enum ItemModKind {
   External,
 }
 
+impl GrammarRule for ItemMod {
+  fn _rule(grammar: &mut Grammar) -> grammar::Rule {
+    use grammar::*;
+    grammar.named(
+      "ItemMod",
+      (
+        Token::Mod,
+        choice((
+          (rule::<Ident>().field("name").optional(), Token::Semi),
+          (
+            rule::<Ident>().field("name").optional(),
+            rule::<GenericParams>().field("generics").optional(),
+            Token::OpenBrace,
+            rule::<Item>().repeat(false),
+            Token::CloseBrace,
+          ),
+        )),
+      ),
+    )
+  }
+}
+
 impl Parse<Vis> for Parser<'_> {
   fn _parse(&mut self) -> Result<Option<Vis>, Diag> {
     if self.eat(Token::Pub)? {

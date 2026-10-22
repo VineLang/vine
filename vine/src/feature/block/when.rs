@@ -12,14 +12,32 @@ pub struct WhenArm {
   pub body: Block,
 }
 
-impl GrammarPrattKind for ExprWhen {
-  fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
-    use grammar::*; // todo
+impl GrammarRule for ExprWhen {
+  fn _rule(grammar: &mut Grammar) -> grammar::Rule {
+    use grammar::*;
+    grammar.named(
+      "ExprWhen",
+      (
+        Token::When,
+        rule::<Label>().optional(),
+        Token::OpenBrace,
+        (rule::<WhenArm>(), Token::Comma.optional()).repeat(false),
+        Token::CloseBrace,
+        rule::<Block>().field("body"),
+      ),
+    )
   }
 }
 
-impl ParsePratt<Expr, ExprWhen> for Parser<'_> {
-  fn _parse_full(&mut self) -> Result<Option<ExprWhen>, Diag> {
+impl GrammarRule for WhenArm {
+  fn _rule(grammar: &mut Grammar) -> grammar::Rule {
+    use grammar::*;
+    grammar.named("WhenArm", (below::<Expr>(Prec::Block), rule::<Block>()))
+  }
+}
+
+impl Parse<ExprWhen> for Parser<'_> {
+  fn _parse(&mut self) -> Result<Option<ExprWhen>, Diag> {
     if self.eat(Token::When)? {
       let label = self.parse()?;
       let arms = self.parse_children(Some(Token::OpenBrace), None, Some(Token::CloseBrace))?;
@@ -35,7 +53,7 @@ impl Parse<WhenArm> for Parser<'_> {
     if self.eat(Token::Underscore)? {
       let body = self.parse()?;
       Ok(Some(WhenArm { cond: None, body }))
-    } else if let Some(cond) = self.try_parse_pratt(Prec::Cond)? {
+    } else if let Some(cond) = self.try_parse_pratt(Prec::Block)? {
       let body = self.parse()?;
       self.eat(Token::Comma)?;
       Ok(Some(WhenArm { cond: Some(cond), body }))

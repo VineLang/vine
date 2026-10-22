@@ -1,12 +1,12 @@
 use super::*;
 
-use crate::feature::generics::GenericParams;
+use crate::feature::generics::GenericArgs;
 
 #[derive_(Debug, Clone, Visit!)]
 pub struct ExprMethod {
   pub recv: Expr,
   pub method: Spanned<Ident>,
-  pub generics: GenericParams,
+  pub generics: GenericArgs,
   pub args: Sequence<Expr>,
 }
 
@@ -22,7 +22,7 @@ impl GrammarPrattKind for ExprMethod {
             (
               Token::Dot,
               rule::<Ident>().field("name"),
-              rule::<GenericParams>().field("generics"),
+              rule::<GenericArgs>().field("generics").optional(),
               rule::<Sequence<Expr>>().field("args"),
             )
               .named("Method"),

@@ -553,7 +553,15 @@ impl Token {
   }
 
   pub fn is_keyword(self) -> bool {
-    matches!(self.info(), TokenInfo::Underscore | TokenInfo::Keyword(_))
+    self.as_keyword().is_some()
+  }
+
+  pub fn as_keyword(self) -> Option<&'static str> {
+    match self.info() {
+      TokenInfo::Underscore => Some("_"),
+      TokenInfo::Keyword(keyword) => Some(keyword),
+      _ => None,
+    }
   }
 }
 

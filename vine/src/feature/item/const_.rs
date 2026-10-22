@@ -11,6 +11,23 @@ pub struct ItemConst {
 #[derive_(Debug, Clone, Visit!)]
 pub struct AttrConfigurable;
 
+impl GrammarRule for ItemConst {
+  fn _rule(grammar: &mut Grammar) -> grammar::Rule {
+    use grammar::*;
+    grammar.named(
+      "ItemConst",
+      (
+        Token::Const,
+        rule::<Ident>().field("name"),
+        rule::<GenericParams>().field("generics").optional(),
+        (Token::Colon, right::<Ty>(Prec::Annotation).field("type")).optional(),
+        (Token::Eq, rule::<Expr>().field("value")).optional(),
+        Token::Semi,
+      ),
+    )
+  }
+}
+
 impl Parse<ItemConst> for Parser<'_> {
   fn _parse(&mut self) -> Result<Option<ItemConst>, Diag> {
     if self.eat(Token::Const)? {

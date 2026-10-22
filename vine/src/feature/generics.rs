@@ -47,15 +47,15 @@ pub struct ImplArg {
 
 impl GrammarRule for GenericParams {
   fn _rule(grammar: &mut Grammar) -> grammar::Rule {
-    use grammar::*;
-    grammar.named("GenericParams", empty()) // todo
+    use grammar::*; // todo
+    grammar.named("GenericParams", (Token::OpenBracket, Token::CloseBracket))
   }
 }
 
 impl GrammarRule for GenericArgs {
   fn _rule(grammar: &mut Grammar) -> grammar::Rule {
-    use grammar::*;
-    grammar.named("GenericArgs", empty()) // todo
+    use grammar::*; // todo
+    grammar.named("GenericArgs", (Token::OpenBracket, Token::CloseBracket))
   }
 }
 

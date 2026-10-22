@@ -46,24 +46,45 @@ pub struct PatCond {
   pub cond: Expr,
 }
 
-impl<T: GrammarPratt, A: ParseAnyAll<Child = T>> GrammarPrattKind for A {
-  fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
-    use grammar::*;
-    if prec == Prec::Max {
-      if let Some(token) = A::EMPTY {
-        rules.push(grammar.named(format!("{:?}", token), token));
-      }
-      rules.push(grammar.named(
-        format!("{:?}", A::GROUP),
-        (A::GROUP, delimited::<T>(Token::OpenBrace, Token::Comma, Token::CloseBrace)),
-      ));
-    }
-    if prec == A::PREC {
-      rules.push(grammar.named(
-        format!("{:?}", A::INFIX),
-        (both::<T>(prec), (A::INFIX, both::<T>(prec)).repeat(true)),
-      ));
-    }
+trait AnyAll: Sized {
+  type Child;
+  const GROUP: Token;
+  const INFIX: Token;
+  const PREC: Prec;
+  const EMPTY: Option<Token>;
+  fn new(children: Children<Self::Child>) -> Self;
+}
+
+impl AnyAll for ExprAny {
+  type Child = Expr;
+  const GROUP: Token = Token::Any;
+  const INFIX: Token = Token::Or;
+  const PREC: Prec = Prec::LogicalOr;
+  const EMPTY: Option<Token> = Some(Token::False);
+  fn new(children: Children<Self::Child>) -> Self {
+    ExprAny { children }
+  }
+}
+
+impl AnyAll for ExprAll {
+  type Child = Expr;
+  const GROUP: Token = Token::All;
+  const INFIX: Token = Token::And;
+  const PREC: Prec = Prec::LogicalAnd;
+  const EMPTY: Option<Token> = Some(Token::True);
+  fn new(children: Children<Self::Child>) -> Self {
+    ExprAll { children }
+  }
+}
+
+impl AnyAll for PatAny {
+  type Child = Pat;
+  const GROUP: Token = Token::Any;
+  const INFIX: Token = Token::Or;
+  const PREC: Prec = Prec::LogicalOr;
+  const EMPTY: Option<Token> = None;
+  fn new(children: Children<Self::Child>) -> Self {
+    PatAny { children }
   }
 }
 
@@ -105,9 +126,30 @@ impl GrammarPrattKind for PatIs {
 
 impl GrammarPrattKind for PatCond {
   fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
-    use grammar::*;
+    use grammar::*; // todo
     if prec == Prec::Cond {
-      rules.push(grammar.named("Is", (left::<Pat>(prec), Token::If, right::<Expr>(prec))));
+      rules.push(grammar.named("If", (left::<Pat>(prec), Token::If, right::<Expr>(prec))));
+    }
+  }
+}
+
+impl<T: GrammarPratt, A: AnyAll<Child = T>> GrammarPrattKind for A {
+  fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
+    use grammar::*;
+    if prec == Prec::Max {
+      if let Some(token) = A::EMPTY {
+        rules.push(grammar.named(format!("{:?}", token), token));
+      }
+      rules.push(grammar.named(
+        format!("{:?}", A::GROUP),
+        (A::GROUP, delimited::<T>(Token::OpenBrace, Token::Comma, Token::CloseBrace)),
+      ));
+    }
+    if prec == A::PREC {
+      rules.push(grammar.named(
+        format!("{:?}", A::INFIX),
+        (below::<T>(prec), (A::INFIX, below::<T>(prec)).repeat(true)),
+      ));
     }
   }
 }
@@ -146,28 +188,6 @@ impl ParsePratt<Expr, ExprImplies> for Parser<'_> {
   }
 }
 
-impl ParseAnyAll for ExprAny {
-  type Child = Expr;
-  const GROUP: Token = Token::Any;
-  const INFIX: Token = Token::Or;
-  const PREC: Prec = Prec::LogicalOr;
-  const EMPTY: Option<Token> = Some(Token::False);
-  fn new(children: Children<Self::Child>) -> Self {
-    ExprAny { children }
-  }
-}
-
-impl ParseAnyAll for ExprAll {
-  type Child = Expr;
-  const GROUP: Token = Token::All;
-  const INFIX: Token = Token::And;
-  const PREC: Prec = Prec::LogicalAnd;
-  const EMPTY: Option<Token> = Some(Token::True);
-  fn new(children: Children<Self::Child>) -> Self {
-    ExprAll { children }
-  }
-}
-
 impl ParsePratt<Expr, ExprNot> for Parser<'_> {
   fn _parse_initial(&mut self, _: &mut PrecCtx) -> Result<Option<ExprNot>, Diag> {
     if self.eat(Token::Bang)? {
@@ -192,17 +212,6 @@ impl ParsePratt<Pat, PatIs> for Parser<'_> {
   }
 }
 
-impl ParseAnyAll for PatAny {
-  type Child = Pat;
-  const GROUP: Token = Token::Any;
-  const INFIX: Token = Token::Or;
-  const PREC: Prec = Prec::LogicalOr;
-  const EMPTY: Option<Token> = None;
-  fn new(children: Children<Self::Child>) -> Self {
-    PatAny { children }
-  }
-}
-
 impl ParsePratt<Pat, PatCond> for Parser<'_> {
   fn _parse_suffix(
     &mut self,
@@ -220,16 +229,7 @@ impl ParsePratt<Pat, PatCond> for Parser<'_> {
   }
 }
 
-trait ParseAnyAll: Sized {
-  type Child;
-  const GROUP: Token;
-  const INFIX: Token;
-  const PREC: Prec;
-  const EMPTY: Option<Token>;
-  fn new(children: Children<Self::Child>) -> Self;
-}
-
-impl<T, A: ParseAnyAll<Child = T>> ParsePratt<T, A> for Parser<'_>
+impl<T, A: AnyAll<Child = T>> ParsePratt<T, A> for Parser<'_>
 where
   Self: ParsePratt<T>,
 {

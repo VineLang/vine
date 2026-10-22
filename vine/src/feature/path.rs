@@ -45,7 +45,7 @@ impl GrammarRule for Path<!> {
       "Path",
       (
         (rule::<PathComponent>(), (Token::ColonColon, rule::<PathComponent>()).repeat(false)),
-        rule::<GenericArgs>().field("generics"),
+        rule::<GenericArgs>().field("generics").optional(),
       ),
     )
   }

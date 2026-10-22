@@ -183,6 +183,26 @@ impl ComparisonOp {
   }
 }
 
+impl GrammarRule for StmtAssign {
+  fn _rule(grammar: &mut Grammar) -> grammar::Rule {
+    use grammar::*;
+    grammar.named(
+      "StmtAssign",
+      (
+        below::<Expr>(Prec::Min),
+        choice(for_enum!(Op in BinaryOp { (
+          Token::Eq,
+          Token::TildeEq,
+          $(AssignOp::BinaryOp(BinaryOp::$Op).token(),)*
+        ) }))
+        .field("op"),
+        rule::<Expr>(),
+        Token::Semi,
+      ),
+    )
+  }
+}
+
 impl GrammarPrattKind for ExprBinaryOp {
   fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
     use grammar::*;
@@ -219,8 +239,8 @@ impl GrammarPrattKind for ExprComparisonOp {
       rules.push(grammar.named(
         "ComparisonOp",
         (
-          both::<Expr>(Prec::Comparison),
-          (op.field("op"), both::<Expr>(Prec::Comparison)).repeat(true),
+          below::<Expr>(Prec::Comparison),
+          (op.field("op"), below::<Expr>(Prec::Comparison)).repeat(true),
         ),
       ));
     }
@@ -234,7 +254,7 @@ impl GrammarPrattKind for PatComparisonOp {
       let op = for_enum!(Op in ComparisonOp { choice(( $(ComparisonOp::$Op.token(),)* ))});
       rules.push(grammar.named(
         "ComparisonOp",
-        (both::<Expr>(Prec::Comparison).optional(), op, both::<Expr>(Prec::Comparison)),
+        (below::<Pat>(Prec::Comparison).optional(), op, below::<Expr>(Prec::Comparison)),
       ));
     }
   }
@@ -282,18 +302,18 @@ impl GrammarPrattKind for ExprIndex {
 
 impl<T: GrammarPratt> GrammarPrattKind for Range<T> {
   fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
-    use grammar::*;
-    if prec == Prec::Range {
-      let op = choice((Token::DotDot, Token::DotDotEq, Token::BangDotDot, Token::BangDotDotEq));
-      rules.push(grammar.named(
-        "Range",
-        (
-          left::<T>(prec).field("left").optional(),
-          op.field("op"),
-          right::<T>(prec).field("right").optional(),
-        ),
-      ))
-    }
+    use grammar::*; // todo
+    // if prec == Prec::Range {
+    //   let op = choice((Token::DotDot, Token::DotDotEq, Token::BangDotDot,
+    // Token::BangDotDotEq));   rules.push(grammar.named(
+    //     "Range",
+    //     (
+    //       left::<T>(prec).field("left").optional(),
+    //       op.field("op"),
+    //       right::<T>(prec).field("right").optional(),
+    //     ),
+    //   ))
+    // }
   }
 }
 

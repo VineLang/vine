@@ -30,7 +30,7 @@ impl GrammarRule for Flex {
     use grammar::*;
     grammar.named(
       "flex",
-      choice((Token::Quest, Token::Plus, Token::PlusPlus, Token::Star, Token::StarStar)).optional(),
+      choice((Token::Quest, Token::Plus, Token::PlusPlus, Token::Star, Token::StarStar)),
     )
   }
 }

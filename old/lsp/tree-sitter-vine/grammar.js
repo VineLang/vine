@@ -1,5 +1,5 @@
-/// <reference types="tree-sitter-cli/dsl" />
-// @ts-check
+// /// <reference types="tree-sitter-cli/dsl" />
+// // @ts-check
 
 const delimited = (open, sep, close, inner) =>
   seq(

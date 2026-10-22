@@ -1,29 +1,13 @@
 use super::*;
 
-pub use crate::feature::{
-  children::Children, control::block::Block, path::Path, sequence::Sequence,
-};
+pub use crate::feature::{block::Block, children::Children, path::Path, sequence::Sequence};
 
 use crate::feature::{
   annotation::Annotation,
+  block::{ExprBlock, if_::TyIfConst},
   builtin::AttrBuiltin,
   call::{ExprCall, TraitFn},
-  control::{
-    assert::StmtAssert,
-    block::StmtExpr,
-    closure::{ExprClosure, StmtClosure},
-    condition::{ExprAll, ExprAny, ExprImplies, ExprIs, ExprNot, PatAny, PatCond, PatIs},
-    do_::ExprDo,
-    for_::ExprFor,
-    if_::{ExprIf, TyIfConst},
-    label::{StmtBreak, StmtContinue},
-    let_::StmtLet,
-    loop_::ExprLoop,
-    match_::ExprMatch,
-    try_::ExprTry,
-    when::ExprWhen,
-    while_::ExprWhile,
-  },
+  condition::{ExprAll, ExprAny, ExprImplies, ExprIs, ExprNot, PatAny, PatCond, PatIs},
   enum_::{TyEnum, Variant},
   field::Field,
   hole::Hole,
@@ -45,12 +29,12 @@ use crate::feature::{
   object::Object,
   operator::{
     ExprBinaryOp, ExprCast, ExprComparisonOp, ExprIndex, ExprUnaryOp, PatComparisonOp, Range,
-    StmtAssign,
   },
   path::{ExprPathCall, ImplPath, PatPathCall, TraitPath, TyPath},
   placement::Placement,
   read::Read,
   string::StringLiteral,
+  try_::ExprTry,
   tuple::Tuple,
   underscore::{ImplAuto, Underscore},
   unsafe_::Safe,
@@ -117,7 +101,7 @@ pub struct Item {
   pub kind: Box<ItemKind>,
 }
 
-#[derive_(Debug, Clone, Visit!)]
+#[derive_(Debug, Clone, Visit!, for_enum!)]
 pub enum ItemKind {
   Use(ItemUse),
   Mod(ItemMod),
@@ -162,23 +146,6 @@ pub enum Vis {
 }
 
 #[derive_(Debug, Clone, Visit!)]
-pub struct Stmt {
-  pub span: LocalSpan,
-  pub kind: Box<StmtKind>,
-}
-
-#[derive_(Debug, Clone, From, Visit!, for_enum!)]
-pub enum StmtKind {
-  Let(StmtLet),
-  Closure(StmtClosure),
-  Assert(StmtAssert),
-  Assign(StmtAssign),
-  Break(StmtBreak),
-  Continue(StmtContinue),
-  Expr(StmtExpr),
-}
-
-#[derive_(Debug, Clone, Visit!)]
 pub struct Expr {
   pub span: LocalSpan,
   pub kind: Box<ExprKind>,
@@ -209,15 +176,7 @@ pub enum ExprKind {
   Placement(Placement<Expr>),
   Read(Read<Expr>),
 
-  // Control flow
-  Do(ExprDo),
-  Match(ExprMatch),
-  If(ExprIf),
-  When(ExprWhen),
-  While(ExprWhile),
-  Loop(ExprLoop),
-  For(ExprFor),
-  Closure(ExprClosure),
+  Block(ExprBlock),
   Try(ExprTry),
 
   // Conditions

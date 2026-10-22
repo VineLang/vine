@@ -20,7 +20,13 @@ impl<T: GrammarPratt> GrammarPrattKind for Field<T> {
 impl GrammarRule for FieldKind {
   fn _rule(grammar: &mut Grammar) -> grammar::Rule {
     use grammar::*;
-    grammar.named("Field", choice(((Token::Dot, rule::<Ident>()), Token::TupleField)))
+    grammar.named(
+      "Field",
+      choice((
+        (Token::Dot, rule::<Ident>()),
+        // Token::TupleField
+      )),
+    )
   }
 }
 

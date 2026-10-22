@@ -21,21 +21,30 @@ pub struct TyIfConst {
   pub else_: Option<Ty>,
 }
 
-
-impl GrammarPrattKind for ExprIf {
-  fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
-    use grammar::*; // todo
+impl GrammarRule for ExprIf {
+  fn _rule(grammar: &mut Grammar) -> grammar::Rule {
+    use grammar::*;
+    grammar.named(
+      "ExprIf",
+      (
+        Token::If,
+        rule::<Label>().optional(),
+        below::<Expr>(Prec::Block),
+        rule::<Block>().field("body"),
+        (Token::Else, rule::<Block>().field("else")).optional(),
+      ),
+    )
   }
 }
 
-impl ParsePratt<Expr, ExprIf> for Parser<'_> {
-  fn _parse_full(&mut self) -> Result<Option<ExprIf>, Diag> {
+impl Parse<ExprIf> for Parser<'_> {
+  fn _parse(&mut self) -> Result<Option<ExprIf>, Diag> {
     if self.eat(Token::If)? {
       let label = self.parse()?;
       let cond = if self.eat(Token::Const)? {
         IfCond::Const(self.parse()?)
       } else {
-        IfCond::Expr(self.parse_pratt(Prec::Cond)?)
+        IfCond::Expr(self.parse_pratt(Prec::Block)?)
       };
       let then = self.parse()?;
       let else_ = self.eat_then(Token::Else, Self::parse)?;
@@ -46,7 +55,6 @@ impl ParsePratt<Expr, ExprIf> for Parser<'_> {
   }
 }
 
-
 impl GrammarPrattKind for TyIfConst {
   fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
     use grammar::*; // todo
@@ -54,8 +62,11 @@ impl GrammarPrattKind for TyIfConst {
 }
 
 impl ParsePratt<Ty, TyIfConst> for Parser<'_> {
-  fn _parse_full(&mut self) -> Result<Option<TyIfConst>, Diag> {
-    if self.eat(Token::If)? {
+  fn _parse_initial(&mut self, ctx: &mut PrecCtx) -> Result<Option<TyIfConst>, Diag> {
+    if let Some(prec) = ctx.prec(Prec::Min)
+      && self.eat(Token::If)?
+    {
+      _ = prec();
       let cond = self.parse()?;
       self.expect(Token::OpenBrace)?;
       let then = self.parse()?;

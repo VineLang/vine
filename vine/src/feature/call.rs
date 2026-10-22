@@ -47,7 +47,7 @@ impl GrammarPrattKind for TraitFn {
         "Fn",
         (
           Token::Fn,
-          rule::<Ty>().field("callee"),
+          left::<Ty>(Prec::Postfix).field("callee"),
           rule::<Sequence<Ty>>().field("args"),
           (Token::Colon, rule::<Ty>()).field("return").optional(),
         ),

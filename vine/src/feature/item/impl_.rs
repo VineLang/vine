@@ -2,7 +2,7 @@ use super::*;
 
 #[derive_(Debug, Clone, Visit!)]
 pub struct ItemImpl {
-  pub name: Spanned<Ident>,
+  pub name: Option<Spanned<Ident>>,
   pub generics: GenericParams,
   pub safe: Option<Spanned<()>>,
   pub trait_: Trait,
@@ -27,10 +27,36 @@ pub struct AttrBecome {
   pub path: Path<!>,
 }
 
+impl GrammarRule for ItemImpl {
+  fn _rule(grammar: &mut Grammar) -> grammar::Rule {
+    use grammar::*;
+    grammar.named(
+      "ItemImpl",
+      (
+        Token::Impl,
+        rule::<Ident>().field("name").optional(),
+        rule::<GenericParams>().field("generics").optional(),
+        Token::Colon,
+        Token::Safe.optional(),
+        rule::<Trait>().field("trait"),
+        choice((
+          ((Token::Eq, rule::<Impl>()).optional(), Token::Semi),
+          (
+            Token::OpenBrace,
+            rule::<Item>().repeat(false),
+            Token::CloseBrace,
+            Token::Semi.optional(),
+          ),
+        )),
+      ),
+    )
+  }
+}
+
 impl Parse<ItemImpl> for Parser<'_> {
   fn _parse(&mut self) -> Result<Option<ItemImpl>, Diag> {
     if self.eat(Token::Impl)? {
-      let name = self.parse()?;
+      let name = self.try_parse()?;
       let generics = self.parse()?;
       self.expect(Token::Colon)?;
       let safe = self.eat_spanned(Token::Safe)?;

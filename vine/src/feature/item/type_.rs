@@ -10,6 +10,24 @@ pub struct ItemType {
   pub kind: ItemTypeKind,
 }
 
+impl GrammarRule for ItemType {
+  fn _rule(grammar: &mut Grammar) -> grammar::Rule {
+    use grammar::*;
+    grammar.named(
+      "ItemType",
+      (
+        Token::Type,
+        rule::<Flex>().field("flex").optional(),
+        rule::<Ident>().field("name"),
+        rule::<GenericParams>().field("generics").optional(),
+        choice(((Token::Colon, rule::<Vis>().optional(), rule::<Ty>()), (Token::Eq, rule::<Ty>())))
+          .optional(),
+        Token::Semi,
+      ),
+    )
+  }
+}
+
 #[derive_(Debug, Clone, Visit!)]
 pub enum ItemTypeKind {
   Opaque,

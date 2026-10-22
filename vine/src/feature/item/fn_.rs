@@ -5,7 +5,7 @@ pub struct ItemFn {
   pub method: bool,
   pub name: Spanned<Ident>,
   pub generics: GenericParams,
-  pub args: Sequence<Pat>,
+  pub params: Sequence<Pat>,
   pub return_ty: Option<Ty>,
   pub body: Option<Block>,
 }
@@ -21,6 +21,33 @@ pub struct AttrTest;
 #[derive_(Debug, Clone, Visit!)]
 pub struct AttrFrameless;
 
+impl GrammarRule for ItemFn {
+  fn _rule(grammar: &mut Grammar) -> grammar::Rule {
+    use grammar::*;
+    grammar.named(
+      "ItemFn",
+      (
+        Token::Fn,
+        Token::Dot.field("method").optional(),
+        rule::<Ident>().field("name"),
+        rule::<GenericParams>().field("generics").optional(),
+        rule::<Sequence<Pat>>().field("params"),
+        (Token::Colon, rule::<Ty>().field("return")).optional(),
+        choice(((rule::<Block>().field("body"), Token::Semi.optional()), Token::Semi)),
+      ),
+    )
+  }
+}
+
+impl GrammarPrattKind for TyFnPath {
+  fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
+    use grammar::*;
+    if prec == Prec::Max {
+      rules.push(grammar.named("FnPath", (Token::Fn, rule::<Path<!>>())));
+    }
+  }
+}
+
 impl Parse<ItemFn> for Parser<'_> {
   fn _parse(&mut self) -> Result<Option<ItemFn>, Diag> {
     if self.eat(Token::Fn)? {
@@ -31,17 +58,10 @@ impl Parse<ItemFn> for Parser<'_> {
       let return_ty = self.eat_then(Token::Colon, Self::parse)?;
       let body = self.try_parse()?;
       self.semi(body.is_none())?;
-      Ok(Some(ItemFn { method, name, generics, args, return_ty, body }))
+      Ok(Some(ItemFn { method, name, generics, params: args, return_ty, body }))
     } else {
       Ok(None)
     }
-  }
-}
-
-
-impl GrammarPrattKind for TyFnPath {
-  fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
-    use grammar::*; // todo
   }
 }
 

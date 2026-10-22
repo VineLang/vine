@@ -13,8 +13,8 @@ use crate::{
     lexer::Token,
     parser::{Assoc, Prec},
   },
-  feature::control::{
-    closure::ExprClosure, do_::ExprDo, for_::ExprFor, loop_::ExprLoop, when::ExprWhen,
+  feature::block::{
+    closure::ExprClosure, do_::ExprDo, for_::ExprFor, label, loop_::ExprLoop, when::ExprWhen,
   },
 };
 
@@ -180,9 +180,6 @@ pub trait GrammarPratt: Any + GrammarPrattKind {
   const NAME: &str;
   const ALLOW_DOT: bool = false;
 
-  #[allow(unused_variables)]
-  fn extra_rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<Rule>) {}
-
   fn pratt_rule(grammar: &mut Grammar, prec: Prec) -> RuleId {
     let key = (TypeId::of::<Self>(), Some(prec));
     if let Some(&id) = grammar.pratt.get(&key) {
@@ -200,7 +197,6 @@ pub trait GrammarPratt: Any + GrammarPrattKind {
     grammar.pratt.insert(key, id);
     let mut rules = Vec::new();
     Self::rules(grammar, prec, &mut rules);
-    Self::extra_rules(grammar, prec, &mut rules);
     if rules.is_empty()
       && let Some(next) = next
     {
@@ -243,6 +239,10 @@ pub fn rule<T: GrammarRule>() -> impl ToNode {
   from_fn(|grammar| Node::Rule(T::rule(grammar)))
 }
 
+pub fn rule_variant<T: GrammarRule, U>(_: fn(T) -> U) -> impl ToNode {
+  rule::<T>()
+}
+
 pub fn left<T: GrammarPratt>(prec: Prec) -> impl ToNode {
   _pratt::<T>(prec, prec.assoc() == Assoc::Left)
 }
@@ -251,7 +251,7 @@ pub fn right<T: GrammarPratt>(prec: Prec) -> impl ToNode {
   _pratt::<T>(prec, prec.assoc() == Assoc::Right)
 }
 
-pub fn both<T: GrammarPratt>(prec: Prec) -> impl ToNode {
+pub fn below<T: GrammarPratt>(prec: Prec) -> impl ToNode {
   _pratt::<T>(prec, false)
 }
 
@@ -260,7 +260,7 @@ fn _pratt<T: GrammarPratt>(prec: Prec, inclusive: bool) -> impl ToNode {
   from_fn(move |grammar| Node::Rule(T::pratt_rule(grammar, prec)))
 }
 
-fn pratt_variant<T: GrammarPrattKind, U>(
+fn pratt_rules_variant<T: GrammarPrattKind, U>(
   _: fn(T) -> U,
   grammar: &mut Grammar,
   prec: Prec,
@@ -277,7 +277,7 @@ macro_rules! GrammarPrattKind {
           rules.push(grammar.named("Paren", (Token::OpenParen, rule::<$Term>(), Token::CloseParen)));
         }
         for_enum!(Kind in $TermKind {
-          $_(pratt_variant($TermKind::$Kind, grammar, prec, rules);)*
+          $_(pratt_rules_variant($TermKind::$Kind, grammar, prec, rules);)*
         });
       }
     })*
@@ -289,26 +289,6 @@ GrammarPrattKind!(($) Expr ExprKind, Pat PatKind, Ty TyKind, Impl ImplKind, Trai
 impl GrammarPratt for Expr {
   const NAME: &str = "Expr";
   const ALLOW_DOT: bool = true;
-  fn extra_rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<Rule>) {}
-}
-
-pub struct ExprFull;
-
-impl GrammarRule for ExprFull {
-  fn _rule(grammar: &mut Grammar) -> Rule {
-    grammar.hidden(
-      "ExprFull",
-      choice(
-        rule::<ExprDo>(),
-        rule::<ExprWhen>(),
-        rule::<ExprFor>(),
-        rule::<ExprClosure>(),
-        rule::<ExprLoop>(),
-        rule::<ExprDo>(),
-      ),
-    );
-    todo!()
-  }
 }
 
 impl GrammarPratt for Pat {
@@ -334,51 +314,38 @@ impl GrammarRule for Ident {
   }
 }
 
-#[test]
-fn grammar() {
-  let mut grammar = Grammar::default();
-  _ = Expr::rule(&mut grammar);
-  _ = Pat::rule(&mut grammar);
-  _ = Ty::rule(&mut grammar);
-  _ = Impl::rule(&mut grammar);
-  _ = Trait::rule(&mut grammar);
-  dbg!(&grammar);
-  println!("{}", grammar.to_treesitter());
-}
-
-#[cfg(test)]
 impl Grammar {
-  fn rule_name(&self, rule_id: RuleId) -> String {
+  pub fn to_treesitter(&self) -> String {
     let mut str = String::new();
-    let rule = &self.rules[rule_id];
-    if rule.hidden {
-      str.push('_');
+    str += &format!(
+      "module.exports.keywords = [\"{}\"]\n",
+      for_enum!(Token in Token { [$(Token::$Token,)*] })
+        .into_iter()
+        .filter_map(|x| x.as_keyword())
+        .collect::<Vec<_>>()
+        .join("\", \"")
+    );
+    str += "module.exports.rules = {\n";
+    for rule in self.rules.values() {
+      str += &format!(
+        "  {}: $ => {},\n",
+        rule_name(rule.hidden, &rule.label),
+        self.to_treesitter_node(&rule.node)
+      );
     }
-    for (i, char) in rule.label.chars().enumerate() {
-      if i != 0 && char != char.to_ascii_lowercase() {
-        str.push('_');
-      }
-      str.push(char.to_ascii_lowercase());
-    }
-    str
-  }
-
-  fn to_treesitter(&self) -> String {
-    let mut str = String::new();
-    for (id, rule) in &self.rules {
-      str += &format!("{}: $ => {},\n", self.rule_name(id), self.to_treesitter_node(&rule.node));
-    }
+    str += "}\n";
     str
   }
 
   fn to_treesitter_node(&self, node: &Node) -> String {
     match node {
       Node::Rule(id) => {
-        format!("$.{}", self.rule_name(*id))
+        let rule = &self.rules[*id];
+        format!("$.{}", rule_name(rule.hidden, &rule.label))
       }
       Node::Token(token) => match token.value() {
         Some(value) => format!("{:?}", value),
-        None => format!("$.{:?}", token),
+        None => format!("$.{}", rule_name(true, &format!("{token:?}"))),
       },
       Node::Seq(nodes) => format!(
         "seq({})",
@@ -395,4 +362,19 @@ impl Grammar {
       Node::Field(name, node) => format!("field({:?}, {})", name, self.to_treesitter_node(node)),
     }
   }
+}
+
+fn rule_name(hidden: bool, label: &str) -> String {
+  let mut str = String::new();
+  if hidden {
+    str.push('_');
+  }
+
+  for (i, char) in label.chars().enumerate() {
+    if i != 0 && char != char.to_ascii_lowercase() {
+      str.push('_');
+    }
+    str.push(char.to_ascii_lowercase());
+  }
+  str
 }

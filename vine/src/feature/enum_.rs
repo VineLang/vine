@@ -18,7 +18,8 @@ impl GrammarPrattKind for TyEnum {
   fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
     use grammar::*;
     if prec == Prec::Max {
-      rules.push(grammar.hidden("Variant", rule::<Variant<Ty>>()));
+      // todo
+      // rules.push(grammar.hidden("Variant", rule::<Variant<Ty>>()));
       rules.push(grammar.named(
         "Enum",
         (

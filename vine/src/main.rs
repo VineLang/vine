@@ -23,5 +23,8 @@ pub(crate) use std::{
 pub(crate) use crate::structure::ast::*;
 
 fn main() {
-  println!("Hello, world!");
+  use crate::component::grammar::{Grammar, GrammarRule};
+  let mut grammar = Grammar::default();
+  _ = Item::rule(&mut grammar);
+  print!("{}", grammar.to_treesitter());
 }

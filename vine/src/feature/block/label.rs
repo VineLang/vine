@@ -46,6 +46,48 @@ pub enum TargetKeyword {
   Fn,
 }
 
+impl GrammarRule for StmtBreak {
+  fn _rule(grammar: &mut Grammar) -> grammar::Rule {
+    use grammar::*;
+    grammar.named(
+      "StmtBreak",
+      (
+        choice(((Token::Break, rule::<Target>().optional()), Token::Return)),
+        rule::<Expr>().optional(),
+        Token::Semi,
+      ),
+    )
+  }
+}
+
+impl GrammarRule for StmtContinue {
+  fn _rule(grammar: &mut Grammar) -> grammar::Rule {
+    use grammar::*;
+    grammar.named("StmtContinue", (Token::Continue, rule::<Target>().optional(), Token::Semi))
+  }
+}
+
+impl GrammarRule for Label {
+  fn _rule(grammar: &mut Grammar) -> grammar::Rule {
+    use grammar::*;
+    grammar.named("Label", (Token::Colon, rule::<Ident>()))
+  }
+}
+
+#[rustfmt::skip] // if omitted, rustfmt will fail to format the whole file
+impl GrammarRule for Target {
+  fn _rule(grammar: &mut Grammar) -> grammar::Rule {
+    use grammar::*;
+    grammar.named("Target", (
+      Token::Colon,
+      choice(for_enum!(Keyword in TargetKeyword { (
+        rule::<Ident>(), 
+        $(Token::$Keyword,)*
+      ) })),
+    ))
+  }
+}
+
 impl Parse<StmtBreak> for Parser<'_> {
   fn _parse(&mut self) -> Result<Option<StmtBreak>, Diag> {
     if self.eat(Token::Break)? {

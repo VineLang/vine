@@ -27,6 +27,13 @@ pub enum ImportChild {
   GlobImplicit,
 }
 
+impl GrammarRule for ItemUse {
+  fn _rule(grammar: &mut Grammar) -> grammar::Rule {
+    use grammar::*; // todo
+    grammar.named("ItemUse", (Token::Use, rule::<Path<!>>(), Token::Semi))
+  }
+}
+
 impl Parse<ItemUse> for Parser<'_> {
   fn _parse(&mut self) -> Result<Option<ItemUse>, Diag> {
     if self.eat(Token::Use)? {

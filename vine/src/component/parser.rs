@@ -175,10 +175,6 @@ pub trait Parse<T> {
 
 #[allow(unused_variables)]
 pub trait ParsePratt<T, K = T> {
-  fn _parse_full(&mut self) -> Result<Option<K>, Diag> {
-    Ok(None)
-  }
-
   fn _parse_initial(&mut self, ctx: &mut PrecCtx) -> Result<Option<K>, Diag> {
     Ok(None)
   }
@@ -199,9 +195,6 @@ where
   Self: ParsePratt<T>,
 {
   fn _parse(&mut self) -> Result<Option<T>, Diag> {
-    if let Some(term) = self._parse_full()? {
-      return Ok(Some(term));
-    }
     self.try_parse_pratt(Prec::Min)
   }
 }
@@ -209,19 +202,6 @@ where
 macro_rules! ParsePratt {
   (($_:tt) $($Term:ident $TermKind:ident),* $(,)?) => {
     $(impl ParsePratt<$Term> for Parser<'_> {
-      fn _parse_full(&mut self) -> Result<Option<$Term>, Diag> {
-        let span = self.start_span();
-        if let Some(kind) = ParsePratt::<$Term, $TermKind>::_parse_full(self)? {
-          return Ok(Some($Term::new(self.end_span(span), kind)))
-        }
-        for_enum!(Kind in $TermKind { $_(
-          if let Some(kind) = ParsePratt::<$Term, _>::_parse_full(self)? {
-            return Ok(Some($Term::new(self.end_span(span), $TermKind::$Kind(kind))))
-          }
-        )* });
-        Ok(None)
-      }
-
       fn _parse_initial(&mut self, ctx: &mut PrecCtx) -> Result<Option<$Term>, Diag> {
         let span = self.start_span();
         if let Some(kind) = ParsePratt::<$Term, $TermKind>::_parse_initial(self, ctx)? {
@@ -339,6 +319,7 @@ impl PrecCtx {
 #[repr(u8)]
 pub enum Prec {
   Min,
+  Block,
   Cond,
   LogicalImplies,
   LogicalOr,
@@ -381,6 +362,7 @@ impl Prec {
     use Assoc::*;
     match self {
       Prec::Min => None,
+      Prec::Block => None,
       Prec::Cond => Right,
       Prec::LogicalImplies => Right,
       Prec::LogicalOr => None,
