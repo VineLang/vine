@@ -10,8 +10,8 @@ use std::{
 
 use crate::{
   component::{
-    lexer::Token,
-    parser::{Assoc, Prec},
+    lexer::{Lexer, Token},
+    parser::{Assoc, Parser, Prec},
   },
   feature::block::{
     closure::ExprClosure, do_::ExprDo, for_::ExprFor, label, loop_::ExprLoop, when::ExprWhen,
@@ -273,12 +273,12 @@ macro_rules! GrammarPrattKind {
   (($_:tt) $($Term:ident $TermKind:ident $(+ $Extra:ty)?),*) => {
     $(impl GrammarPrattKind for $Term {
       fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<Rule>) {
-        if prec == Prec::Max {
-          rules.push(grammar.named("Paren", (Token::OpenParen, rule::<$Term>(), Token::CloseParen)));
-        }
         for_enum!(Kind in $TermKind {
           $_(pratt_rules_variant($TermKind::$Kind, grammar, prec, rules);)*
         });
+        if prec == Prec::Max {
+          rules.push(grammar.named("Paren", (Token::OpenParen, rule::<$Term>(), Token::CloseParen)));
+        }
       }
     })*
   };
@@ -377,4 +377,172 @@ fn rule_name(hidden: bool, label: &str) -> String {
     str.push(char.to_ascii_lowercase());
   }
   str
+}
+
+impl Grammar {
+  fn flatten_choices(&mut self) {
+    for id in self.rules.keys() {
+      self._flatten_choices(id);
+    }
+  }
+
+  fn _flatten_choices(&mut self, id: RuleId) -> Vec<RuleId> {
+    let rule = &self.rules[id];
+    let Node::Choice(choices) = &rule.node else {
+      return vec![id];
+    };
+    let Ok(rules) = choices
+      .iter()
+      .map(|node| match node {
+        Node::Rule(id) => Ok(*id),
+        _ => Err(()),
+      })
+      .collect::<Result<Vec<_>, ()>>()
+    else {
+      return vec![id];
+    };
+    let rules = rules.into_iter().flat_map(|x| self._flatten_choices(x)).collect::<Vec<_>>();
+    self.rules[id].node = Node::Choice(rules.iter().copied().map(Node::Rule).collect());
+    rules
+  }
+}
+
+/// A PCG random number generator (XSH RR 64/32 (LCG) variant).
+struct Pcg32(u64, u64);
+
+impl Pcg32 {
+  /// A canonical Pcg32 instance.
+  pub const CANONICAL: Pcg32 = Self::new(0xcafef00d_d15ea5e5, 0x14057b7e_f767814f);
+
+  /// Create a new `Pcg32` from the internal state and increment values.
+  pub const fn new(mut state: u64, mut increment: u64) -> Pcg32 {
+    increment |= 1;
+    state += increment;
+    state *= Self::MULTIPLIER;
+    state += increment;
+    Pcg32(state, increment)
+  }
+
+  const MULTIPLIER: u64 = 0x5851f42d_4c957f2d;
+
+  /// Generate a pseudo-random `u32`, updating the state of the RNG.
+  pub fn gen_u32(&mut self) -> u32 {
+    let Pcg32(state, increment) = self;
+    let (lo, hi) = (*state as u32, (*state >> 32) as u32);
+    *state *= Self::MULTIPLIER;
+    *state += *increment;
+    u32::rotate_right((hi >> 13) ^ (hi << 5) ^ (lo >> 27), hi >> 27)
+  }
+}
+
+struct Sampler<'a> {
+  grammar: &'a Grammar,
+  rng: Pcg32,
+}
+
+impl<'a> Sampler<'a> {
+  pub fn new(grammar: &'a Grammar) -> Self {
+    Sampler { grammar, rng: Pcg32::CANONICAL }
+  }
+
+  fn choose(&mut self, options: usize, depth: usize) -> usize {
+    if depth == 0 { 0 } else { (self.rng.gen_u32() as usize) % options }
+  }
+
+  fn sample(&mut self, id: RuleId, depth: usize) -> Tree {
+    let rule = &self.grammar.rules[id];
+    let mut children = Vec::new();
+    self.sample_node(&rule.node, depth, &mut children);
+    Tree::Node(id, children)
+  }
+
+  fn sample_node(&mut self, node: &Node, mut depth: usize, output: &mut Vec<Tree>) {
+    match node {
+      Node::Rule(id) => {
+        let rule = &self.grammar.rules[*id];
+        if rule.hidden {
+          self.sample_node(&rule.node, depth, output);
+        } else {
+          output.push(self.sample(*id, depth.saturating_sub(1)));
+        }
+      }
+      Node::Token(token) => {
+        output.push(Tree::Token(*token));
+      }
+      Node::Seq(nodes) => {
+        for node in nodes {
+          self.sample_node(node, depth, output);
+        }
+      }
+      Node::Choice(nodes) => {
+        let i = self.choose(nodes.len(), depth);
+        self.sample_node(&nodes[i], depth, output);
+      }
+      Node::Repeat(node, mandatory) => {
+        if *mandatory || self.choose(2, depth) > 0 {
+          self.sample_node(node, depth, output);
+        }
+        while self.choose(3, depth) > 0 {
+          self.sample_node(node, depth, output);
+          depth -= 1;
+        }
+      }
+      Node::Optional(node) => {
+        if self.choose(3, depth) > 0 {
+          self.sample_node(node, depth, output);
+        }
+      }
+      Node::Field(_, node) => {
+        self.sample_node(node, depth, output);
+      }
+    }
+  }
+}
+
+#[derive(Debug)]
+enum Tree {
+  Node(RuleId, Vec<Tree>),
+  Token(Token),
+}
+
+impl Tree {
+  fn to_string(&self) -> String {
+    let mut str = String::new();
+    self._to_string(&mut str);
+    str
+  }
+
+  fn _to_string(&self, str: &mut String) {
+    match self {
+      Tree::Node(_, trees) => {
+        for tree in trees {
+          tree._to_string(str);
+        }
+      }
+      Tree::Token(token) => {
+        let token = match token {
+          Token::BareIdent => "x",
+          _ => token.value().unwrap(),
+        };
+        if !str.is_empty() {
+          str.push(' ');
+        }
+        str.push_str(token);
+      }
+    }
+  }
+}
+
+#[test]
+fn sampler() {
+  let mut grammar = Grammar::default();
+  let rule = Expr::rule(&mut grammar);
+  grammar.flatten_choices();
+  let mut sampler = Sampler::new(&grammar);
+  let mut best_len = 0;
+  for _ in 0..100 {
+    let src = sampler.sample(rule, 12).to_string();
+    println!("{}\n", src);
+    _ = Parser::new(Lexer::new(&src)).unwrap().parse::<Expr>();
+  }
 }

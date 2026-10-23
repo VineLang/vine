@@ -30,7 +30,7 @@ impl GrammarRule for Item {
     grammar.named(
       "Item",
       (
-        rule::<Attr>().repeat(false),
+        // rule::<Attr>().repeat(false),
         rule::<Vis>().optional(),
         Token::Unsafe.optional(),
         choice(for_enum!(Kind in ItemKind { ($(

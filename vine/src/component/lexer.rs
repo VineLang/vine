@@ -9,6 +9,7 @@ use vine_util::{
   lexer::{Lex, LexerState, Token as TokenTrait},
 };
 
+#[derive(Debug)]
 pub struct Diag;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, for_enum!)]

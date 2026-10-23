@@ -18,14 +18,11 @@ impl GrammarPrattKind for TyEnum {
   fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
     use grammar::*;
     if prec == Prec::Max {
-      // todo
-      // rules.push(grammar.hidden("Variant", rule::<Variant<Ty>>()));
       rules.push(grammar.named(
         "Enum",
         (
           Token::Unsafe.optional(),
           Token::Enum,
-          Token::OpenBrace,
           delimited::<Variant<Ty>>(Token::OpenBrace, Token::Comma, Token::CloseBrace),
         ),
       ));
@@ -59,13 +56,7 @@ impl<T: SequenceKind + GrammarPratt> GrammarRule for Variant<T> {
 impl ParsePratt<Ty, TyEnum> for Parser<'_> {
   fn _parse_initial(&mut self, _: &mut PrecCtx) -> Result<Option<TyEnum>, Diag> {
     let unsafe_ = self.eat(Token::Unsafe)?;
-    if let Some(initial) = self.try_parse::<Variant<Ty>>()? {
-      let mut variants = self
-        .eat_then(Token::Or, |self_| self_.parse_children(None, Some(Token::Or), None))?
-        .unwrap_or_default();
-      variants.entries.insert(0, ChildrenEntry::from(initial));
-      Ok(Some(TyEnum { unsafe_, variants }))
-    } else if self.eat(Token::Any)? {
+    if self.eat(Token::Enum)? {
       let variants =
         self.parse_children(Some(Token::OpenBrace), Some(Token::Comma), Some(Token::CloseBrace))?;
       Ok(Some(TyEnum { unsafe_, variants }))

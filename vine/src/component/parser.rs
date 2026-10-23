@@ -31,6 +31,9 @@ impl<'src> ParserTrait<'src> for Parser<'src> {
   }
 
   fn unexpected_error(&self) -> Diag {
+    dbg!(self.state.token, &self.state.expected);
+    dbg!(&self.state.lexer.src()[..self.state.lexer.offset()]);
+    dbg!(&self.state.lexer.src()[self.state.lexer.offset()..]);
     todo!()
     // Diag::UnexpectedToken {
     //   span: self.span(),
@@ -63,7 +66,8 @@ impl<'src> Parser<'src> {
   }
 
   pub fn token_span(&self) -> Spanned<()> {
-    todo!()
+    // todo
+    Spanned { span: LocalSpan { start: 0, end: 0 }, inner: () }
   }
 
   pub fn eat_spanned(&mut self, token: Token) -> Result<Option<Spanned<()>>, Diag> {
