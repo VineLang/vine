@@ -1,0 +1,26 @@
+[a]pply:     yield b; want (x a b); want a
+[b]ootstrap: halt execution; pop engine; link engine to (x io (x library ...))
+[c]ompose
+[d]efine
+[e]raser:    pop (e)
+[f]ork:      pop trigger; push trigger; push trigger
+[g]et
+[h]old:      pop x; push x to hold
+[i]nverse
+[j]ust
+[k]
+[l]ink:      pop a; pop a
+[m]utate:    pop state fn; apply to state
+[n]umber:    yield number of next character
+[o]peration: yield operation named by next character
+[p]rint:     halt execution; link current memory to output, to print to user (development only)
+[q]uery:     check equality
+[r]
+[s]wap:      pop x; pop y from hold; push x to hold; push y
+[t]rigger:   yield trigger
+[u]nhold:    pop x from hold; push x
+[v]ariable
+[w]ire:      push a; push a
+[x]-node:    yield (x a b); push b; push a
+[y]-node:    yield (y a b); push b; push a
+[z]

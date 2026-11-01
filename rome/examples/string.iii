@@ -1,0 +1,19 @@
+
+def io.read_string rec { $~self, &~io,
+  let $~char (io.read_char &io)
+  if_ (num.eq @char '`) (&io)
+  { in (&~io)
+    nil
+  }
+  { in (&~io)
+    ^$char : ^$self! &io
+  }
+}
+
+meta ` { &~state,
+  let $~str (io.read_string / state.io.borrow &state)
+  state.push &state $str
+}
+
+`Hello, world!` ?
+

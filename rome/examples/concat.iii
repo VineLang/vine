@@ -1,0 +1,14 @@
+
+def concat rec { $~self, $~x, $~y,
+  if_ $x ($y)
+  { in $~xh in $~xt in ($~y)
+    $xh : ^$self! $xt $y
+  }
+  { in $~y
+    $y
+  }
+}
+
+infix .. { concat }
+
+"foo .. "bar .. "baz ?

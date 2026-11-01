@@ -1,0 +1,769 @@
+
+terms:
+
+  pair: a net of the form (x first second)
+  function: a net of the form (x input output)
+  reference: a net of the form (x value space)
+  sequence: a net of the form (x el0 (x el1 (x el2 ... (e) ... )))
+
+  true: the net (x (x o (e)) o)
+  false: the net (x (x (e) o) o)
+  boolean: either true or false
+
+  trigger: the net (x (y a b) (x a b)); construction: xyhhxsluul
+  package: a duplicatable function whose input is a trigger
+  fork: a duplicatable function that takes a trigger and outputs a pair of triggers
+
+  library: a sequence of packages outputing various useful primitives
+  number: a duplicatable black-box representing a 32-bit natural number manipulatable only by library functions
+
+  stack: a primary stack of values, manipulated by most operations
+  hold: a secondary stack of values, manipulated by a few operations
+  memory: the stack and the hold
+
+required operations:
+
+  [x]-node: pop (x a b); push b; push a
+  [y]-node: pop (y a b); push b; push a
+  [e]raser: pop (e)
+  [w]ire: push a; push a
+  [l]ink: pop a; pop a
+
+  [h]old: pop x; push x to hold
+  [u]nhold: pop x from hold; push x
+  [s]wap: pop x; pop y from hold; push x to hold; push y
+
+  [b]ootstrap: halt execution; pop engine; link engine to (x io (x library ...))
+  [p]rint: halt execution; link current memory to output, to render to user (development only)
+
+required library:
+  read: a function that takes a reference to io and outputs a number representing the read character
+  eq: a function that takes a pair of numbers and outputs a boolean representing whether the numbers are equal
+
+conventions:
+
+  memory:
+    { ... s2 s1 s0 | h0 h1 h2 ... }
+    "s0 is the top of the stack, followed by s1 and s2, and h0 is the top of the hold, followed by h1 and h2"
+
+  linking:
+    a hold operation may be immediately followed by a name
+    held port names come in pairs; two held ports with the same name should be linked
+    ...
+
+hold function to access the boot context
+
+  WXLH
+
+{ | boot_fn }
+
+get the library:
+
+  WHa
+  WX
+    X Hb X Y Ha Hc Hd
+    X Hb X Hc Hd
+
+  a b a c d b c d
+  - - 0 - - 1 1 2
+  2: U SUSU UL HH
+  1: U SU   UL H
+  1: U SU   UL H
+  0: U      UL
+
+  append
+  XUXHLWSHXULL
+
+{ library | boot_fn }
+
+construct fork:
+
+  WX
+    (X (X Hd0 Hd1) (X (X Ha0 Ha1) (X Hb0 Hb1)))
+    X
+      (X Hd0 (X Ha0 Hb0))
+      (X Hd1 (X Ha1 Hb1))
+
+  d0 d1 a0 a1 b0 b1 d0 a0 b0 d1 a1 b1
+  -  -  -  -  -  -  0  1  2  5  5  5
+  5:  U SUSUSUSUSU UL HHHHH
+  5:  U SUSUSUSUSU UL HHHHH
+  5:  U SUSUSUSUSU UL HHHHH
+  2:  U SUSU       UL HH
+  1:  U SU         UL H
+  0:  U            UL
+
+{ library fork | boot_fn }
+
+extract constants for the operation labels:
+
+  make a utility package that gets a constant at boot:
+
+    (read: H YXHEU SU) X Ha X X Hi0 Hi1 Hc
+
+    W X Ha X
+      X
+        X X Hi0 Hi2 Hl
+        X X Hi1 Hi2 Hl
+      Hc
+
+    a i0 i1 c a i0 i2 l i1 i2 l c
+    - -  -  - 0 1  -  - 2  1  2 7
+    7: U SUSUSUSUSU SUSU UL HHHHH HH
+    2: U SUSU            UL HH
+    1: U SU              UL H
+    2: U SUSU            UL HH
+    1: U SU              UL H
+    0: U                 UL
+
+  { util | boot_fn }
+
+  use this package several times to create a sequence of constants:
+
+    HWU
+      { sequence builder util | boot_fn }
+          trigger         append fn    push
+      Y X XYHHXSLUUL X XUXHLWSHXULL HS HXUL U 0
+      Y X XYHHXSLUUL X XUXHLWSHXULL HS HXUL U 1
+      Y X XYHHXSLUUL X XUXHLWSHXULL HS HXUL U 2
+      Y X XYHHXSLUUL X XUXHLWSHXULL HS HXUL U 3
+      Y X XYHHXSLUUL X XUXHLWSHXULL HS HXUL U 4
+      Y X XYHHXSLUUL X XUXHLWSHXULL HS HXUL U 5
+      Y X XYHHXSLUUL X XUXHLWSHXULL HS HXUL U 6
+      Y X XYHHXSLUUL X XUXHLWSHXULL HS HXUL U 7
+      Y X XYHHXSLUUL X XUXHLWSHXULL HS HXUL U 8
+      Y X XYHHXSLUUL X XUXHLWSHXULL HS HXUL U 9
+      Y X XYHHXSLUUL X XUXHLWSHXULL HS HXUL U 10
+      Y X XYHHXSLUUL X XUXHLWSHXULL HS HXUL U 11
+      Y X XYHHXSLUUL X XUXHLWSHXULL HS HXUL U 12
+      Y X XYHHXSLUUL X XUXHLWSHXULL HS HXUL U 13
+    EE
+
+{ library fork constants | boot_fn }
+
+define the sequence of operation packages:
+
+  HWH
+
+  { library fork builder | sequence constants }
+
+  [x]-node: 0
+  
+    X X (E) X
+    X (X (X (X Ha Hb) Hs) Hh) Hr
+    X (X (X Ha (X Hb Hs)) Hh) Hr
+
+    a b s h r a b s h r
+    - - - - - 0 1 2 3 4
+    4: U SUSUSUSU UL HHHH
+    3: U SUSUSU   UL HHH
+    2: U SUSU     UL HH
+    1: U SU       UL H
+    0: U          UL
+
+  [y]-node: 1
+  
+    X X (X Hd (X Ha Hb)) X
+    X (X (X Hd Hs) Hh) Hr
+    X (X (X Ha (X Hb Hs)) Hh) Hr
+
+    d a b d s h r a b s h r
+    - - - 0 - - - 1 2 2 3 4
+    4: U SUSUSUSU UL HHHH
+    3: U SUSUSU   UL HHH
+    2: U SUSU     UL HH
+    2: U SUSU     UL HH
+    1: U SU       UL H
+    0: U          UL
+
+  [e]raser: 2
+  
+    X X (E) X
+    X (X (X E Hs) Hh) Hr
+    X (X Hs Hh) Hr
+
+    s h r s h r
+    - - - 0 1 2
+    2: U SUSU UL HH
+    1: U SU   UL H
+    0: U      UL
+
+  [l]ink: 3
+  
+    X X (E) X
+    X (X (X H (X UL Hs)) Hh) Hr
+    X (X Hs Hh) Hr
+
+    s h r s h r
+    - - - 0 1 2
+    2: U SUSU UL HH
+    1: U SU   UL H
+    0: U      UL
+
+  [w]ire: 4
+  
+    X X (E) X
+    X (X Hs Hh) Hr
+    X (X (X H (X UL Hs)) Hh) Hr
+
+    s h r s h r
+    - - - 0 1 2
+    2: U SUSU UL HH
+    1: U SU   UL H
+    0: U      UL
+  
+  [h]old: 5
+  
+    X X (E) X
+    X (X (X Ha Hs) Hh) Hr
+    X (X Hs (X Ha Hh)) Hr
+
+    a s h r s a h r
+    - - - - 0 2 2 3
+    3: U SUSUSU UL HHH
+    2: U SUSU   UL HH
+    2: U SUSU   UL HH
+    0: U        UL
+  
+  [u]nhold: 6
+  
+    X X (E) X
+    X (X Hs (X Ha Hh)) Hr
+    X (X (X Ha Hs) Hh) Hr
+
+    s a h r a s h r
+    - - - - 0 2 2 3
+    3: U SUSUSU UL HHH
+    2: U SUSU   UL HH
+    2: U SUSU   UL HH
+    0: U        UL
+  
+  [s]wap: 7
+  
+    X X (E) X
+    X (X (X Ha Hs) (X Hb Hh)) Hr
+    X (X (X Hb Hs) (X Ha Hh)) Hr
+
+    a s b h r b s a h r
+    - - - - - 0 2 4 3 4
+    4: U SUSUSUSU UL HHHH
+    3: U SUSUSU   UL HHH
+    4: U SUSUSUSU UL HHHH
+    2: U SUSU     UL HH
+    0: U          UL
+
+  [p]rint: 8
+  
+    X X (E) X
+    X H (X (X E UL) E)
+    E
+
+  [b]ootstrap: 9
+  
+    X X (E) X
+    X (X (X H E) E) UL
+    E
+
+  [f]ork: 10
+  
+    X X (E) X
+    X (X (X Ht Hs) Hh) Hr
+    X (X (X Ha (X Hb Hs)) Hh) Hr
+    (fork: H Y SU) X Ht (X Ha Hb)
+
+    t s h r a b s h r t a b
+    - - - - - - 0 1 2 6 4 5
+    5: U SUSUSUSUSU    UL HHHHH
+    4: U SUSUSUSU      UL HHHH
+    6: U SUSUSUSUSU SU UL HHHHH H
+    2: U SUSU          UL HH
+    1: U SU            UL H
+    0: U               UL
+
+  [n]umber: 11
+  
+    X X (Ht) X
+    X (X (X Hn Hs) Hh) (X (X Hi0 Hi2) Hr)
+    X (X Hs Hh) (X (X Hi1 Hi2) Hr)
+    (read: HH YXHEU SUSU) X Ht (X (X Hi0 Hi1) Hn)
+
+    t n s h i0 i2 r s h i1 i2 r t i0 i1 n
+    - - - -  -  - - 0 1 -  2  3 8 7  4  13
+    13: U SUSUSUSUSU SUSUSUSUSU SUSUSU UL HHHHH HHHHH HHH
+    4:  U SUSUSUSU                     UL HHHH
+    7:  U SUSUSUSUSU SUSU              UL HHHHH HH
+    8:  U SUSUSUSUSU SUSUSU            UL HHHHH HHH
+    3:  U SUSUSU                       UL HHH
+    2:  U SUSU                         UL HH
+    1:  U SU                           UL H
+    0:  U                              UL
+
+  e[q]ual: 12
+    X X (E) X
+    X (X (X Ho Hs) Hh) Hr
+    X (X (X Ht X Hn X Hv Hs) Hh) Hr
+    (eq: HH YXEXHEU SUSU) X Ht X Hn X Hv Ho
+
+    o s h r t n v s h r t n v o
+    - - - - - - - 0 1 2 3 4 5 12
+    12: U SUSUSUSUSU SUSUSUSUSU SUSU UL HHHHH HHHHH HH
+    5:  U SUSUSUSUSU                 UL HHHHH
+    4:  U SUSUSUSU                   UL HHHH
+    3:  U SUSUSU                     UL HHH
+    2:  U SUSU                       UL HH
+    1:  U SU                         UL H
+    0:  U                            UL
+
+  [m]utate: 13
+
+    X X (E) X
+    X (X (X (X (X (X Hs Hh) Hr) Hq) Hs) Hh) Hr
+    Hq
+
+    s h r q s h r q
+    - - - - 0 1 2 3
+    3: U SUSUSU   UL HHH
+    2: U SUSU     UL HH
+    1: U SU       UL H
+    0: U          UL
+
+
+  EUSU
+
+{ library fork constants operations | boot_fn }
+
+construct the operation lookup:
+
+  hold the operation table: HHWXHSUULULH
+
+  hold the noop lookup function: W XE XE XE XEXL H
+
+  { library fork | lookup table }
+
+  define a utility function to add one level to the lookup function:
+
+    (eq: H YXEXHEU SU) X Ht1 (X (X Hn0 Hc) (X (X Ho Hlr) Hl))
+    (fork: Y) X Ht (X Ht0 Ht1)
+    (fork: Y) X Ht0 (X Ht2 (X Hn (X Hn0 Hn1)))
+    WX
+      X Ht2 X (X Hor Hcr) X Hn1 Hlr
+      X Ht X (X (X Ho Hor) (X Hc Hcr)) X Hn Hl
+
+    t1 n0 c o lr l t t0 t1 t0 t2 n n0 n1 t2 or cr n1 lr t o  or c  cr n  l
+    -  -  - - -  - - -  0  1  -  - 3  -  1  -  -  1  8  9 12 4  16 6  12 19
+    19: U SUSUSUSUSU SUSUSUSUSU SUSUSUSUSU SUSUSUSU UL HHHHH HHHHH HHHHH HHHH
+    12: U SUSUSUSUSU SUSUSUSUSU SUSU                UL HHHHH HHHHH HH
+    6:  U SUSUSUSUSU SU                             UL HHHHH H
+    16: U SUSUSUSUSU SUSUSUSUSU SUSUSUSUSU SU       UL HHHHH HHHHH HHHHH H
+    4:  U SUSUSUSU                                  UL HHHH
+    12: U SUSUSUSUSU SUSUSUSUSU SUSU                UL HHHHH HHHHH HH
+    9:  U SUSUSUSUSU SUSUSUSU                       UL HHHHH HHHH
+    8:  U SUSUSUSUSU SUSUSU                         UL HHHHH HHH
+    1:  U SU                                        UL H
+    1:  U SU                                        UL H
+    3:  U SUSUSU                                    UL HHH
+    1:  U SU                                        UL H
+    0:  U                                           UL
+
+  { library fork util | lookup table }
+
+  repeatedly apply to the hold to obtain all levels:
+
+    YXULH 0
+    YXULH 1
+    YXULH 2
+    YXULH 3
+    YXULH 4
+    YXULH 5
+    YXULH 6
+    YXULH 7
+    YXULH 8
+    YXULH 9
+    YXULH 10
+    YXULH 11
+    YXULH 12
+    YXULH 13
+    E
+
+  { library fork | lookup table }
+
+  put the table into the lookup:
+
+    WXSXULXULL
+
+  { library fork lookup | }
+
+{ library fork lookup | boot_fn }
+
+build the engine:
+
+  the engine is a package which operates on the state
+
+  the state consists of the following:
+
+    ((stack hold) ((in out) (library (engine (lookup _)))))
+
+  the engine reads a character, feeds that to lookup the operation, and runs the engine on the resulting state
+
+  hold the lookup: H
+
+  { fork | lookup }
+
+  (fork: Y) X Ht (X Ht0 Ht1)
+  (fork: Y) X Ht0 (X Ht2 Ht3)
+  (fork: Y) X Ht1 (X Ht4 Ht5)
+  (fork: Y) X Ht2 (X Ht6 Ht7)
+  (fork: Y) X Ht3 (X
+    (X He0 (X He1 He2))
+    (X Hl0 (X Hl1 Hl2))
+  )
+
+  (read: H YXHEU SU) X Ht4 (X (X Hi0 Hi1) Hn)
+
+  W Hl1 X Ht5 X Hn X Ht6 X
+    (X Hd X (X Hi1 Hi2) X Hl X He2 X Hl2 Hr)
+    Hu
+
+  W He1 X Ht7 Hu
+
+  WX Ht
+    X Hd
+    X (X Hi0 Hi2)
+    X Hl
+    X He0
+    X Hl0
+    Hr
+
+  t t0 t1 t0 t2 t3 t1 t4 t5 t2 t6 t7 t3 e0 e1 e2 l0 l1 l2 t4 i0 i1 n l1 t5 n t6 d i1 i2 l e2 l2 r u e1 t7 u t  d i0 i2 l  e0 l0 r
+  - -  -  0  -  -  1  -  -  1  -  -  2  -  -  -  -  -  -  2  -  -  - 1  5  2 7  - 5  -  - 9  9  - - 13 16 2 30 8 16 9  10 27 26 11
+  11: U SUSUSUSUSU SUSUSUSUSU SU                                          UL HHHHH HHHHH H
+  26: U SUSUSUSUSU SUSUSUSUSU SUSUSUSUSU SUSUSUSUSU SUSUSUSUSU SU         UL HHHHH HHHHH HHHHH HHHHH HHHHH H
+  27: U SUSUSUSUSU SUSUSUSUSU SUSUSUSUSU SUSUSUSUSU SUSUSUSUSU SUSU       UL HHHHH HHHHH HHHHH HHHHH HHHHH HH
+  10: U SUSUSUSUSU SUSUSUSUSU                                             UL HHHHH HHHHH
+  9:  U SUSUSUSUSU SUSUSUSU                                               UL HHHHH HHHH
+  16: U SUSUSUSUSU SUSUSUSUSU SUSUSUSUSU SU                               UL HHHHH HHHHH HHHHH H
+  8:  U SUSUSUSUSU SUSUSU                                                 UL HHHHH HHH
+  30: U SUSUSUSUSU SUSUSUSUSU SUSUSUSUSU SUSUSUSUSU SUSUSUSUSU SUSUSUSUSU UL HHHHH HHHHH HHHHH HHHHH HHHHH HHHHH
+  2:  U SUSU                                                              UL HH
+  16: U SUSUSUSUSU SUSUSUSUSU SUSUSUSUSU SU                               UL HHHHH HHHHH HHHHH H
+  13: U SUSUSUSUSU SUSUSUSUSU SUSUSU                                      UL HHHHH HHHHH HHH
+  9:  U SUSUSUSUSU SUSUSUSU                                               UL HHHHH HHHH
+  9:  U SUSUSUSUSU SUSUSUSU                                               UL HHHHH HHHH
+  5:  U SUSUSUSUSU                                                        UL HHHHH
+  7:  U SUSUSUSUSU SUSU                                                   UL HHHHH HH
+  2:  U SUSU                                                              UL HH
+  5:  U SUSUSUSUSU                                                        UL HHHHH
+  1:  U SU                                                                UL H
+  2:  U SUSU                                                              UL HH
+  2:  U SUSU                                                              UL HH
+  1:  U SU                                                                UL H
+  1:  U SU                                                                UL H
+  0:  U                                                                   UL
+  
+{ engine | lookup boot_fn }
+
+construct the state:
+
+  { engine | lookup boot_fn }
+  WX UL E
+  { engine (x lookup e) | boot_fn }
+  HYH WX UL UL
+  { engine (x engine x lookup e) | boot_fn }
+  UXH
+  { engine (x engine x lookup e) (x io (x library _)) | boot }
+  XHXHE
+  { engine (x engine x lookup e) | library io boot }
+  HWXUSLUL
+  { engine (x library x engine x lookup e) | io boot }
+  HWXUSLUL
+  { engine (x io x library x engine x lookup e) | boot }
+  HWXEUL
+  { engine (x e x io x library x engine x lookup e) | boot }
+
+{ engine state | boot }
+
+trigger the engine and pass it the state:
+
+  H X XYHHXSLUUL UL U
+
+{ boot | }
+
+and, finally, bootstrap!
+
+   constants 1111
+   01234567890123
+  BXYELWHUSPBFNQM
+
+
+
+
+
+
+
+
+
+[d]efine:
+
+  construct the operation:
+
+    WX
+      X (X (X (X Hn Hp) Hs) Hh) X Hi X Hl X He X (X Ht1 X Hn2 Ho) Hr
+      X (X Hs Hh) X Hi X Hl X He X (X (F (F (X Hn0 (X Hn1 Hn2)) Ht0) Ht1) X Hn0 (Q Ht0 (X Hn1 Hn) (X Hp Ho))) Hr
+
+    n p s h i l e t1 n2 o r s h i l e n0 n1 n2 t0 t1 n0 t0 n1 n  p  o  r
+    - - - - - - -  -  - - - 0 1 2 3 4 -  -  5  -  7  2  2  5  20 21 15 16
+    16: U SUSUSUSUSU SUSUSUSUSU SUSUSUSUSU SU            UL HHHHH HHHHH HHHHHH
+    15: U SUSUSUSUSU SUSUSUSUSU SUSUSUSUSU               UL HHHHH HHHHH HHHHH
+    21: U SUSUSUSUSU SUSUSUSUSU SUSUSUSUSU SUSUSUSUSU SU UL HHHHH HHHHH HHHHH HHHHHH
+    20: U SUSUSUSUSU SUSUSUSUSU SUSUSUSUSU SUSUSUSUSU    UL HHHHH HHHHH HHHHH HHHHH
+    5:  U SUSUSUSUSU                                     UL HHHHH
+    2:  U SUSU                                           UL HH
+    2:  U SUSU                                           UL HH
+    7:  U SUSUSUSUSU SUSU                                UL HHHHHHH
+    5:  U SUSUSUSUSU                                     UL HHHHH
+    4:  U SUSUSUSU                                       UL HHHH
+    3:  U SUSUSU                                         UL HHH
+    2:  U SUSU                                           UL HH
+    1:  U SU                                             UL H
+    0:  U                                                UL
+
+  YHH WX ND XE UL U
+
+  { (x nd (x e define)) define | }
+
+  use it to define itself: M
+
+[a]pply: WX NA
+
+  X (E) X
+  X (X (X Ho Hs) Hh) Hr
+  X (X (X (X Hi Ho) X Hi Hs) Hh) Hr
+
+  o s h r i o i s h r
+  - - - - - 0 1 3 4 5
+  5:  U SUSUSUSUSU UL HHHHH
+  4:  U SUSUSUSU   UL HHHH
+  3:  U SUSUSU     UL HHH
+  1:  U SU         UL H
+  0:  U            UL
+
+  D
+
+[c]ompose: WX NC
+
+  X (E) X
+  X (X (X (X (F Ht0 Ht1) X Ha Hc) Hs) Hh) Hr
+  X (X (X (X Ht0 X Ha Hb) X (X Ht1 X Hb Hc) Hs) Hh) Hr
+
+  t0 t1 a c s h r t0 a b t1 b c s h r
+  - - - - - - - 0 1 - 3 1 5 6 7 8
+  8: U SUSUSUSUSU SUSUSU UL HHHHH HHH
+  7: U SUSUSUSUSU SUSU   UL HHHHH HH
+  6: U SUSUSUSUSU SU     UL HHHHH H
+  5: U SUSUSUSUSU        UL HHHHH
+  1: U SU                UL H
+  3: U SUSUSU            UL HHH
+  1: U SU                UL H
+  0: U                   UL 
+
+  D
+
+[t]rigger: WX NT
+
+  X (Ht) X
+  X (X (X Ht Hs) Hh) Hr
+  X (X Hs Hh) Hr
+  
+  t t s h r s h r
+  - 0 - - - 0 1 2
+  2:  U SUSU UL HH
+  1:  U SU   UL H
+  0:  U      UL
+  0:  U      UL
+
+  D
+
+[o]peration:
+
+  operation_of:
+
+    W
+      X (F (X Hl0 X Hl1 Hl2) Ht) X
+      X (X (X (AA Hl1 Ht Hn) Hs) Hh) X Hi X Hl X He X Hl0 Hr
+      X (X (X Hn Hs) Hh) X Hi X Hl X He X Hl2 Hr
+
+    l0 l1 l2 t l1 t n s h i l e l0 r n s h i l e l2 r
+    -  -  -  - 0  1 - - - - - - 4  - 1 2 3 4 5 6 16 7
+    7:  U SUSUSUSUSU SUSU                     UL HHHHH HH
+    16: U SUSUSUSUSU SUSUSUSUSU SUSUSUSUSU SU UL HHHHH HHHHH HHHHH H
+    6:  U SUSUSUSUSU SU                       UL HHHHH H
+    5:  U SUSUSUSUSU                          UL HHHHH
+    4:  U SUSUSUSU                            UL HHHH
+    3:  U SUSUSU                              UL HHH
+    2:  U SUSU                                UL HH
+    1:  U SU                                  UL H
+    4:  U SUSUSUSU                            UL HHHH
+    1:  U SU                                  UL H
+    0:  U                                     UL
+
+  define operation to be the composition of operation_of and operation_of n:
+
+    H WX NO C (UYHL) (U XTM NN) D
+
+[j]ust:
+
+  just_fn:
+
+    WX Hv
+      X (E) X
+      X (X (X Hv Hs) Hh) Hr
+      X (X Hs Hh) Hr
+
+    v v s h r s h r
+    - 0 - - - 0 1 2
+    2:  U SUSU UL HH
+    1:  U SU   UL H
+    0:  U      UL
+    0:  U      UL
+
+  define just to be the composition of [a]pply and just just_fn:
+
+    H WX NJ C OA (A UYHL UL) D
+
+[i]nverse:
+
+  inverse_fn:
+
+    WX
+      X X Hm0 Hr0
+        X Hm1 Hr1
+      X X Hm1 Hr0
+        X Hm0 Hr1
+
+    m0 r0 m1 r1 m1 r0 m0 r1
+    -  -  -  -  0  2  4  3
+    3: U SUSUSU   UL HHH
+    4: U SUSUSUSU UL HHHH
+    2: U SUSU     UL HH
+    0: U          UL 
+
+  H WX NI (COW COA CJUL COA COO COT OM) D
+
+variables:
+
+  variables will be stored in a dictionary, represented as a function that:
+  - takes a trigger and a variable name
+  - returns a wire to that variable and an updated dictionary
+
+  first, construct the 'cons' operation on this type of dictionary:
+
+    WX Hc0 X Hn0 X Hv X Hr
+    X F Ht0
+      F Ht1
+      F Ht2
+      F X Hc0 X Hc1 Hc2
+      F X Hn0 X Hn1 (X Ha Hb)
+        X Hm0 X Hm1 (X Hp Hq)
+    X Hm0 X Hu
+      AAA
+        Q Ht0 (Q Ht1 (X Hb Hq) (X (X Ha Hp) (X N0 N1))) X
+          HSU
+          (X H0v X H0u X H0r (AAAA Hc1 Hc2 Hn1 H0v (AAA H0r Ht2 Hm1 H0u)))
+          (X H1v X H1v X H1r H1r)
+        Hv Hu Hr
+
+    c0 n0 v r t0 t1 t2 c0 c1 c2 n0 n1 a b m0 m1 p q m0 u t0 t1 b q a p 0v 0u 0r c1 c2 n1 0v 0r t2 m1 0u 1v 1v 1r 1r v  u  r
+    -  -  - - -  -  -  0  -  -  1  -  - - -  -  - - 0  - 4  5  4 4 8 7 -  -  -  13 14 14 3  4  24 17 8  -  0  -  0  36 22 39
+    39: U SUSUSUSUSU SUSUSUSUSU SUSUSUSUSU SUSUSUSUSU SUSUSUSUSU SUSUSUSUSU SUSUSUSUSU SUSUSUSU UL HHHHH HHHHH HHHHH HHHHH HHHHH HHHHH HHHHH HHHH
+    22: U SUSUSUSUSU SUSUSUSUSU SUSUSUSUSU SUSUSUSUSU SUSU                                      UL HHHHH HHHHH HHHHH HHHHH HH
+    36: U SUSUSUSUSU SUSUSUSUSU SUSUSUSUSU SUSUSUSUSU SUSUSUSUSU SUSUSUSUSU SUSUSUSUSU SU       UL HHHHH HHHHH HHHHH HHHHH HHHHH HHHHH HHHHH H
+    0:  U                                                                                       UL
+    0:  U                                                                                       UL
+    8:  U SUSUSUSUSU SUSUSU                                                                     UL HHHHH HHH
+    17: U SUSUSUSUSU SUSUSUSUSU SUSUSUSUSU SUSU                                                 UL HHHHH HHHHH HHHHH HH
+    24: U SUSUSUSUSU SUSUSUSUSU SUSUSUSUSU SUSUSUSUSU SUSUSUSU                                  UL HHHHH HHHHH HHHHH HHHHH HHHH
+    4:  U SUSUSUSU                                                                              UL HHHH
+    3:  U SUSUSU                                                                                UL HHH
+    14: U SUSUSUSUSU SUSUSUSUSU SUSUSUSU                                                        UL HHHHH HHHHH HHHH
+    14: U SUSUSUSUSU SUSUSUSUSU SUSUSUSU                                                        UL HHHHH HHHHH HHHH
+    13: U SUSUSUSUSU SUSUSUSUSU SUSUSU                                                          UL HHHHH HHHHH HHH
+    7:  U SUSUSUSUSU SUSU                                                                       UL HHHHH HH
+    8:  U SUSUSUSUSU SUSUSU                                                                     UL HHHHH HHH
+    4:  U SUSUSUSU                                                                              UL HHHH
+    4:  U SUSUSUSU                                                                              UL HHHH
+    5:  U SUSUSUSUSU                                                                            UL HHHHH
+    4:  U SUSUSUSU                                                                              UL HHHH
+    0:  U                                                                                       UL
+    1:  U SU                                                                                    UL H
+    0:  U                                                                                       UL
+
+    YHXUL apply to self
+
+  then construct 'nil', which is a simple wrapper around 'cons':
+
+    Hc
+    WX He0
+    X (X He0 X He1 He2)
+    X Hn X Hv
+      AAA Hc Hn Hv (A He1 He2)
+
+    c e0 e0 e1 e2 n v c n v e1 e2
+    - -  0  -  -  - - 2 1 2 5  6
+    6: U SUSUSUSUSU SU UL HHHHH H
+    5: U SUSUSUSUSU    UL HHHHH
+    2: U SUSU          UL HH
+    1: U SU            UL H
+    2: U SUSU          UL HH
+    0: U               UL
+
+    YHXUL
+
+  define an operation that swaps the variables dictionary in memory with the top value on the stack:
+
+    W XE X
+      X (X (X Ha Hs) Hh) X Hi X Hl X He X Ho X Hb Hr
+      X (X (X Hb Hs) Hh) X Hi X Hl X He X Ho X Ha Hr
+
+    a s h i l e o b r b s h i l e o a  r
+    - - - - - - - - - 0 2 3 4 5 6 7 14 8
+    8:  U SUSUSUSUSU SUSUSU              UL HHHHH HHH
+    14: U SUSUSUSUSU SUSUSUSUSU SUSUSUSU UL HHHHH HHHHH HHHH
+    7:  U SUSUSUSUSU SUSU                UL HHHHH HH
+    6:  U SUSUSUSUSU SU                  UL HHHHH H
+    5:  U SUSUSUSUSU                     UL HHHHH
+    4:  U SUSUSUSU                       UL HHHH
+    3:  U SUSUSU                         UL HHH
+    2:  U SUSU                           UL HH
+    0:  U                                UL 
+
+  { nil swap_vars | }
+
+  YH
+
+  { nil swap_vars | }
+
+  XTM apply this operation to initialize the variables dictionary to 'nil'
+
+  [v]ariable:
+
+    WX NV
+      CUYHL
+        COX COT COX COX CON CON COX COH
+      CUYHL
+      COU COL
+      XEXL
+    D
+
+  [g]et:
+
+    WX NG
+      CUYHL 
+        COX COT COX CJVn1 COX CJVx0
+        COX COT COX CJVn2 COX CJVx2
+      CUL
+      CJVx1
+      COW COX CON CON COY CJVn1 CJVn2
+      COW CJ X Vx0 X Vx1 Vx2
+      XEXL
+    D
+

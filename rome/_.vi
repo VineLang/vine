@@ -1,0 +1,124 @@
+
+pub type Port;
+
+fn x(x: Port) -> (Port, Port) {
+  safe $ivy { ${x} = vi:tuple(^0 ^1) }
+}
+
+fn y(y: Port) -> (Port, Port) {
+  safe $ivy { ${y} = vi:dup(^0 ^1) }
+}
+
+fn eraser() -> Port {
+  safe $ivy { ^ = vi:eraser }
+}
+
+fn link(a: Port, b: Port) {
+  safe $ivy { ${a} = ${b} }
+}
+
+fn wire() -> (Port, Port) {
+  safe $ivy { ^0 = ^1 }
+}
+
+fn raw[T](t: T) -> Port {
+  safe $ivy { ^ = ${t} }
+}
+
+fn read_char(&io: &IO) -> N32 {
+  safe $ivy { ${io} = vi:ext#1[root:io:read_char](^ ${~io}) }
+}
+
+pub fn main(&io: &IO) {
+  let stack = [];
+  let hold = [];
+  loop {
+    let char = read_char(&io) as Char;
+    when {
+      char == 'X' {
+        let (a, b) = x(stack.pop_front().assume());
+        stack.push_front(b);
+        stack.push_front(a);
+      }
+      char == 'Y' {
+        let (a, b) = y(stack.pop_front().assume());
+        stack.push_front(b);
+        stack.push_front(a);
+      }
+      char == 'E' { link(stack.pop_front().assume(), eraser()); }
+      char == 'L' { link(stack.pop_front().assume(), stack.pop_front().assume()); }
+      char == 'W' {
+        let (a, b) = wire();
+        stack.push_front(a);
+        stack.push_front(b);
+      }
+      char == 'S' {
+        let (a, b) = (stack.pop_front().assume(), hold.pop_front().assume());
+        stack.push_front(b);
+        hold.push_front(a);
+      }
+      char == 'H' { hold.push_front(stack.pop_front().assume()); }
+      char == 'U' { stack.push_front(hold.pop_front().assume()); }
+      char == 'B' { break; }
+      char == 'P' {
+        link(raw((io, ~io)), raw(((), (stack, hold))));
+        return;
+      }
+    }
+    continue;
+  }
+  link(stack.pop_front().assume(), raw((
+    (io, ~io),
+    (
+      library([
+        util(fn (((io: IO, ~_io: ~IO), ~char: ~N32)) { char = read_char(&(io; _io)); }),
+        util(fn (((a: N32, b: N32), ((x: Port, y: Port), ~out: ~Port))) {
+          if a == b {
+            out = x;
+            link(y, eraser());
+          } else {
+            out = y;
+            link(x, eraser());
+          }
+        }),
+        util(fn (((a: N32, b: N32), ((x: Port, y: Port), ~out: ~Port))) {
+          if a < b {
+            out = x;
+            link(y, eraser());
+          } else {
+            out = y;
+            link(x, eraser());
+          }
+        }),
+      ]),
+      eraser(),
+    ),
+  )));
+  safe #root::util::erase((stack, hold));
+}
+
+fn library(utils: List[Port]) -> Port {
+  let (out, libs) = wire();
+  for util in utils {
+    let next;
+    (next, libs) = x(libs);
+    link(next, util);
+  }
+  link(libs, eraser());
+  out
+}
+
+fn util[T, F; fn F(T)](f: F) -> Port {
+  enum Req[T] {
+    Req(T),
+  }
+  let loop req;
+  match req {
+    Req(value) { f(value) }
+  }
+  let out;
+  req = Req(~out);
+  safe $ivy {
+    ^ = vi:tuple(vi:tuple(vi:tuple(x x) vi:tuple(vi:tuple(${req} ${~req}) vi:eraser)) ${out})
+  }
+}

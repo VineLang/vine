@@ -1,0 +1,565 @@
+
+def _ { set _ }
+
+def trigger (
+  x
+    ( x
+      ( x ( x set a0 set a1 ) ( x ( x set b0 set b1 ) ( x set c0 set c1 ) ) )
+      ( x take a1 ( x take b1 take c1 ) )
+    )
+    ( x take a0 ( x take b0 take c0 ) )
+)
+
+def ! { x trigger _ }
+
+def true { x set t ( x _ take t ) }
+def false { x _ ( x set f take f ) }
+def not { x set b ( x set t ( x set f ( take b take f take t ) ) )  }
+def and { x set a ( x set b ( take a take b false ) ) }
+def or { x set a ( x set b ( take a true take b ) ) }
+
+def some { x set v ( x set s ( x _ ( take s take v ) ) ) }
+def none { false }
+def unwrap { x set o ( x set v ( take o ( ) take v ) ) }
+
+def cons { x set h ( x set t ( x set c ( x _ ( take c take h take t ) ) ) ) }
+def nil { false }
+
+def let { x set a ( x take a ( ) ) }
+
+def num.eq { x set a ( x set b ( x set t ( x set f (
+  let ( x _ ( x set eq _ ) ) library
+  take eq trigger ( x take a take b ) ( x take t take f )
+) ) ) ) }
+
+def num.lt { x set a ( x set b ( x set t ( x set f (
+  let ( x _ ( x _ ( x set lt _ ) ) ) library
+  take lt trigger ( x take a take b ) ( x take t take f )
+) ) ) ) }
+
+def num.gt { x set a ( x set b ( num.lt take b take a ) ) }
+def num.le { x set a ( x set b ( not ( num.gt take a take b ) ) ) }
+def num.ge { x set a ( x set b ( not ( num.lt take a take b ) ) ) }
+def num.ne { x set a ( x set b ( not ( num.eq take a take b ) ) ) }
+
+def ~ { x ( x set a set b ) ( x take b take a ) }
+def swap { x ( x set a set b ) ( x ( x take b take a ) ( ) ) }
+
+def compose { x set f ( x set g ( x set a ( take g ( take f take a ) ) ) ) }
+
+def compose2 { x set a ( x set b ( x set c (
+  compose take a ( compose take b take c )
+) ) ) }
+
+def compose3 { x set a ( x set b ( x set c ( x set d (
+  compose take a ( compose take b ( compose take c take d ) )
+) ) ) ) }
+
+def compose4 { x set a ( x set b ( x set c ( x set d ( x set e (
+  compose take a ( compose take b ( compose take c ( compose take d take e ) ) )
+) ) ) ) ) }
+
+def .0 { x ( x ( x set a set c ) ( x set b take c ) ) ( x take a take b ) }
+def .1 { x ( x ( x set c set a ) ( x take c set b ) ) ( x take a take b ) }
+
+def if { x set b ( x set t ( x set f (
+  take b take t take f !
+) ) ) }
+
+def if_ { x set b ( x set c ( x set t ( x set f (
+  take b take t take f take c !
+) ) ) ) }
+
+def rec {
+  let set rec { in set rec in set f
+    get f ( get rec take rec take f ) !
+  }
+  get rec take rec
+}
+
+def string.eq ( rec { in set self x set a ( x set b (
+  if_ take a take b
+  { in set ah in set at in set b
+    if take b
+    { in set bh in set bt
+      and
+        ( num.eq outer take ah take bh )
+        ( outer outer take self ! outer take at take bt )
+    }
+    { false }
+  }
+  { in set b
+    if take b
+    { in _ in _ false }
+    { true }
+  }
+) ) } )
+
+def io.read_char { x ( x ( x set buf set raw ) set out ) (
+  if_ take buf ( x take raw take out )
+  { in set char in set buf in ( x set raw set out )
+    let take out ( x take buf take raw )
+    take char
+  }
+  { in ( x set raw set out )
+    let ( x set read _ ) library
+    let set char ( take read trigger ( x take raw set raw ) )
+    let take out ( x nil take raw )
+    take char
+  }
+) }
+
+def io.unread_char { x ( x ( x set buf set raw ) set out ) ( x set char (
+  let take out ( x ( cons take char take buf ) take raw )
+) ) }
+
+def space { outer io.read_char io   }
+def newline { outer io.read_char io
+
+}
+
+def char.is_whitespace { x set char (
+  or
+    ( num.eq get char space )
+    ( num.eq take char newline )
+) }
+
+def char.is_numeric { x set char (
+  and
+    ( num.ge get char ( outer io.read_char io 0 ) )
+    ( num.le take char ( outer io.read_char io 9 ) )
+) }
+
+def char.is_alpha { x set char (
+  or
+    ( and
+      ( num.ge get char ( outer io.read_char io a ) )
+      ( num.le get char ( outer io.read_char io z ) )
+    )
+    ( and
+      ( num.ge get char ( outer io.read_char io A ) )
+      ( num.le take char ( outer io.read_char io Z ) )
+    )
+) }
+
+def char.is_word { x set char (
+  or
+    ( or
+      ( char.is_numeric get char )
+      ( char.is_alpha get char )
+    )
+    ( or
+      ( num.eq get char ( outer io.read_char io _ ) )
+      ( num.eq take char ( outer io.read_char io . ) )
+    )
+) }
+
+def io.read_word ( rec { in set self x ( x set i set o ) (
+  let set char ( io.read_char ( x take i set i ) )
+  if ( char.is_whitespace get char ) { x ( ) (
+    nil
+  ) } {
+    let set char outer take char
+    if ( char.is_word get char ) { x set io (
+      cons outer get char ( outer outer take self ! take io )
+    ) } { x set io (
+      io.unread_char take io outer take char
+      nil
+    ) }
+  } ( x take i take o )
+) } )
+
+def io.read_token { x ( x set i set o ) (
+  let set char ( io.read_char ( x take i set i ) )
+  if ( char.is_whitespace get char ) { x ( ) (
+    nil
+  ) } {
+    let set char outer take char
+    if ( char.is_word get char ) { x set io (
+      cons outer get char ( io.read_word take io )
+    ) } { x ( ) (
+      cons outer take char nil
+    ) }
+  } ( x take i take o )
+) }
+
+def io.skip_line ( rec { in set self x ( x set i set o ) (
+  let set char ( io.read_char ( x take i set i ) )
+  if ( num.ne get char newline ) take self { x ( ) ( ) } ( x take i take o )
+) } )
+
+def dict.take ( rec { in set self x ( x set dict set out ) ( x set word (
+  if take dict { in ( x set key set value ) in set rest
+    let set word outer take word
+    if ( string.eq get key get word ) { x set value ( x set rest ( x set out (
+      let take out take rest
+      some take value
+    ) ) ) } { x set value ( x set rest ( x set out (
+      let take out ( cons ( x outer take key take value ) set out )
+      outer outer take self ! ( x take rest take out ) outer take word
+    ) ) ) } take value take rest
+  } { x set out (
+    let take out nil
+    none
+  ) } take out
+) ) } )
+
+def dict.get { x ( x set dict set out ) ( x set key (
+  let set value ( unwrap ( dict.take ( x take dict set dict ) get key ) _ )
+  let take out ( cons ( x take key get value ) ( take dict ) )
+  take value
+) ) }
+
+def vars.drop ( rec { in set self x set dict (
+  if take dict
+  { in ( x _ ( ) ) in set rest
+    outer take self ! take rest
+  }
+  { }
+) } )
+
+def vars.borrow { x ( x set dict set out ) ( x ( x set i set o ) (
+  let set word ( io.read_token ( x take i set i ) )
+  let ( x set key set inv ) (
+    if_ ( string.eq get word ( outer io.read_token io ~ ) ) ( x take i take o )
+    { in set io
+      x ( io.read_token take io ) ~
+    }
+    { in ( )
+      x outer take word ( )
+    }
+  )
+  let ( x set cur set final ) ( unwrap ( dict.take ( x take dict set dict ) get key ) ( ) )
+  let set ref ( x take cur set cur )
+  let take out ( cons ( x take key ( x take cur take final ) ) take dict )
+  take inv take ref
+) ) }
+
+def dict.push { x ( x set dict set out ) ( x set word ( x set value (
+  let take out ( cons ( x take word take value ) take dict )
+) ) ) }
+
+def context.groups { .0 }
+def context.trigger { compose .1 .0 }
+def context.vars { compose .1 .1 }
+
+def state.context { .0 }
+def state.io { compose .1 .0 }
+def state.dict { compose .1 ( compose .1 .0 ) }
+def state.blocks { compose .1 ( compose .1 ( compose .1 .0 ) ) }
+def state.active { compose .1 ( compose .1 ( compose .1 ( compose .1 .0 ) ) ) }
+
+def state.groups { compose state.context context.groups }
+def state.io.borrow { compose state.io .0 }
+def state.vars { compose state.context context.vars }
+
+def groups.init { ( x ( x ( ) ( ) ) _ ) }
+
+def groups.push {
+  compose .0 ( x ( x ( x set fn set rest ) ( x ( take fn set value ) take rest ) ) ( x take value ( ) ) )
+}
+
+def groups.expect {
+  compose .0 ( x ( x ( x set value set rest ) ( x ( x set input take value ) take rest ) ) ( x take input ( ) ) )
+}
+
+def groups.infix {
+  compose .0 ( x ( x ( x set value set fn ) ( x ( ) ( compose ( set op take value ) take fn ) ) ) ( x take op ( ) ) )
+}
+
+def groups.open { x ( x set rest ( x ( x ( ) ( ) ) take rest ) ) ( ) }
+
+def groups.close { x ( x ( x set cur set rest ) take rest ) (
+  let ( x set val set fn ) take cur
+  take fn take val
+) }
+
+def state.push { compose state.groups groups.push }
+def state.expect { compose state.groups groups.expect }
+def state.infix { compose state.groups groups.infix }
+
+def state.read_token { compose state.io.borrow io.read_token }
+
+def state.trigger { compose state.context context.trigger }
+def state.trigger.borrow { compose state.trigger .0 }
+
+def op.push { x set value ( ~ state.push ( x take value _ ) ) }
+def op.expect { x set value ( ~ state.expect ( x take value _ ) ) }
+def op.push_ { x set package (
+  compose
+    ( ~ state.trigger ( ~ .0 set trigger ) )
+    ( op.push ( take package take trigger ) )
+) }
+
+def dict ( rec { in set self x set base ( x set more (
+  if_ take more take base
+  { in set base x set io ( x set value (
+    let set key ( io.read_token take io )
+    outer take self ! ( cons ( x take key take value ) take base )
+  ) ) }
+  { in set base take base }
+) ) } )
+
+def operations {
+  outer dict ( cons ( x nil { } ) nil )
+    true io #
+      { ~ state.io.borrow ( ~ io.skip_line _ ) }
+    true io $
+      { compose2
+        ( ~ state.io.borrow set io )
+        ( ~ state.vars ( ~ vars.borrow ( x take io ( x set value _ ) ) ) )
+        ( op.push take value )
+      }
+    true io &
+      { compose2
+        ( ~ state.io.borrow set io )
+        ( ~ state.vars ( ~ vars.borrow ( x take io set ref ) ) )
+        ( op.push take ref )
+      }
+    true io meta
+      { compose2
+        ( ~ state.read_token set var )
+        ( ~ state.dict ( ~ dict.push ( x take var ( x set op _ ) ) ) )
+        ( op.expect ( x set trigger ( x ( take op take trigger ) _ ) ) )
+      }
+    true io (
+      { ~ state.groups ( ~ groups.open _ ) }
+    true io )
+      { compose
+        ( ~ state.groups ( ~ groups.close set value ) )
+        ( op.push take value )
+      }
+    true io {
+      { compose
+        ( ~ state.context ( x set old ( x groups.init ( x set trigger nil ) ) ) )
+        ( ~ state.blocks ( x set rest ( x ( x take old ( x ( ) take trigger ) ) take rest ) ) )
+      }
+    true io in
+      { compose
+        ( ~ state.blocks ( x
+          ( x ( x set old ( x set wrap set trigger ) ) set rest )
+          ( x ( x take old ( x ( x set value ( take wrap ( x set input take value ) ) ) take trigger ) ) take rest )
+        ) )
+        ( op.expect take input )
+      }
+    true io }
+      { compose3
+        ( ~ state.groups ( ~ groups.close set value ) )
+        ( ~ state.context ( x ( x _ ( x ( ) ( ~ vars.drop _ ) ) ) set old ) )
+        ( ~ state.blocks ( x ( x ( x take old ( x set wrap set trigger ) ) set rest ) take rest ) )
+        ( op.push ( take wrap ( x take trigger take value ) ) )
+      }
+    true io ?
+      { compose3
+        ( ~ state.groups ( ~ groups.close set output ) )
+        ( ~ state.io ( x ( x _ ( x _ take output ) ) _ ) )
+        ( ~ state.vars ( x ( ~ vars.drop _ ) _ ) )
+        _
+      }
+
+    true io library              { op.push_ { library              } }
+    true io x                    { op.push_ { x                    } }
+    true io _                    { op.push_ { _                    } }
+    true io trigger              { op.push_ { trigger              } }
+    true io !                    { op.push_ { !                    } }
+    true io true                 { op.push_ { true                 } }
+    true io false                { op.push_ { false                } }
+    true io not                  { op.push_ { not                  } }
+    true io and                  { op.push_ { and                  } }
+    true io or                   { op.push_ { or                   } }
+    true io some                 { op.push_ { some                 } }
+    true io none                 { op.push_ { none                 } }
+    true io unwrap               { op.push_ { unwrap               } }
+    true io cons                 { op.push_ { cons                 } }
+    true io nil                  { op.push_ { nil                  } }
+    true io let                  { op.push_ { let                  } }
+    true io num.eq               { op.push_ { num.eq               } }
+    true io num.lt               { op.push_ { num.lt               } }
+    true io num.gt               { op.push_ { num.gt               } }
+    true io num.le               { op.push_ { num.le               } }
+    true io num.ge               { op.push_ { num.ge               } }
+    true io num.ne               { op.push_ { num.ne               } }
+    true io ~                    { op.push_ { ~                    } }
+    true io swap                 { op.push_ { swap                 } }
+    true io compose              { op.push_ { compose              } }
+    true io compose2             { op.push_ { compose2             } }
+    true io compose3             { op.push_ { compose3             } }
+    true io compose4             { op.push_ { compose4             } }
+    true io .0                   { op.push_ { .0                   } }
+    true io .1                   { op.push_ { .1                   } }
+    true io if                   { op.push_ { if                   } }
+    true io if_                  { op.push_ { if_                  } }
+    true io rec                  { op.push_ { rec                  } }
+    true io string.eq            { op.push_ { string.eq            } }
+    true io io.read_char         { op.push_ { io.read_char         } }
+    true io io.unread_char       { op.push_ { io.unread_char       } }
+    true io space                { op.push_ { space                } }
+    true io newline              { op.push_ { newline              } }
+    true io char.is_whitespace   { op.push_ { char.is_whitespace   } }
+    true io char.is_numeric      { op.push_ { char.is_numeric      } }
+    true io char.is_alpha        { op.push_ { char.is_alpha        } }
+    true io char.is_word         { op.push_ { char.is_word         } }
+    true io io.read_word         { op.push_ { io.read_word         } }
+    true io io.read_token        { op.push_ { io.read_token        } }
+    true io io.skip_line         { op.push_ { io.skip_line         } }
+    true io dict.take            { op.push_ { dict.take            } }
+    true io dict.get             { op.push_ { dict.get             } }
+    true io vars.drop            { op.push_ { vars.drop            } }
+    true io vars.borrow          { op.push_ { vars.borrow          } }
+    true io dict.push            { op.push_ { dict.push            } }
+    true io context.groups       { op.push_ { context.groups       } }
+    true io context.trigger      { op.push_ { context.trigger      } }
+    true io context.vars         { op.push_ { context.vars         } }
+    true io state.context        { op.push_ { state.context        } }
+    true io state.io             { op.push_ { state.io             } }
+    true io state.dict           { op.push_ { state.dict           } }
+    true io state.blocks         { op.push_ { state.blocks         } }
+    true io state.active         { op.push_ { state.active         } }
+    true io state.groups         { op.push_ { state.groups         } }
+    true io state.io.borrow      { op.push_ { state.io.borrow      } }
+    true io state.vars           { op.push_ { state.vars           } }
+    true io groups.init          { op.push_ { groups.init          } }
+    true io groups.push          { op.push_ { groups.push          } }
+    true io groups.expect        { op.push_ { groups.expect        } }
+    true io groups.infix         { op.push_ { groups.infix         } }
+    true io groups.open          { op.push_ { groups.open          } }
+    true io groups.close         { op.push_ { groups.close         } }
+    true io state.push           { op.push_ { state.push           } }
+    true io state.expect         { op.push_ { state.expect         } }
+    true io state.infix          { op.push_ { state.infix          } }
+    true io state.read_token     { op.push_ { state.read_token     } }
+    true io state.trigger        { op.push_ { state.trigger        } }
+    true io state.trigger.borrow { op.push_ { state.trigger.borrow } }
+
+    false
+}
+
+def engine ( rec { in set self
+  compose4
+    ( ~ state.read_token set token )
+    ( ~ state.dict ( ~ dict.get ( x take token set operation ) )  )
+    ( take operation ! )
+    ( ~ state.active ( x set active ( ) ) )
+    ( take active take self ! )
+} )
+
+let set state ( x ( x groups.init ( x ! nil ) ) ( x set io ( x operations ( x _ ( x ( ) _ ) ) ) ) )
+let _ ( engine take state )
+take io boot
+
+meta do { x &~state (
+  let $~token (state.read_token &state)
+  let $~op (dict.get (state.dict &state) $token)
+  let $~trigger (state.trigger.borrow &state)
+  state.push &state (x ($op $trigger) ())
+) }
+
+meta ^ { x &~state (
+  swap &groups (state.groups &state)
+  let (x (x $~top $~rest) $rest) (state.blocks &state)
+  swap (state.context &state) (.0 &top)
+  swap &groups (state.groups &state)
+
+  let $~token (state.read_token &state)
+  let $~op (dict.get (state.dict &state) $token)
+  let ($op !) &state
+
+  swap &groups (state.groups &state)
+  swap (state.context &state) (.0 &top)
+  let (x $~rest (x $top $rest)) (state.blocks &state)
+  swap &groups (state.groups &state)
+) }
+
+meta def { x &~state (
+  do meta &state
+  state.push &state { x &~state (
+    let $~trigger (state.trigger.borrow &state)
+    state.push &state (^$def $trigger)
+  ) }
+  state.expect &state $~def
+) }
+
+meta prefix { x &~state (
+  do meta &state
+  state.push &state { x &~state (
+    let $~trigger (state.trigger.borrow &state)
+    state.push &state (^$body $trigger $arg)
+    state.expect &state $~arg
+  ) }
+  state.expect &state $~body
+) }
+
+meta infix { x &~state (
+  do meta &state
+  state.push &state { x &~state (
+    let $~trigger (state.trigger.borrow &state)
+    state.infix &state (^$body $trigger)
+  ) }
+  state.expect &state $~body
+) }
+
+infix , { x }
+infix / {}
+
+meta in { &~state,
+  let &~wrap (.0 / .1 / .0 / state.blocks &state)
+  let ($~value, $wrap ($~input, $value)) $~wrap
+  state.expect &state $input
+}
+
+meta @ { &~state,
+  let ($x, $~x0, $~x1) ({ trigger } / state.trigger.borrow &state)
+  state.expect &state ($~x, $x1)
+  do & &state
+  state.push &state $x0
+}
+
+meta set { &~state,
+  state.expect &state (_, $value)
+  do & &state
+  state.push &state $~value
+}
+
+meta get { do @ }
+meta take { do $ }
+meta outer { do ^ }
+
+meta io { &~state,
+  let $~io (state.io.borrow &state)
+  state.push &state $io
+}
+
+meta boot { &~state,
+  let &~io (state.io &state)
+  let (groups.close / state.groups &state) $io
+  let &~vars (state.vars &state)
+  vars.drop $vars
+  let _ &state
+}
+
+meta " { &~state, (
+  let $~token (state.read_token &state)
+  state.push &state $token
+) }
+
+meta ' { &~state,
+  let $~char (io.read_char / state.io.borrow &state)
+  state.push &state $char
+}
+
+infix : { cons }
+
+prefix rec {
+  let $~rec { in $~rec in $~f
+    @f! (@rec $rec $f)
+  }
+  @rec $rec
+}
+
+
+def true { $~t, _, $t }
+def false { _, $~f, $f }
+prefix not { $~b, $~t, $~f, $b $f $t }
+infix and { $~a, $~b, $a $b false }
+infix or { $~a, $~b, $a true $b }
+
