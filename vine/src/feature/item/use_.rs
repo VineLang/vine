@@ -29,8 +29,64 @@ pub enum ImportChild {
 
 impl GrammarRule for ItemUse {
   fn _rule(grammar: &mut Grammar) -> grammar::Rule {
-    use grammar::*; // todo
-    grammar.named("ItemUse", (Token::Use, rule::<Path<!>>(), Token::Semi))
+    use grammar::*;
+    grammar.named(
+      "ItemUse",
+      (
+        Token::Use,
+        choice((
+          rule::<ImportTree>(),
+          delimited::<ImportTree>(Token::OpenBrace, Token::Comma, Token::CloseBrace),
+        )),
+        Token::Semi,
+      ),
+    )
+  }
+}
+
+impl GrammarRule for ImportTree {
+  fn _rule(grammar: &mut Grammar) -> grammar::Rule {
+    use grammar::*;
+    grammar.named(
+      "ImportTree",
+      (
+        rule::<PathComponent>(),
+        choice((
+          (
+            Token::ColonColon,
+            choice((
+              rule::<ImportChild>(),
+              delimited::<ImportChild>(Token::OpenBrace, Token::Comma, Token::CloseBrace)
+                .named("ImportChildren"),
+            )),
+          ),
+          rule::<ImportAlias>(),
+        ))
+        .optional(),
+      ),
+    )
+  }
+}
+
+impl GrammarRule for ImportChild {
+  fn _rule(grammar: &mut Grammar) -> grammar::Rule {
+    use grammar::*;
+    grammar.hidden(
+      "ImportChild",
+      choice((
+        rule::<ImportAlias>(),
+        (Token::Star, (Token::As, Token::Underscore).optional()).named("ImportGlob"),
+        rule::<ImportTree>(),
+      )),
+    )
+  }
+}
+
+struct ImportAlias;
+impl GrammarRule for ImportAlias {
+  fn _rule(grammar: &mut Grammar) -> grammar::Rule {
+    use grammar::*;
+    grammar.named("ImportAlias", (Token::As, choice((Token::Underscore, rule::<Ident>()))))
   }
 }
 

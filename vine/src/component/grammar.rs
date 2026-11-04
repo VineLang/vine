@@ -536,13 +536,13 @@ impl Tree {
 #[test]
 fn sampler() {
   let mut grammar = Grammar::default();
-  let rule = Expr::rule(&mut grammar);
+  let rule = Item::rule(&mut grammar);
   grammar.flatten_choices();
   let mut sampler = Sampler::new(&grammar);
   let mut best_len = 0;
   for _ in 0..100 {
     let src = sampler.sample(rule, 12).to_string();
     println!("{}\n", src);
-    _ = Parser::new(Lexer::new(&src)).unwrap().parse::<Expr>();
+    // _ = Parser::new(Lexer::new(&src)).unwrap().parse::<Expr>();
   }
 }

@@ -57,7 +57,21 @@ impl Parse<ExprIf> for Parser<'_> {
 
 impl GrammarPrattKind for TyIfConst {
   fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
-    use grammar::*; // todo
+    use grammar::*;
+    if prec == Prec::Min {
+      rules.push(grammar.named(
+        "IfConst",
+        (
+          Token::If,
+          Token::Const,
+          rule::<Path<!>>(),
+          Token::OpenBrace,
+          rule::<Ty>(),
+          Token::CloseBrace,
+          (Token::Else, Token::OpenBrace, rule::<Ty>(), Token::CloseBrace).optional(),
+        ),
+      ))
+    }
   }
 }
 

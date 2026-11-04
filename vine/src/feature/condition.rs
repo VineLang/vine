@@ -126,7 +126,7 @@ impl GrammarPrattKind for PatIs {
 
 impl GrammarPrattKind for PatCond {
   fn rules(grammar: &mut Grammar, prec: Prec, rules: &mut Vec<grammar::Rule>) {
-    use grammar::*; // todo
+    use grammar::*;
     if prec == Prec::Cond {
       rules.push(grammar.named("If", (left::<Pat>(prec), Token::If, right::<Expr>(prec))));
     }

@@ -39,8 +39,7 @@ impl GrammarRule for PathComponent {
 
 impl GrammarRule for Path<!> {
   fn _rule(grammar: &mut Grammar) -> grammar::Rule {
-    use grammar::*;
-    // todo
+    use grammar::*; // todo
     grammar.named(
       "Path",
       (
