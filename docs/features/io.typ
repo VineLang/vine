@@ -4,7 +4,7 @@
 
 All IO in Vine is done by calling functions on an IO handle,
   passed in to #fn[`main`] at the start of the program.
-For example, here is a basic `cat` program:
+For example, here is a basic `echo` program:
 
 ```vi
 pub fn main(&io: &IO) {
