@@ -17,6 +17,9 @@ for examples of Vine.
 cargo run -r --bin vine run vine/examples/$NAME.vi
 ```
 
+You can also try Vine in your browser, with no install, in the
+#link("https://vine.run")[Vine Playground].
+
 If you're curious to learn more, join the
 #link("https://discord.gg/bgUPV8KjDv")[Vine Discord server].
 
