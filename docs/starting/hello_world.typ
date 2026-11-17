@@ -18,6 +18,8 @@ We can run this with:
 vine run hello_world.vi
 ```
 
+(No install yet? You can run it in the #link("https://vine.run")[Vine Playground] too.)
+
 You should see something like the following:
 
 ```iv
