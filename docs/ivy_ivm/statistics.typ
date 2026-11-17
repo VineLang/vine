@@ -29,6 +29,36 @@ This measures how much "work" was done,
 
 The other numbers break down the @interaction-system[various types of interactions].
 
+=== Parallelism
+
+```iv
+Parallelism
+  Depth                2_183
+  Breadth                 19
+  Speedup                129 cB
+```
+
+This section only appears when a program is run in
+  breadth-first mode (`vine run --breadth-first`, or `-d`).
+In this mode, the IVM performs every available interaction at each step,
+  as an idealized parallel machine with unlimited workers would.
+(The sample above is from `vine/examples/sum_divisors.vi`.)
+
+`Depth` is the number of these steps.
+It is the length of the longest chain of interactions
+  that must happen one after another.
+
+`Breadth` is the average number of interactions that could be performed at the same time,
+  and is equal to `Total / Depth`.
+
+`Speedup` expresses the same ratio on a logarithmic scale, measured in centibels,
+  and is equal to `100 * log10(Total / Depth)`.
+A speedup of 100 cB means a parallel machine could run the program up to 10 times faster;
+  200 cB means up to 100 times faster.
+These numbers are an upper bound,
+  since a real machine has a limited number of workers
+  and pays a cost to move work between them.
+
 === Memory
 
 ```iv

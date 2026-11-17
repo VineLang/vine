@@ -22,8 +22,8 @@ Passing `--workers <n>` or `-w <n>` will
 
 Passing `--breadth-first` will run the program in breadth-first mode,
   where at each step, every possible interaction is performed in parallel.
-This allowing measuring the
-  the number of parallel steps needed,
+This allows measuring the
+  number of parallel steps needed,
   which corresponds to the
   #link("https://en.wikipedia.org/wiki/Analysis_of_parallel_algorithms#Definitions")[_depth_]
   of the computation.
